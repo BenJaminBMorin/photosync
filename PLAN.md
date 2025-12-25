@@ -60,9 +60,9 @@ Table: synced_photos
 #### 3. Unsynced Photo Detection Logic
 ```
 Photo is "unsynced" if:
-  - NOT in synced_photos table, OR
-  - file_hash differs from stored hash (photo was edited), OR
-  - last_modified > synced_at
+  - NOT in synced_photos table
+
+(Simple! Once synced, it stays synced. Edits don't trigger re-sync.)
 ```
 
 #### 4. User Interface Screens
@@ -195,31 +195,19 @@ app/
 #### 2. Database Schema
 
 ```sql
--- Main photos table
+-- Main photos table (simplified - no EXIF/metadata)
 CREATE TABLE photos (
     id TEXT PRIMARY KEY,  -- GUID
     original_filename TEXT NOT NULL,
-    stored_filename TEXT NOT NULL,
     stored_path TEXT NOT NULL,  -- e.g., "2024/03/IMG_xxx.jpg"
-    file_hash TEXT NOT NULL,  -- SHA256
+    file_hash TEXT NOT NULL,  -- SHA256 for duplicate detection
     file_size INTEGER NOT NULL,
     date_taken DATETIME NOT NULL,
-    uploaded_at DATETIME NOT NULL,
-    device_id TEXT,  -- optional: track which device
-    width INTEGER,
-    height INTEGER,
-    mime_type TEXT
+    uploaded_at DATETIME NOT NULL
 );
 
 CREATE INDEX idx_photos_hash ON photos(file_hash);
 CREATE INDEX idx_photos_date ON photos(date_taken);
-
--- Devices table (optional, for multi-device tracking)
-CREATE TABLE devices (
-    id TEXT PRIMARY KEY,
-    name TEXT,
-    last_sync DATETIME
-);
 ```
 
 #### 3. REST API Endpoints
@@ -413,24 +401,15 @@ PhotoSyncServer/
 
 ---
 
-## Questions to Consider
+## Design Decisions (Confirmed)
 
-1. **Photo Metadata Extraction**: Should the server extract EXIF data for additional metadata (camera model, GPS, etc.)?
-
-2. **Thumbnail Generation**: Should the server generate thumbnails for faster browsing via web interface later?
-
-3. **Original File Preservation**: Keep original filenames exactly, or normalize them?
-
-4. **Conflict Resolution**: If a photo is edited on device after sync, should it:
-   - Create a new version?
-   - Overwrite the existing?
-   - Keep both?
-
-5. **Deleted Photos**: Should the app track and sync deletions?
-
-6. **Web Interface**: Future enhancement - admin web UI to browse synced photos?
-
-7. **Multiple Devices**: Support syncing from multiple Android devices to same server?
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Authentication | API Key | Simple, sufficient for personal NAS use |
+| Edited Photos | Count as synced | Only care about initial backup, not versions |
+| EXIF/Metadata | Skip | Keep it simple, just store the files |
+| Thumbnails | Skip | Not needed, no web UI planned |
+| Sync Tracking | By file path + initial sync | Once synced, stays synced unless deleted from tracking |
 
 ---
 
