@@ -1,0 +1,13 @@
+{
+  "serverAddress": ":5000",
+  "databasePath": "photosync.db",
+  "photoStorage": {
+    "basePath": "./photos",
+    "maxFileSizeMB": 50,
+    "allowedExtensions": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif"]
+  },
+  "security": {
+    "apiKey": "CHANGE_THIS_TO_A_SECURE_API_KEY_AT_LEAST_32_CHARS",
+    "apiKeyHeader": "X-API-Key"
+  }
+}

@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      server-dotnet: ${{ steps.filter.outputs.server-dotnet }}
+      server-go: ${{ steps.filter.outputs.server-go }}
+      android: ${{ steps.filter.outputs.android }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          server-dotnet:
+            - 'server/**'
+          server-go:
+            - 'server-go/**'
+          android:
+            - 'android/**'
+
+  dotnet-build:
+    needs: changes
+    if: ${{ needs.changes.outputs.server-dotnet == 'true' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    - run: dotnet restore
+    - run: dotnet build --no-restore --configuration Release
+    - run: dotnet test --no-build --configuration Release
+
+  go-build:
+    needs: changes
+    if: ${{ needs.changes.outputs.server-go == 'true' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server-go
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    - run: go mod download
+    - run: go build -v ./...
+    - run: go test -v -race ./...
+
+  android-build:
+    needs: changes
+    if: ${{ needs.changes.outputs.android == 'true' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    - run: chmod +x gradlew
+    - run: ./gradlew assembleDebug
+    - run: ./gradlew testDebugUnitTest
