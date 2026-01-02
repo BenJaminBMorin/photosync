@@ -25,15 +25,27 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Initialize database
-	db, err := repository.NewSQLiteDB(cfg.DatabasePath)
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	// Initialize database and repository
+	var photoRepo repository.PhotoRepo
+	if cfg.UsePostgres() {
+		log.Println("Using PostgreSQL database")
+		db, err := repository.NewPostgresDB(cfg.DatabaseURL)
+		if err != nil {
+			log.Fatalf("Failed to initialize PostgreSQL database: %v", err)
+		}
+		defer db.Close()
+		photoRepo = repository.NewPhotoRepositoryPostgres(db)
+	} else {
+		log.Println("Using SQLite database")
+		db, err := repository.NewSQLiteDB(cfg.DatabasePath)
+		if err != nil {
+			log.Fatalf("Failed to initialize SQLite database: %v", err)
+		}
+		defer db.Close()
+		photoRepo = repository.NewPhotoRepository(db)
 	}
-	defer db.Close()
 
 	// Initialize services
-	photoRepo := repository.NewPhotoRepository(db)
 	hashService := services.NewHashService()
 	storageService, err := services.NewPhotoStorageService(
 		cfg.PhotoStorage.BasePath,

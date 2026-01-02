@@ -1,95 +1,283 @@
-name: iOS Build
+name: Build iOS App
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, develop, 'claude/*' ]
     paths:
       - 'ios/**'
-      - '.github/workflows/ios.yml'
+      - '.github/workflows/ios-build.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'ios/**'
-      - '.github/workflows/ios.yml'
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ios
+    name: Build iOS App
+    runs-on: macos-14
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: List available Xcode versions
+      run: ls -la /Applications/ | grep Xcode
 
     - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode_15.2.app
+      run: |
+        # Use the latest Xcode available
+        XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+        if [ -z "$XCODE_PATH" ]; then
+          echo "No Xcode found, using default"
+          xcodebuild -version
+        else
+          echo "Using Xcode at: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+        fi
 
     - name: Show Xcode version
       run: xcodebuild -version
 
-    - name: List available simulators
-      run: xcrun simctl list devices available
+    - name: Show available SDKs
+      run: xcodebuild -showsdks
+
+    - name: List schemes
+      working-directory: ios
+      run: xcodebuild -project PhotoSync.xcodeproj -list
 
     - name: Build for iOS Simulator
+      working-directory: ios
       run: |
-        xcodebuild build \
+        xcodebuild clean build \
           -project PhotoSync.xcodeproj \
           -scheme PhotoSync \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -destination 'generic/platform=iOS Simulator' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          ONLY_ACTIVE_ARCH=YES
+          CODE_SIGNING_ALLOWED=NO \
+          2>&1 | tee build.log || (echo "=== Build failed. Errors: ===" && grep -i "error:" build.log && exit 1)
 
-    - name: Run Unit Tests
+    - name: Build for Release
+      working-directory: ios
       run: |
-        xcodebuild test \
+        xcodebuild clean build \
           -project PhotoSync.xcodeproj \
           -scheme PhotoSync \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
-          -configuration Debug \
+          -destination 'generic/platform=iOS' \
+          -configuration Release \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          -resultBundlePath TestResults
+          CODE_SIGNING_ALLOWED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          2>&1 | tee -a build.log || (echo "=== Release build failed. Errors: ===" && grep -i "error:" build.log && exit 1)
 
-    - name: Upload Test Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: ios/TestResults
-        retention-days: 7
+    - name: Discord Notification - Success
+      if: success()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
 
-  archive:
-    runs-on: macos-latest
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "Build Successful",
+              "description": "PhotoSync iOS build completed successfully",
+              "color": 3066993,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    - name: Discord Notification - Failure
+      if: failure()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        # Extract errors from build log if it exists
+        if [ -f ios/build.log ]; then
+          ERRORS=$(grep -i "error:" ios/build.log | head -5 | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}')
+        else
+          ERRORS="Build failed - check workflow logs for details"
+        fi
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "Build Failed",
+              "description": "PhotoSync iOS build failed",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Errors",
+                  "value": "```\n'"$ERRORS"'\n```",
+                  "inline": false
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+  build-ipa:
+    name: Build Unsigned IPA
+    runs-on: macos-14
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    defaults:
-      run:
-        working-directory: ios
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode_15.2.app
+      run: |
+        XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+        if [ -n "$XCODE_PATH" ]; then
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+        fi
 
-    - name: Build Archive (No Signing)
+    - name: Build Archive
+      working-directory: ios
       run: |
         xcodebuild archive \
           -project PhotoSync.xcodeproj \
           -scheme PhotoSync \
           -archivePath build/PhotoSync.xcarchive \
           -destination 'generic/platform=iOS' \
+          -configuration Release \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO
 
-    - name: Upload Archive
+    - name: Create Unsigned IPA
+      working-directory: ios
+      run: |
+        mkdir -p build/Payload
+        cp -r build/PhotoSync.xcarchive/Products/Applications/PhotoSync.app build/Payload/
+        cd build && zip -r PhotoSync-unsigned.ipa Payload
+
+    - name: Upload IPA Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: PhotoSync-archive
-        path: ios/build/PhotoSync.xcarchive
-        retention-days: 30
+        name: PhotoSync-unsigned-ipa
+        path: ios/build/PhotoSync-unsigned.ipa
+        retention-days: 3
+        compression-level: 9
+
+    - name: Discord Notification - IPA Success
+      if: success()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "Unsigned IPA Built",
+              "description": "PhotoSync iOS unsigned IPA created successfully",
+              "color": 3447003,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    - name: Discord Notification - IPA Failure
+      if: failure()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "IPA Build Failed",
+              "description": "Failed to create unsigned IPA",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}

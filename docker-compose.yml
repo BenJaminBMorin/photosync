@@ -1,0 +1,24 @@
+services:
+  photosync:
+    build:
+      context: ./server-go
+      dockerfile: Dockerfile
+    container_name: photosync
+    restart: unless-stopped
+    ports:
+      - "5050:5000"
+    environment:
+      - SERVER_ADDRESS=:5000
+      - DATABASE_URL=postgres://admin:IBjamin42!@host.docker.internal:5432/photosync?sslmode=disable
+      - PHOTO_STORAGE_PATH=/photos
+      - API_KEY=67f0fee6bd8b016074d4ae7d5f5aad9faba27740bc54da224f7ce30933496182
+    volumes:
+      - /mnt/nas/photosync:/photos
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - photosync-net
+
+networks:
+  photosync-net:
+    driver: bridge

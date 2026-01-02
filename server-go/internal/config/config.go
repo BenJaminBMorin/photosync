@@ -10,8 +10,14 @@ import (
 type Config struct {
 	ServerAddress string       `json:"serverAddress"`
 	DatabasePath  string       `json:"databasePath"`
+	DatabaseURL   string       `json:"databaseUrl"`
 	PhotoStorage  PhotoStorage `json:"photoStorage"`
 	Security      Security     `json:"security"`
+}
+
+// UsePostgres returns true if PostgreSQL should be used
+func (c *Config) UsePostgres() bool {
+	return c.DatabaseURL != ""
 }
 
 // PhotoStorage configuration
@@ -68,6 +74,9 @@ func Load() (*Config, error) {
 	}
 	if dbPath := os.Getenv("DATABASE_PATH"); dbPath != "" {
 		cfg.DatabasePath = dbPath
+	}
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		cfg.DatabaseURL = dbURL
 	}
 	if basePath := os.Getenv("PHOTO_STORAGE_PATH"); basePath != "" {
 		cfg.PhotoStorage.BasePath = basePath

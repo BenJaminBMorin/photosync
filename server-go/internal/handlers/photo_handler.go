@@ -18,14 +18,14 @@ import (
 
 // PhotoHandler handles photo-related endpoints
 type PhotoHandler struct {
-	repo           *repository.PhotoRepository
+	repo           repository.PhotoRepo
 	storageService *services.PhotoStorageService
 	hashService    *services.HashService
 }
 
 // NewPhotoHandler creates a new PhotoHandler
 func NewPhotoHandler(
-	repo *repository.PhotoRepository,
+	repo repository.PhotoRepo,
 	storageService *services.PhotoStorageService,
 	hashService *services.HashService,
 ) *PhotoHandler {

@@ -1,0 +1,346 @@
+name: Build and Deploy to TestFlight
+
+on:
+  push:
+    branches: [ main, release/* ]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-testflight.yml'
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Build number (leave empty for auto-increment)'
+        required: false
+        type: string
+      branch:
+        description: 'Branch to build from (leave empty for current branch)'
+        required: false
+        type: string
+      skip_symbols:
+        description: 'Skip symbol upload to save time'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  SCHEME: PhotoSync
+  PROJECT: PhotoSync.xcodeproj
+
+jobs:
+  build-and-deploy:
+    name: Build and Upload to TestFlight
+    runs-on: macos-14
+
+    steps:
+    - name: Show Build Configuration
+      run: |
+        echo "## TestFlight Build Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.event.inputs.branch || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Skip Symbols:** ${{ github.event.inputs.skip_symbols || 'false' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+        fetch-depth: 0
+
+    - name: Cache DerivedData
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-deriveddata-${{ hashFiles('ios/**/*.swift', 'ios/**/*.h', 'ios/**/*.m') }}
+        restore-keys: |
+          ${{ runner.os }}-deriveddata-
+
+    - name: Cache Swift PM
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/org.swift.swiftpm
+          ~/.swiftpm
+        key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+
+    - name: Select Xcode
+      run: |
+        XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+        if [ -n "$XCODE_PATH" ]; then
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+        fi
+        xcodebuild -version
+
+    - name: Calculate Build Number
+      id: build_number
+      run: |
+        if [ -n "${{ github.event.inputs.build_number }}" ]; then
+          BUILD_NUMBER="${{ github.event.inputs.build_number }}"
+        else
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+        fi
+        echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+        echo "Using build number: $BUILD_NUMBER"
+
+    - name: Update Version and Build Number
+      working-directory: ios
+      run: |
+        sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ steps.build_number.outputs.build_number }}/" $PROJECT/project.pbxproj
+        sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = [^;]*/PRODUCT_BUNDLE_IDENTIFIER = ${{ secrets.BUNDLE_IDENTIFIER }}/' $PROJECT/project.pbxproj
+        echo "Updated build number to: ${{ steps.build_number.outputs.build_number }}"
+
+    - name: Install Apple Certificate
+      env:
+        CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+        CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        KEYCHAIN_PASSWORD: ${{ github.run_id }}
+      run: |
+        CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+        echo "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+        security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+        security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security list-keychain -d user -s $KEYCHAIN_PATH
+
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+    - name: Install Provisioning Profile
+      env:
+        PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+      run: |
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+
+        PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+        echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o "$PROFILE_PATH"
+
+        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i "$PROFILE_PATH"))
+        echo "Installed provisioning profile: $PROFILE_UUID"
+
+    - name: Setup App Store Connect API Key
+      env:
+        API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+      run: |
+        mkdir -p ~/.private_keys
+        echo "$API_KEY_BASE64" | base64 --decode > ~/.private_keys/AuthKey_${API_KEY_ID}.p8
+
+        mkdir -p ~/private_keys
+        cp ~/.private_keys/AuthKey_${API_KEY_ID}.p8 ~/private_keys/
+
+    - name: Build Archive
+      working-directory: ios
+      run: |
+        NCPU=$(sysctl -n hw.ncpu)
+        echo "Building with $NCPU parallel jobs"
+
+        set -o pipefail
+
+        xcodebuild archive \
+          -project $PROJECT \
+          -scheme $SCHEME \
+          -archivePath build/PhotoSync.xcarchive \
+          -destination 'generic/platform=iOS' \
+          -configuration Release \
+          -jobs $NCPU \
+          -parallelizeTargets \
+          CODE_SIGN_STYLE=Manual \
+          CODE_SIGN_IDENTITY="Apple Distribution" \
+          DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+          PROVISIONING_PROFILE_SPECIFIER="${{ secrets.PROVISIONING_PROFILE_NAME }}" \
+          CURRENT_PROJECT_VERSION=${{ steps.build_number.outputs.build_number }}
+
+    - name: Export IPA
+      working-directory: ios
+      env:
+        SKIP_SYMBOLS: ${{ github.event.inputs.skip_symbols || 'false' }}
+      run: |
+        if [ "$SKIP_SYMBOLS" = "true" ]; then
+          UPLOAD_SYMBOLS="false"
+          echo "Skipping symbol upload for faster build"
+        else
+          UPLOAD_SYMBOLS="true"
+          echo "Including symbols in upload"
+        fi
+
+        cat > ExportOptions.plist << EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>uploadSymbols</key>
+            <${UPLOAD_SYMBOLS}/>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+                <key>${{ secrets.BUNDLE_IDENTIFIER }}</key>
+                <string>${{ secrets.PROVISIONING_PROFILE_NAME }}</string>
+            </dict>
+        </dict>
+        </plist>
+        EOF
+
+        xcodebuild -exportArchive \
+          -archivePath build/PhotoSync.xcarchive \
+          -exportPath build/export \
+          -exportOptionsPlist ExportOptions.plist \
+          -allowProvisioningUpdates
+
+    - name: Upload to App Store Connect
+      env:
+        API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      working-directory: ios
+      run: |
+        xcrun altool --upload-app \
+          --type ios \
+          --file build/export/PhotoSync.ipa \
+          --apiKey "$API_KEY_ID" \
+          --apiIssuer "$API_ISSUER_ID"
+
+    - name: Post Upload Summary
+      if: success()
+      env:
+        SKIP_SYMBOLS: ${{ github.event.inputs.skip_symbols || 'false' }}
+      run: |
+        echo "## TestFlight Upload Successful!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Build Number:** ${{ steps.build_number.outputs.build_number }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.event.inputs.branch || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        if [ "$SKIP_SYMBOLS" = "true" ]; then
+          echo "**Symbols:** Skipped (faster build)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "**Symbols:** Included" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The build is now processing on App Store Connect." >> $GITHUB_STEP_SUMMARY
+        echo "It typically takes 10-30 minutes before it's available in TestFlight." >> $GITHUB_STEP_SUMMARY
+
+    - name: Discord Notification - TestFlight Success
+      if: success()
+      env:
+        BRANCH_NAME: ${{ github.event.inputs.branch || github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+        BUILD_NUMBER: ${{ steps.build_number.outputs.build_number }}
+        SKIP_SYMBOLS: ${{ github.event.inputs.skip_symbols || 'false' }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        if [ "$SKIP_SYMBOLS" = "true" ]; then
+          SYMBOLS_STATUS="Skipped (faster)"
+        else
+          SYMBOLS_STATUS="Included"
+        fi
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "TestFlight Upload Successful!",
+              "description": "PhotoSync iOS successfully uploaded to App Store Connect",
+              "color": 5763719,
+              "fields": [
+                {
+                  "name": "Build Number",
+                  "value": "'"$BUILD_NUMBER"'",
+                  "inline": true
+                },
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Symbols",
+                  "value": "'"$SYMBOLS_STATUS"'",
+                  "inline": true
+                },
+                {
+                  "name": "Status",
+                  "value": "Processing on App Store Connect (10-30 minutes)",
+                  "inline": false
+                },
+                {
+                  "name": "Links",
+                  "value": "[App Store Connect](https://appstoreconnect.apple.com) | [Workflow Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    - name: Discord Notification - TestFlight Failure
+      if: failure()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+        BUILD_NUMBER: ${{ steps.build_number.outputs.build_number }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "TestFlight Upload Failed",
+              "description": "Failed to upload PhotoSync iOS to TestFlight",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Build Number",
+                  "value": "'"$BUILD_NUMBER"'",
+                  "inline": true
+                },
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Action Required",
+                  "value": "Check the workflow logs for detailed error messages",
+                  "inline": false
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    - name: Clean up keychain
+      if: always()
+      run: |
+        security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+        rm -rf ~/.private_keys || true
+        rm -rf ~/private_keys || true
