@@ -1,0 +1,55 @@
+name: Deploy to Local Server
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'server-go/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Stop existing container
+      run: |
+        cd /home/benjamin/projects/photosync/photosync
+        docker compose down || true
+
+    - name: Pull latest changes
+      run: |
+        cd /home/benjamin/projects/photosync/photosync
+        git fetch origin
+        git reset --hard origin/${{ github.ref_name }}
+
+    - name: Rebuild and start container
+      run: |
+        cd /home/benjamin/projects/photosync/photosync
+        docker compose build --no-cache
+        docker compose up -d
+
+    - name: Wait for service to be healthy
+      run: |
+        echo "Waiting for photosync to start..."
+        for i in {1..30}; do
+          if curl -s http://localhost:5050/api/health > /dev/null 2>&1; then
+            echo "Service is healthy!"
+            exit 0
+          fi
+          echo "Attempt $i/30 - waiting..."
+          sleep 2
+        done
+        echo "Service failed to start"
+        docker compose logs
+        exit 1
+
+    - name: Show deployment status
+      run: |
+        echo "Deployment complete!"
+        docker ps | grep photosync
