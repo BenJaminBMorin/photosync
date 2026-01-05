@@ -39,16 +39,18 @@ jobs:
 
     - name: Configure Git for Match
       env:
-        MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        MATCH_TOKEN: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
       run: |
         git config --global user.email "github-actions@github.com"
         git config --global user.name "GitHub Actions"
+        git config --global credential.helper store
+        echo "https://${MATCH_TOKEN}@github.com" > ~/.git-credentials
+        git config --global url."https://${MATCH_TOKEN}@github.com/".insteadOf "https://github.com/"
 
     - name: Sync Certificates with Match
       working-directory: ios
       env:
         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
         FASTLANE_USER: ${{ secrets.APPLE_ID }}
         FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
       run: |
@@ -58,7 +60,6 @@ jobs:
       working-directory: ios
       env:
         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
         FASTLANE_USER: ${{ secrets.APPLE_ID }}
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
@@ -66,10 +67,13 @@ jobs:
       run: |
         fastlane beta
 
-    - name: Clean up API Key
+    - name: Clean up API Key and Git Credentials
       if: always()
       run: |
         rm -f ~/.appstoreconnect/private_keys/AuthKey_*.p8
+        rm -f ~/.git-credentials
+        git config --global --unset credential.helper || true
+        git config --global --unset url."https://github.com/".insteadOf || true
 
     - name: Discord Notification - Success
       if: success()
