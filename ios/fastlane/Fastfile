@@ -36,7 +36,7 @@ platform :ios do
   end
 
   desc "Register new devices for ad-hoc builds"
-  lane :register_devices do
+  lane :add_devices do
     register_devices(devices_file: "./fastlane/devices.txt")
     match(type: "adhoc", force_for_new_devices: true)
   end
