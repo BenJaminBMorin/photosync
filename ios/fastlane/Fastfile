@@ -14,7 +14,7 @@ platform :ios do
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
         }
       },
-      xcargs: "DEVELOPMENT_TEAM=#{ENV['TEAM_ID']}"
+      xcargs: "-allowProvisioningUpdates CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=#{ENV['TEAM_ID']} PROVISIONING_PROFILE_SPECIFIER='match AppStore com.morinclan.photosync.app'"
     )
 
     # Upload to TestFlight
