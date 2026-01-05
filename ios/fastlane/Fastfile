@@ -13,7 +13,8 @@ platform :ios do
         provisioningProfiles: {
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
         }
-      }
+      },
+      xcargs: "DEVELOPMENT_TEAM=#{ENV['TEAM_ID']}"
     )
 
     # Upload to TestFlight
