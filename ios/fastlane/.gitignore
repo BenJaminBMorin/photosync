@@ -1,0 +1,12 @@
+# Fastlane
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+report.xml
+test_output/
+Preview.html
+screenshots/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output

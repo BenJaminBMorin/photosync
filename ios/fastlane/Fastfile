@@ -1,0 +1,45 @@
+# Fastfile for PhotoSync iOS App
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(xcodeproj: "PhotoSync.xcodeproj")
+
+    # Build the app
+    build_app(
+      scheme: "PhotoSync",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
+        }
+      }
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      skip_submission: true
+    )
+
+    # Clean up build artifacts
+    clean_build_artifacts
+  end
+
+  desc "Download certificates and provisioning profiles"
+  lane :sync_certificates do
+    match(
+      type: "appstore",
+      readonly: true
+    )
+  end
+
+  desc "Register new devices for ad-hoc builds"
+  lane :register_devices do
+    register_devices(devices_file: "./fastlane/devices.txt")
+    match(type: "adhoc", force_for_new_devices: true)
+  end
+end

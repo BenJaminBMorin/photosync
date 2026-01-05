@@ -1,0 +1,10 @@
+# Appfile for PhotoSync
+
+# Your Apple ID email
+app_identifier("com.morinclan.photosync.app")
+
+apple_id("bennythekid@me.com")
+team_id("DV94566H3")
+
+# For more information about the Appfile, see:
+# https://docs.fastlane.tools/advanced/#appfile

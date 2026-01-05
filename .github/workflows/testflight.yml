@@ -1,0 +1,150 @@
+name: Deploy to TestFlight
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/testflight.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and Deploy to TestFlight
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Select Xcode
+      run: |
+        XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+        if [ -n "$XCODE_PATH" ]; then
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+        fi
+        xcodebuild -version
+
+    - name: Install Fastlane
+      run: brew install fastlane
+
+    - name: Set up App Store Connect API Key
+      working-directory: ios
+      env:
+        APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+      run: |
+        mkdir -p ~/.appstoreconnect/private_keys
+        echo "$APP_STORE_CONNECT_API_KEY_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8
+
+    - name: Configure Git for Match
+      env:
+        MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      run: |
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "GitHub Actions"
+
+    - name: Sync Certificates with Match
+      working-directory: ios
+      env:
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        FASTLANE_USER: ${{ secrets.APPLE_ID }}
+        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      run: |
+        fastlane match appstore --readonly
+
+    - name: Build and Upload to TestFlight
+      working-directory: ios
+      env:
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        FASTLANE_USER: ${{ secrets.APPLE_ID }}
+        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+        APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+      run: |
+        fastlane beta
+
+    - name: Clean up API Key
+      if: always()
+      run: |
+        rm -f ~/.appstoreconnect/private_keys/AuthKey_*.p8
+
+    - name: Discord Notification - Success
+      if: success()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "TestFlight Upload Successful",
+              "description": "PhotoSync iOS app uploaded to TestFlight",
+              "color": 3066993,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          "$DISCORD_WEBHOOK"
+
+    - name: Discord Notification - Failure
+      if: failure()
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        COMMIT_SHA=${GITHUB_SHA:0:7}
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "TestFlight Upload Failed",
+              "description": "Failed to upload PhotoSync iOS app to TestFlight",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Branch",
+                  "value": "'"$BRANCH_NAME"'",
+                  "inline": true
+                },
+                {
+                  "name": "Commit",
+                  "value": "'"$COMMIT_SHA"'",
+                  "inline": true
+                },
+                {
+                  "name": "Workflow",
+                  "value": "[View Run](https://github.com/'"$REPO"'/actions/runs/'"$RUN_ID"')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'"$TIMESTAMP"'"
+            }]
+          }' \
+          "$DISCORD_WEBHOOK"
