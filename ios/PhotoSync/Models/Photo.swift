@@ -29,11 +29,22 @@ struct Photo: Identifiable, Hashable {
 }
 
 /// State of sync for a photo
-enum SyncState {
+enum SyncState: Equatable {
     case notSynced
     case syncing
     case synced
     case error(String)
+
+    static func == (lhs: SyncState, rhs: SyncState) -> Bool {
+        switch (lhs, rhs) {
+        case (.notSynced, .notSynced), (.syncing, .syncing), (.synced, .synced):
+            return true
+        case (.error(let lhsMsg), .error(let rhsMsg)):
+            return lhsMsg == rhsMsg
+        default:
+            return false
+        }
+    }
 }
 
 /// Photo with its current selection and sync state for UI
