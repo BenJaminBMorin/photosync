@@ -37,6 +37,20 @@ func NewPhotoHandler(
 }
 
 // Upload handles photo upload
+// @Summary Upload a photo
+// @Description Upload a new photo to the server. Automatically detects duplicates via SHA256 hash.
+// @Tags photos
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Photo file to upload"
+// @Param originalFilename formData string false "Original filename (uses uploaded filename if not provided)"
+// @Param dateTaken formData string false "Date photo was taken (RFC3339 format)"
+// @Success 200 {object} models.UploadResult "Photo uploaded successfully (or duplicate found)"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized - invalid API key"
+// @Failure 500 {object} models.ErrorResponse "Server error"
+// @Security ApiKeyAuth
+// @Router /api/photos/upload [post]
 func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form (max 50MB)
 	if err := r.ParseMultipartForm(50 << 20); err != nil {
@@ -135,6 +149,18 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 // CheckHashes checks which hashes already exist
+// @Summary Check if photos exist by hash
+// @Description Check which SHA256 hashes already exist on the server. Useful for avoiding duplicate uploads.
+// @Tags photos
+// @Accept json
+// @Produce json
+// @Param request body models.CheckHashesRequest true "Hashes to check (max 1000)"
+// @Success 200 {object} models.CheckHashesResult "Hash check results"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized - invalid API key"
+// @Failure 500 {object} models.ErrorResponse "Server error"
+// @Security ApiKeyAuth
+// @Router /api/photos/check [post]
 func (h *PhotoHandler) CheckHashes(w http.ResponseWriter, r *http.Request) {
 	var req models.CheckHashesRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -190,6 +216,17 @@ func (h *PhotoHandler) CheckHashes(w http.ResponseWriter, r *http.Request) {
 }
 
 // List returns paginated photos
+// @Summary List all photos
+// @Description Get a paginated list of all photos stored on the server
+// @Tags photos
+// @Produce json
+// @Param skip query int false "Number of photos to skip" default(0)
+// @Param take query int false "Number of photos to return (max 100)" default(50)
+// @Success 200 {object} models.PhotoListResponse "List of photos"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized - invalid API key"
+// @Failure 500 {object} models.ErrorResponse "Server error"
+// @Security ApiKeyAuth
+// @Router /api/photos [get]
 func (h *PhotoHandler) List(w http.ResponseWriter, r *http.Request) {
 	skip := 0
 	take := 50
@@ -234,6 +271,18 @@ func (h *PhotoHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetByID returns a single photo by ID
+// @Summary Get photo by ID
+// @Description Get metadata for a single photo by its ID
+// @Tags photos
+// @Produce json
+// @Param id path string true "Photo ID (UUID)"
+// @Success 200 {object} models.PhotoResponse "Photo details"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized - invalid API key"
+// @Failure 404 {object} models.ErrorResponse "Photo not found"
+// @Failure 500 {object} models.ErrorResponse "Server error"
+// @Security ApiKeyAuth
+// @Router /api/photos/{id} [get]
 func (h *PhotoHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -257,6 +306,17 @@ func (h *PhotoHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete removes a photo by ID
+// @Summary Delete a photo
+// @Description Delete a photo by its ID. This removes both the database record and the file.
+// @Tags photos
+// @Param id path string true "Photo ID (UUID)"
+// @Success 204 "Photo deleted successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized - invalid API key"
+// @Failure 404 {object} models.ErrorResponse "Photo not found"
+// @Failure 500 {object} models.ErrorResponse "Server error"
+// @Security ApiKeyAuth
+// @Router /api/photos/{id} [delete]
 func (h *PhotoHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

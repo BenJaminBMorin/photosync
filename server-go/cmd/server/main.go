@@ -16,7 +16,33 @@ import (
 	custommw "github.com/photosync/server/internal/middleware"
 	"github.com/photosync/server/internal/repository"
 	"github.com/photosync/server/internal/services"
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "github.com/photosync/server/docs"
 )
+
+// @title PhotoSync API
+// @version 1.0
+// @description API for syncing photos from mobile devices to a NAS server
+// @description
+// @description ## Authentication
+// @description All endpoints (except /api/health) require an API key passed via the X-API-Key header.
+// @description
+// @description ## Features
+// @description - Upload photos with automatic duplicate detection via SHA256 hash
+// @description - Photos organized by year/month folders
+// @description - Batch hash checking to avoid uploading duplicates
+// @description - Paginated photo listing
+
+// @contact.name PhotoSync Support
+// @license.name MIT
+
+// @host localhost:5050
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-API-Key
 
 func main() {
 	// Load configuration
@@ -69,6 +95,11 @@ func main() {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(custommw.APIKeyAuth(cfg.Security.APIKey, cfg.Security.APIKeyHeader))
+
+	// Swagger UI
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 
 	// Routes
 	r.Get("/health", healthHandler.HealthCheck)

@@ -17,6 +17,12 @@ func NewHealthHandler() *HealthHandler {
 }
 
 // HealthCheck returns the server health status
+// @Summary Health check
+// @Description Returns the current health status of the server
+// @Tags health
+// @Produce json
+// @Success 200 {object} models.HealthResponse "Server is healthy"
+// @Router /api/health [get]
 func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	response := models.HealthResponse{
 		Status:    "healthy",
