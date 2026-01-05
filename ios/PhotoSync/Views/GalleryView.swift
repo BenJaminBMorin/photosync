@@ -4,7 +4,6 @@ import CoreData
 
 struct GalleryView: View {
     @StateObject private var viewModel = GalleryViewModel()
-    @Environment(\.managedObjectContext) private var context
 
     private let columns = [
         GridItem(.flexible(), spacing: 2),
