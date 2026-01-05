@@ -1,6 +1,5 @@
 import SwiftUI
 import Photos
-import CoreData
 
 struct GalleryView: View {
     @StateObject private var viewModel = GalleryViewModel()
