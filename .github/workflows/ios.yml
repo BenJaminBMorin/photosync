@@ -1,11 +1,6 @@
 name: Build iOS App
 
 on:
-  push:
-    branches: [ main, develop, 'claude/*' ]
-    paths:
-      - 'ios/**'
-      - '.github/workflows/ios-build.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
