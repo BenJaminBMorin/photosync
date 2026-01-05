@@ -13,8 +13,7 @@ platform :ios do
         provisioningProfiles: {
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
         }
-      },
-      build_number: ENV['BUILD_NUMBER']
+      }
     )
 
     # Upload to TestFlight
