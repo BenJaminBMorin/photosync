@@ -206,18 +206,6 @@ struct GalleryView: View {
     }
 }
 
-extension GalleryViewModel {
-    var context: NSManagedObjectContext {
-        get { self._context }
-        set { self._context = newValue }
-    }
-
-    private var _context: NSManagedObjectContext {
-        get { PersistenceController.shared.container.viewContext }
-        set { }
-    }
-}
-
 #Preview {
     GalleryView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
