@@ -54,7 +54,6 @@ struct GalleryView: View {
             }
         }
         .task {
-            viewModel.context = context
             await viewModel.requestAuthorization()
         }
     }
