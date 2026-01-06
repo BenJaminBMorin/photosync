@@ -16,6 +16,12 @@ struct ContentView: View {
                     Label("Settings", systemImage: "gear")
                 }
                 .tag(1)
+
+            LogsView()
+                .tabItem {
+                    Label("Logs", systemImage: "doc.text")
+                }
+                .tag(2)
         }
     }
 }
