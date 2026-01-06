@@ -99,6 +99,7 @@
 				446D0D7558A633DF6E4D48D4 /* Logging.swift */,
 			);
 			name = Utilities;
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		200 = {
