@@ -7,36 +7,40 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		001 /* PhotoSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101; };
-		002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102; };
-		003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 103; };
-		004 /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104; };
-		005 /* SyncedPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105; };
-		006 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106; };
-		007 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 107; };
-		008 /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108; };
-		009 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109; };
-		010 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110; };
-		011 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111; };
-		012 /* PhotoSync.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 112; };
-		013 /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113; };
-		014 /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114; };
-		015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115; };
-		016 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116; };
-		017 /* PhotoGridItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117; };
-		018 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118; };
-		019 /* HashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120; };
-		T001 /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T101; };
-		T002 /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T102; };
-		T003 /* APIModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T103; };
-		T004 /* PhotoModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T104; };
-		T005 /* HashServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T105; };
+		001 /* PhotoSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101 /* PhotoSyncApp.swift */; };
+		002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102 /* ContentView.swift */; };
+		003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 103 /* Assets.xcassets */; };
+		004 /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104 /* Photo.swift */; };
+		005 /* SyncedPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105 /* SyncedPhoto.swift */; };
+		006 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106 /* Settings.swift */; };
+		007 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 107 /* APIModels.swift */; };
+		008 /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108 /* PhotoLibraryService.swift */; };
+		009 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109 /* APIService.swift */; };
+		010 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110 /* SyncService.swift */; };
+		011 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111 /* PersistenceController.swift */; };
+		012 /* PhotoSync.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 112 /* PhotoSync.xcdatamodeld */; };
+		013 /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113 /* GalleryView.swift */; };
+		014 /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114 /* GalleryViewModel.swift */; };
+		015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115 /* SettingsView.swift */; };
+		016 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116 /* SettingsViewModel.swift */; };
+		017 /* PhotoGridItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117 /* PhotoGridItem.swift */; };
+		018 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* SyncProgressView.swift */; };
+		019 /* HashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* HashService.swift */; };
+		217ECB5929D2CE60E0730802 /* CrashReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A04FEFF8B50BE1E54886712 /* CrashReportView.swift */; };
+		5C9CF4C70B208454FCC530B9 /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EADCECAE3B7278178E79D43 /* LogsView.swift */; };
+		7295D89ACC359BF444C33B56 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8DC6592C1F8B04CF1C5748 /* Logger.swift */; };
+		7CB09775E834E052F02A17AF /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A3A9E63C00A46EE7C0CFDA /* Logging.swift */; };
+		T001 /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T101 /* SettingsViewModelTests.swift */; };
+		T002 /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T102 /* SyncProgressTests.swift */; };
+		T003 /* APIModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T103 /* APIModelsTests.swift */; };
+		T004 /* PhotoModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T104 /* PhotoModelTests.swift */; };
+		T005 /* HashServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T105 /* HashServiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		T200 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 500;
+			containerPortal = 500 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 300;
 			remoteInfo = PhotoSync;
@@ -65,6 +69,10 @@
 		118 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		119 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		120 /* HashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashService.swift; sourceTree = "<group>"; };
+		7A04FEFF8B50BE1E54886712 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = ios/PhotoSync/Views/CrashReportView.swift; sourceTree = "<group>"; };
+		7EADCECAE3B7278178E79D43 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = ios/PhotoSync/Views/LogsView.swift; sourceTree = "<group>"; };
+		CA8DC6592C1F8B04CF1C5748 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = ios/PhotoSync/Services/Logger.swift; sourceTree = "<group>"; };
+		D9A3A9E63C00A46EE7C0CFDA /* Logging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logging.swift; path = ios/PhotoSync/Utilities/Logging.swift; sourceTree = "<group>"; };
 		T100 /* PhotoSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T101 /* SettingsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModelTests.swift; sourceTree = "<group>"; };
 		T102 /* SyncProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressTests.swift; sourceTree = "<group>"; };
@@ -85,6 +93,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1F8D7B4E767A1D29D23225A8 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				D9A3A9E63C00A46EE7C0CFDA /* Logging.swift */,
+			);
+			name = Utilities;
+			sourceTree = "<group>";
+		};
 		200 = {
 			isa = PBXGroup;
 			children = (
@@ -107,6 +123,7 @@
 				204 /* ViewModels */,
 				205 /* Services */,
 				206 /* Persistence */,
+				1F8D7B4E767A1D29D23225A8 /* Utilities */,
 			);
 			path = PhotoSync;
 			sourceTree = "<group>";
@@ -129,6 +146,8 @@
 				115 /* SettingsView.swift */,
 				117 /* PhotoGridItem.swift */,
 				118 /* SyncProgressView.swift */,
+				7EADCECAE3B7278178E79D43 /* LogsView.swift */,
+				7A04FEFF8B50BE1E54886712 /* CrashReportView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -149,6 +168,7 @@
 				109 /* APIService.swift */,
 				110 /* SyncService.swift */,
 				120 /* HashService.swift */,
+				CA8DC6592C1F8B04CF1C5748 /* Logger.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -180,7 +200,7 @@
 /* Begin PBXNativeTarget section */
 		300 /* PhotoSync */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 400;
+			buildConfigurationList = 400 /* Build configuration list for PBXNativeTarget "PhotoSync" */;
 			buildPhases = (
 				301 /* Sources */,
 				302 /* Resources */,
@@ -191,12 +211,12 @@
 			);
 			name = PhotoSync;
 			productName = PhotoSync;
-			productReference = 100;
+			productReference = 100 /* PhotoSync.app */;
 			productType = "com.apple.product-type.application";
 		};
 		T300 /* PhotoSyncTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = T400;
+			buildConfigurationList = T400 /* Build configuration list for PBXNativeTarget "PhotoSyncTests" */;
 			buildPhases = (
 				T302 /* Sources */,
 				T301 /* Frameworks */,
@@ -208,7 +228,7 @@
 			);
 			name = PhotoSyncTests;
 			productName = PhotoSyncTests;
-			productReference = T100;
+			productReference = T100 /* PhotoSyncTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -230,7 +250,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 501;
+			buildConfigurationList = 501 /* Build configuration list for PBXProject "PhotoSync" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -249,29 +269,44 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		302 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		301 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				001,
-				002,
-				004,
-				005,
-				006,
-				007,
-				008,
-				009,
-				010,
-				011,
-				012,
-				013,
-				014,
-				015,
-				016,
-				017,
-				018,
-				019,
+				001 /* PhotoSyncApp.swift in Sources */,
+				002 /* ContentView.swift in Sources */,
+				004 /* Photo.swift in Sources */,
+				005 /* SyncedPhoto.swift in Sources */,
+				006 /* Settings.swift in Sources */,
+				007 /* APIModels.swift in Sources */,
+				008 /* PhotoLibraryService.swift in Sources */,
+				009 /* APIService.swift in Sources */,
+				010 /* SyncService.swift in Sources */,
+				011 /* PersistenceController.swift in Sources */,
+				012 /* PhotoSync.xcdatamodeld in Sources */,
+				013 /* GalleryView.swift in Sources */,
+				014 /* GalleryViewModel.swift in Sources */,
+				015 /* SettingsView.swift in Sources */,
+				016 /* SettingsViewModel.swift in Sources */,
+				017 /* PhotoGridItem.swift in Sources */,
+				018 /* SyncProgressView.swift in Sources */,
+				019 /* HashService.swift in Sources */,
+				7295D89ACC359BF444C33B56 /* Logger.swift in Sources */,
+				5C9CF4C70B208454FCC530B9 /* LogsView.swift in Sources */,
+				217ECB5929D2CE60E0730802 /* CrashReportView.swift in Sources */,
+				7CB09775E834E052F02A17AF /* Logging.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,32 +314,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				T001,
-				T002,
-				T003,
-				T004,
-				T005,
+				T001 /* SettingsViewModelTests.swift in Sources */,
+				T002 /* SyncProgressTests.swift in Sources */,
+				T003 /* APIModelsTests.swift in Sources */,
+				T004 /* PhotoModelTests.swift in Sources */,
+				T005 /* HashServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXResourcesBuildPhase section */
-		302 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				003,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXTargetDependency section */
 		T303 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 300;
-			targetProxy = T200;
+			target = 300 /* PhotoSync */;
+			targetProxy = T200 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -313,8 +337,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -349,8 +373,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
