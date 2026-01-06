@@ -204,12 +204,23 @@ struct GalleryView: View {
             }
             .buttonStyle(.bordered)
 
-            Button {
-                viewModel.ignoreSelected()
-            } label: {
-                Image(systemName: "eye.slash.fill")
+            if viewModel.selectedIgnoredCount > 0 {
+                Button {
+                    viewModel.unignoreSelected()
+                } label: {
+                    Image(systemName: "eye.fill")
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
+
+            if viewModel.selectedNonIgnoredCount > 0 {
+                Button {
+                    viewModel.ignoreSelected()
+                } label: {
+                    Image(systemName: "eye.slash.fill")
+                }
+                .buttonStyle(.bordered)
+            }
 
             Button {
                 viewModel.syncSelected()

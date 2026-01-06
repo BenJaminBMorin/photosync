@@ -166,6 +166,14 @@ class GalleryViewModel: ObservableObject {
         }
     }
 
+    var selectedIgnoredCount: Int {
+        photos.filter { $0.isSelected && $0.syncState == .ignored }.count
+    }
+
+    var selectedNonIgnoredCount: Int {
+        photos.filter { $0.isSelected && $0.syncState != .ignored }.count
+    }
+
     func ignoreSelected() {
         let selectedIndices = photos.indices.filter { photos[$0].isSelected && photos[$0].syncState != .ignored }
         guard !selectedIndices.isEmpty else { return }
@@ -190,6 +198,26 @@ class GalleryViewModel: ObservableObject {
             Task {
                 await Logger.shared.error("Failed to ignore selected photos: \(error.localizedDescription)")
             }
+        }
+    }
+
+    func unignoreSelected() {
+        let selectedIndices = photos.indices.filter { photos[$0].isSelected && photos[$0].syncState == .ignored }
+        guard !selectedIndices.isEmpty else { return }
+
+        Task {
+            await Logger.shared.info("Unignoring \(selectedIndices.count) selected photos")
+        }
+
+        for index in selectedIndices {
+            let photo = photos[index]
+            IgnoredPhotoEntity.unignore(localIdentifier: photo.photo.localIdentifier, context: context)
+            photos[index].syncState = photo.photo.isSynced ? .synced : .notSynced
+            photos[index].isSelected = false
+        }
+
+        Task {
+            await Logger.shared.info("Successfully unignored \(selectedIndices.count) photos")
         }
     }
 
