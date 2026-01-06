@@ -11,6 +11,7 @@ class GalleryViewModel: ObservableObject {
     @Published var syncProgress: SyncProgress?
     @Published var error: String?
     @Published var showUnsyncedOnly = false
+    @Published var showIgnoredPhotos = false
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
 
     private let photoLibrary = PhotoLibraryService.shared
@@ -28,14 +29,27 @@ class GalleryViewModel: ObservableObject {
     }
 
     var unsyncedCount: Int {
-        photos.filter { $0.syncState != .synced }.count
+        photos.filter { $0.syncState != .synced && $0.syncState != .ignored }.count
+    }
+
+    var ignoredCount: Int {
+        photos.filter { $0.syncState == .ignored }.count
     }
 
     var displayedPhotos: [PhotoWithState] {
-        if showUnsyncedOnly {
-            return photos.filter { $0.syncState != .synced }
+        var filtered = photos
+
+        // Filter out ignored photos unless we're showing them
+        if !showIgnoredPhotos {
+            filtered = filtered.filter { $0.syncState != .ignored }
         }
-        return photos
+
+        // Filter unsynced only
+        if showUnsyncedOnly {
+            filtered = filtered.filter { $0.syncState != .synced }
+        }
+
+        return filtered
     }
 
     var isConfigured: Bool {
@@ -72,12 +86,20 @@ class GalleryViewModel: ObservableObject {
             let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
             await Logger.shared.info("Found \(syncedIds.count) synced photos in database")
 
+            let ignoredIds = IgnoredPhotoEntity.allIgnoredIdentifiers(context: context)
+            await Logger.shared.info("Found \(ignoredIds.count) ignored photos in database")
+
             photos = assets.map { asset in
                 let photo = Photo(asset: asset, isSynced: syncedIds.contains(asset.localIdentifier))
-                return PhotoWithState(photo: photo)
+                let isIgnored = ignoredIds.contains(asset.localIdentifier)
+                var photoWithState = PhotoWithState(photo: photo)
+                if isIgnored {
+                    photoWithState.syncState = .ignored
+                }
+                return photoWithState
             }
 
-            await Logger.shared.info("Loaded \(photos.count) photos (synced: \(syncedCount), unsynced: \(unsyncedCount))")
+            await Logger.shared.info("Loaded \(photos.count) photos (synced: \(syncedCount), unsynced: \(unsyncedCount), ignored: \(ignoredCount))")
         } catch {
             await Logger.shared.error("Failed to load photos: \(error.localizedDescription)")
             self.error = "Failed to load photos: \(error.localizedDescription)"
@@ -94,7 +116,7 @@ class GalleryViewModel: ObservableObject {
 
     func selectAll() {
         for i in photos.indices {
-            if photos[i].syncState != .synced {
+            if photos[i].syncState != .synced && photos[i].syncState != .ignored {
                 photos[i].isSelected = true
             }
         }
@@ -108,6 +130,40 @@ class GalleryViewModel: ObservableObject {
 
     func toggleUnsyncedFilter() {
         showUnsyncedOnly.toggle()
+    }
+
+    func toggleIgnoredFilter() {
+        showIgnoredPhotos.toggle()
+    }
+
+    func toggleIgnore(for photoId: String) {
+        guard let index = photos.firstIndex(where: { $0.id == photoId }) else { return }
+
+        let photo = photos[index]
+
+        if photo.syncState == .ignored {
+            // Unignore the photo
+            IgnoredPhotoEntity.unignore(localIdentifier: photo.photo.localIdentifier, context: context)
+            photos[index].syncState = photo.photo.isSynced ? .synced : .notSynced
+            Task {
+                await Logger.shared.info("Unignored photo: \(photo.id)")
+            }
+        } else {
+            // Ignore the photo
+            _ = IgnoredPhotoEntity.create(context: context, localIdentifier: photo.photo.localIdentifier)
+            do {
+                try context.save()
+                photos[index].syncState = .ignored
+                photos[index].isSelected = false  // Deselect ignored photos
+                Task {
+                    await Logger.shared.info("Ignored photo: \(photo.id)")
+                }
+            } catch {
+                Task {
+                    await Logger.shared.error("Failed to ignore photo: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     func syncSelected() {

@@ -4,6 +4,7 @@ import Photos
 struct PhotoGridItem: View {
     let photoState: PhotoWithState
     let onTap: () -> Void
+    let onIgnoreTap: () -> Void
 
     @State private var thumbnail: UIImage?
 
@@ -63,12 +64,46 @@ struct PhotoGridItem: View {
                     }
                     .frame(width: geometry.size.width, height: geometry.size.width)
                 }
+
+                // Ignored indicator
+                if photoState.syncState == .ignored {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.6))
+                        .frame(width: geometry.size.width, height: geometry.size.width)
+
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Circle()
+                                .fill(Color.gray)
+                                .frame(width: 20, height: 20)
+                                .overlay {
+                                    Image(systemName: "eye.slash")
+                                        .font(.caption2.bold())
+                                        .foregroundColor(.white)
+                                }
+                                .padding(4)
+                        }
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.width)
+                }
             }
         }
         .aspectRatio(1, contentMode: .fit)
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()
+        }
+        .contextMenu {
+            Button {
+                onIgnoreTap()
+            } label: {
+                Label(
+                    photoState.syncState == .ignored ? "Unignore" : "Ignore",
+                    systemImage: photoState.syncState == .ignored ? "eye" : "eye.slash"
+                )
+            }
         }
         .task {
             await loadThumbnail()
@@ -90,7 +125,8 @@ struct PhotoGridItem: View {
             photo: Photo(asset: PHAsset(), isSynced: false),
             isSelected: true
         ),
-        onTap: {}
+        onTap: {},
+        onIgnoreTap: {}
     )
     .frame(width: 120, height: 120)
 }

@@ -133,7 +133,8 @@ struct GalleryView: View {
                     ForEach(viewModel.displayedPhotos) { photoState in
                         PhotoGridItem(
                             photoState: photoState,
-                            onTap: { viewModel.toggleSelection(for: photoState.id) }
+                            onTap: { viewModel.toggleSelection(for: photoState.id) },
+                            onIgnoreTap: { viewModel.toggleIgnore(for: photoState.id) }
                         )
                     }
                 }
@@ -155,6 +156,17 @@ struct GalleryView: View {
                 HStack {
                     Image(systemName: viewModel.showUnsyncedOnly ? "checkmark.circle.fill" : "circle")
                     Text("Unsynced only")
+                }
+                .font(.subheadline)
+            }
+            .buttonStyle(.bordered)
+
+            Button {
+                viewModel.toggleIgnoredFilter()
+            } label: {
+                HStack {
+                    Image(systemName: viewModel.showIgnoredPhotos ? "checkmark.circle.fill" : "circle")
+                    Text("Show ignored")
                 }
                 .font(.subheadline)
             }

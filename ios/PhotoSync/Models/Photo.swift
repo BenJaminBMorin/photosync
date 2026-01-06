@@ -33,11 +33,12 @@ enum SyncState: Equatable {
     case notSynced
     case syncing
     case synced
+    case ignored
     case error(String)
 
     static func == (lhs: SyncState, rhs: SyncState) -> Bool {
         switch (lhs, rhs) {
-        case (.notSynced, .notSynced), (.syncing, .syncing), (.synced, .synced):
+        case (.notSynced, .notSynced), (.syncing, .syncing), (.synced, .synced), (.ignored, .ignored):
             return true
         case (.error(let lhsMsg), .error(let rhsMsg)):
             return lhsMsg == rhsMsg
