@@ -17,16 +17,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Select Xcode
-      run: |
-        XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
-        if [ -n "$XCODE_PATH" ]; then
-          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
-        fi
-        xcodebuild -version
+    - name: Show Xcode Version
+      run: xcodebuild -version
 
-    - name: Install Fastlane
-      run: brew install fastlane
+    - name: Check Fastlane
+      run: |
+        if ! command -v fastlane &> /dev/null; then
+          echo "Installing Fastlane..."
+          brew install fastlane
+        else
+          echo "Fastlane already installed: $(fastlane --version)"
+        fi
 
     - name: Set up App Store Connect API Key
       working-directory: ios
