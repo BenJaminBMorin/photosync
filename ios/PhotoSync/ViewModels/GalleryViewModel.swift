@@ -44,40 +44,42 @@ class GalleryViewModel: ObservableObject {
 
     init(context: NSManagedObjectContext = PersistenceController.shared.container.viewContext) {
         self.context = context
-        logInfo("GalleryViewModel initialized")
+        Task {
+            await Logger.shared.info("GalleryViewModel initialized")
+        }
     }
 
     func requestAuthorization() async {
-        logInfo("Requesting photo library authorization")
+        await Logger.shared.info("Requesting photo library authorization")
         authorizationStatus = await photoLibrary.requestAuthorization()
-        logInfo("Photo library authorization status: \(authorizationStatus.rawValue)")
+        await Logger.shared.info("Photo library authorization status: \(authorizationStatus.rawValue)")
         if authorizationStatus == .authorized || authorizationStatus == .limited {
             await loadPhotos()
         } else {
-            logWarning("Photo library authorization denied or restricted: \(authorizationStatus.rawValue)")
+            await Logger.shared.warning("Photo library authorization denied or restricted: \(authorizationStatus.rawValue)")
         }
     }
 
     func loadPhotos() async {
-        logInfo("Loading photos from library")
+        await Logger.shared.info("Loading photos from library")
         isLoading = true
         error = nil
 
         do {
             let assets = await photoLibrary.fetchAllPhotos()
-            logInfo("Fetched \(assets.count) photos from library")
+            await Logger.shared.info("Fetched \(assets.count) photos from library")
 
             let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
-            logInfo("Found \(syncedIds.count) synced photos in database")
+            await Logger.shared.info("Found \(syncedIds.count) synced photos in database")
 
             photos = assets.map { asset in
                 let photo = Photo(asset: asset, isSynced: syncedIds.contains(asset.localIdentifier))
                 return PhotoWithState(photo: photo)
             }
 
-            logInfo("Loaded \(photos.count) photos (synced: \(syncedCount), unsynced: \(unsyncedCount))")
+            await Logger.shared.info("Loaded \(photos.count) photos (synced: \(syncedCount), unsynced: \(unsyncedCount))")
         } catch {
-            logError("Failed to load photos: \(error.localizedDescription)")
+            await Logger.shared.error("Failed to load photos: \(error.localizedDescription)")
             self.error = "Failed to load photos: \(error.localizedDescription)"
         }
 
@@ -111,11 +113,15 @@ class GalleryViewModel: ObservableObject {
     func syncSelected() {
         let selectedPhotos = photos.filter { $0.isSelected }.map { $0.photo }
         guard !selectedPhotos.isEmpty else {
-            logWarning("syncSelected called with no photos selected")
+            Task {
+                await Logger.shared.warning("syncSelected called with no photos selected")
+            }
             return
         }
 
-        logInfo("Starting sync for \(selectedPhotos.count) selected photos")
+        Task {
+            await Logger.shared.info("Starting sync for \(selectedPhotos.count) selected photos")
+        }
 
         syncTask = Task {
             isSyncing = true
@@ -128,7 +134,7 @@ class GalleryViewModel: ObservableObject {
                     }
                 }
 
-                logInfo("Sync completed: \(result.successCount) succeeded, \(result.failCount) failed")
+                await Logger.shared.info("Sync completed: \(result.successCount) succeeded, \(result.failCount) failed")
 
                 // Update UI
                 clearSelection()
@@ -139,10 +145,10 @@ class GalleryViewModel: ObservableObject {
 
                 if result.failCount > 0 {
                     error = "\(result.failCount) photos failed to sync"
-                    logError("Sync errors: \(result.failCount) photos failed")
+                    await Logger.shared.error("Sync errors: \(result.failCount) photos failed")
                 }
             } catch {
-                logError("Sync task failed with error: \(error.localizedDescription)")
+                await Logger.shared.error("Sync task failed with error: \(error.localizedDescription)")
                 self.error = "Sync failed: \(error.localizedDescription)"
                 isSyncing = false
                 syncProgress = nil
@@ -151,7 +157,9 @@ class GalleryViewModel: ObservableObject {
     }
 
     func cancelSync() {
-        logInfo("Sync cancelled by user")
+        Task {
+            await Logger.shared.info("Sync cancelled by user")
+        }
         syncTask?.cancel()
         isSyncing = false
         syncProgress = nil

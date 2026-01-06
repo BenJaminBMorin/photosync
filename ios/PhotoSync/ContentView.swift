@@ -34,10 +34,12 @@ struct ContentView: View {
     }
 
     private func checkForCrash() {
-        if Logger.shared.didCrashLastSession() {
-            crashLogURL = Logger.shared.getPreviousSessionLog()
-            showCrashReport = true
-            logInfo("Detected crash from previous session, showing crash report")
+        Task {
+            if await Logger.shared.didCrashLastSession() {
+                crashLogURL = await Logger.shared.getPreviousSessionLog()
+                showCrashReport = true
+                await Logger.shared.info("Detected crash from previous session, showing crash report")
+            }
         }
     }
 }

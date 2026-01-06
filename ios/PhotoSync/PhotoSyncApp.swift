@@ -5,9 +5,10 @@ struct PhotoSyncApp: App {
     let persistenceController = PersistenceController.shared
 
     init() {
-        // Initialize logger early
-        _ = Logger.shared
-        logInfo("PhotoSync app launched")
+        // Initialize logger early and log app launch
+        Task {
+            await Logger.shared.info("PhotoSync app launched")
+        }
     }
 
     var body: some Scene {
@@ -15,7 +16,9 @@ struct PhotoSyncApp: App {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onAppear {
-                    logInfo("Main view appeared")
+                    Task {
+                        await Logger.shared.info("Main view appeared")
+                    }
                 }
         }
     }

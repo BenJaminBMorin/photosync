@@ -1,0 +1,325 @@
+Incident Identifier: 2A3F648F-6C57-4A5D-B8D9-335039A6EB60
+Distributor ID:      com.apple.TestFlight
+Hardware Model:      iPhone18,1
+Process:             PhotoSync [41939]
+Path:                /private/var/containers/Bundle/Application/D51FF10A-D3C4-41D9-9BCE-81E45FE52464/PhotoSync.app/PhotoSync
+Identifier:          com.morinclan.photosync.app
+Version:             1.0 (2)
+AppStoreTools:       17C53
+AppVariant:          1:iPhone18,1:26
+Beta:                YES
+Code Type:           ARM-64 (Native)
+Role:                Foreground
+Parent Process:      launchd [1]
+Coalition:           com.morinclan.photosync.app [31468]
+
+Date/Time:           2026-01-05 21:43:16.1818 -0600
+Launch Time:         2026-01-05 21:43:15.6898 -0600
+OS Version:          iPhone OS 26.1 (23B85)
+Release Type:        User
+Baseband Version:    1.10.05
+Report Version:      104
+
+Exception Type:  EXC_BREAKPOINT (SIGTRAP)
+Exception Codes: 0x0000000000000001, 0x00000001966698c0
+Termination Reason: SIGNAL 5 Trace/BPT trap: 5
+Terminating Process: exc handler [41939]
+
+Triggered by Thread:  0
+
+
+Thread 0 name:
+Thread 0 Crashed:
+0   libswiftCore.dylib            	0x00000001966698c0 _assertionFailure(_:_:file:line:flags:) + 172 (AssertCommon.swift:171)
+1   libswift_Concurrency.dylib    	0x000000019790a878 CheckedContinuation.resume(returning:) + 384 (CheckedContinuation.swift:172)
+2   PhotoSync                     	0x000000010418dd18 closure #1 in closure #1 in PhotoLibraryService.getThumbnail(for:size:) + 60 (PhotoLibraryService.swift:79)
+3   PhotoSync                     	0x000000010418dd98 thunk for @escaping @callee_guaranteed (@guaranteed UIImage?, @guaranteed [AnyHashable : Any]?) -> () + 112 (/<compiler-generated>:0)
+4   Photos                        	0x00000001b2e52678 __84-[PHImageManager requestImageForAsset:targetSize:contentMode:options:resultHandler:]_block_invoke + 152 (PHImageManager.m:773)
+5   Photos                        	0x00000001b2e4e450 __89-[PHImageManager requestNewCGImageForAsset:targetSize:contentMode:options:resultHandler:]_block_invoke.716 + 224 (PHImageManager.m:1241)
+6   libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+7   libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+8   libdispatch.dylib             	0x00000001d18dfb24 _dispatch_main_queue_drain.cold.5 + 812 (queue.c:8181)
+9   libdispatch.dylib             	0x00000001d18b7ec8 _dispatch_main_queue_drain + 180 (queue.c:8162)
+10  libdispatch.dylib             	0x00000001d18b7e04 _dispatch_main_queue_callback_4CF + 44 (queue.c:8341)
+11  CoreFoundation                	0x00000001994b42c8 __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__ + 16 (CFRunLoop.c:1820)
+12  CoreFoundation                	0x0000000199467b3c __CFRunLoopRun + 1944 (CFRunLoop.c:3177)
+13  CoreFoundation                	0x0000000199466a6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
+14  GraphicsServices              	0x000000023a090498 GSEventRunModal + 120 (GSEvent.c:2049)
+15  UIKitCore                     	0x000000019ee2aba4 -[UIApplication _run] + 792 (UIApplication.m:3902)
+16  UIKitCore                     	0x000000019edd3a78 UIApplicationMain + 336 (UIApplication.m:5577)
+17  SwiftUI                       	0x00000001a20dfd20 closure #1 in KitRendererCommon(_:) + 168 (UIKitApp.swift:65)
+18  SwiftUI                       	0x00000001a20dc8d4 runApp<A>(_:) + 112 (UIKitApp.swift:16)
+19  SwiftUI                       	0x00000001a20dc3c0 static App.main() + 172 (App.swift:137)
+20  PhotoSync                     	0x0000000104188324 static PhotoSyncApp.$main() + 24 (PhotoSyncApp.swift:0)
+21  PhotoSync                     	0x0000000104188324 main + 36
+22  dyld                          	0x000000019647ee28 start + 7116 (dyldMain.cpp:1477)
+
+Thread 1 name:
+Thread 1:
+0   dyld                          	0x000000019647c7e4 invocation function for block in dyld4::APIs::findImageMappedAt(void const*, dyld3::MachOLoaded const**, bool*, char const**, void const**, unsigned long long*, unsigned char*, dyld4::Loader const**) + 0 (DyldAPIs.cpp:923)
+1   dyld                          	0x000000019647c79c DyldSharedCache::forEachImageTextSegment(void (unsigned long long, unsigned long long, unsigned char const*, char const*, bool&) block_pointer) const + 112 (DyldSharedCache.cpp:294)
+2   dyld                          	0x000000019647b464 dyld4::APIs::findImageMappedAt(void const*, dyld3::MachOLoaded const**, bool*, char const**, void const**, unsigned long long*, unsigned char*, dyld4::Loader const**) + 380 (DyldAPIs.cpp:922)
+3   dyld                          	0x000000019648d2e4 dyld4::APIs::dyld_image_path_containing_address(void const*) + 76 (DyldAPIs.cpp:1035)
+4   Foundation                    	0x000000019739b808 -[NSBundle loadAndReturnError:] + 340 (NSBundle.m:888)
+5   UIAccessibility               	0x00000001bff405dc -[NSBundleAccessibility loadAndReturnError:] + 56 (NSBundleAccessibility.m:23)
+6   AXCoreUtilities               	0x00000001a7920074 __50-[AXCodeItem loadWithStrategy:onQueue:completion:]_block_invoke_2 + 204 (AXCodeItem.m:414)
+7   libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+8   libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+9   libdispatch.dylib             	0x00000001d18b1468 _dispatch_lane_serial_drain + 740 (queue.c:3991)
+10  libdispatch.dylib             	0x00000001d18b1f44 _dispatch_lane_invoke + 388 (queue.c:4082)
+11  libdispatch.dylib             	0x00000001d18bc3ec _dispatch_root_queue_drain_deferred_wlh + 292 (queue.c:7265)
+12  libdispatch.dylib             	0x00000001d18bbce4 _dispatch_workloop_worker_thread + 692 (queue.c:6859)
+13  libsystem_pthread.dylib       	0x00000001f54b23b8 _pthread_wqthread + 292 (pthread.c:2696)
+14  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 2:
+
+Thread 3 name:
+Thread 3:
+0   CoreFoundation                	0x0000000199458198 __CFStringHash + 180 (CFString.c:1426)
+1   ImageIO                       	0x000000019c1f10a8 CGImageMetadataTagKeyHash(CGImageMetadataTagKey*) + 64 (CGImageMetadata.cpp:141)
+2   CoreFoundation                	0x000000019946e4d8 ___CFBasicHashFindBucket_Linear_NoCollision + 76 (CFBasicHashFindBucket.m:34)
+3   CoreFoundation                	0x0000000199461590 __CFBasicHashRehash + 988 (CFBasicHash.c:1246)
+4   CoreFoundation                	0x0000000199460980 __CFBasicHashAddValue + 100 (CFBasicHash.c:1292)
+5   CoreFoundation                	0x0000000199470368 CFDictionarySetValue + 208 (CFDictionary.c:465)
+6   ImageIO                       	0x000000019c207f60 CGImageMetadataAddTag + 68 (CGImageMetadataUtil.cpp:4348)
+7   ImageIO                       	0x000000019c222388 CreateMetadataFromXMPBufferInternal(char const*, unsigned long, char const*, unsigned long, unsigned int) + 1336 (mdXMPGlue.cpp:538)
+8   ImageIO                       	0x000000019c222c8c CGImageMetadataCreateFromXMPData + 596 (CGImageMetadata.cpp:2138)
+9   CMPhoto                       	0x00000001bbca495c CMPhotoAuxiliaryImageMetadataCreateFromXMPData + 276 (CMPhotoAuxiliaryImageUtilities.c:1530)
+10  CMPhoto                       	0x00000001bbca4680 CMPhotoJFIFUtilitiesCreateAuxiliaryPropertiesFromStream + 308 (CMPhotoJFIFUtilities.c:2620)
+11  CMPhoto                       	0x00000001bbc84dc0 _parseMPOIfNeeded + 608 (CMPhotoDecompressionContainer+JFIF.c:2098)
+12  CMPhoto                       	0x00000001bbc7b828 _openContainer + 156 (CMPhotoDecompressionContainer+JFIF.c:4536)
+13  CMPhoto                       	0x00000001bbc7a2ac CMPhotoDecompressionContainerCreate + 816 (CMPhotoDecompressionContainer.c:875)
+14  Photos                        	0x00000001b2e4433c -[PHFigDecoder decodeImageFromData:orFileURL:options:completion:] + 716 (PHFigDecoder.m:569)
+15  Photos                        	0x00000001b2be3cd0 PHDecodeImageFromURLForRequest + 1916 (PHImageDecodingUtils.m:162)
+16  Photos                        	0x00000001b2be3510 PHDecodeImageFromStoreForRequest + 232 (PHImageDecodingUtils.m:195)
+17  Photos                        	0x00000001b2be2854 __30-[PHImageRequest startRequest]_block_invoke.63 + 1016 (PHImageRequest.m:643)
+18  Photos                        	0x00000001b2be1f5c __55-[PHImageResourceChooser presentNextQualifyingResource]_block_invoke + 1176 (PHImageResourceChooser.m:521)
+19  Photos                        	0x00000001b2be1a34 ___presentResourcesFromHintsUntilStop_block_invoke + 444 (PHResourceChooserList.m:281)
+20  PhotoLibraryServices          	0x00000001b28fcf00 +[PLManagedAsset(RM) enumerateImageRequestHintData:assetWidth:assetHeight:libraryID:startingOffset:assetID:block:] + 780 (PLManagedAsset+RM.m:696)
+21  Photos                        	0x00000001b2be168c _presentResourcesFromHintsUntilStop + 348 (PHResourceChooserList.m:207)
+22  Photos                        	0x00000001b2be1300 PHChooserListContinueEnumerating + 64 (PHResourceChooserList.m:672)
+23  Photos                        	0x00000001b2be0f48 -[PHImageResourceChooser presentNextQualifyingResource] + 412 (PHImageResourceChooser.m:567)
+24  Photos                        	0x00000001b2be062c -[PHImageRequest startRequest] + 2424 (PHImageRequest.m:664)
+25  libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+26  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+27  libdispatch.dylib             	0x00000001d18b1468 _dispatch_lane_serial_drain + 740 (queue.c:3991)
+28  libdispatch.dylib             	0x00000001d18b1f78 _dispatch_lane_invoke + 440 (queue.c:4082)
+29  libdispatch.dylib             	0x00000001d18bc3ec _dispatch_root_queue_drain_deferred_wlh + 292 (queue.c:7265)
+30  libdispatch.dylib             	0x00000001d18bbce4 _dispatch_workloop_worker_thread + 692 (queue.c:6859)
+31  libsystem_pthread.dylib       	0x00000001f54b23b8 _pthread_wqthread + 292 (pthread.c:2696)
+32  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 4:
+
+Thread 5:
+
+Thread 6 name:
+Thread 6:
+0   libsystem_kernel.dylib        	0x0000000243165c50 semaphore_wait_trap + 8 (:-1)
+1   libdispatch.dylib             	0x00000001d18aa910 _dispatch_sema4_wait + 28 (lock.c:139)
+2   libdispatch.dylib             	0x00000001d18aaec0 _dispatch_semaphore_wait_slow + 132 (semaphore.c:132)
+3   CMPhoto                       	0x00000001bbcac630 _convertAndScalePixelBuffer + 568 (CMPhotoScaleAndRotateSession.c:786)
+4   CMPhoto                       	0x00000001bbcb3a38 _convertAndScalePixelBufferOddSafe + 3060 (CMPhotoScaleAndRotateSession.c:1617)
+5   CMPhoto                       	0x00000001bbcb45b8 CMPhotoScaleAndRotateSessionTransformImage + 1488 (CMPhotoScaleAndRotateSession.c:2430)
+6   CMPhoto                       	0x00000001bbc81bb4 _decodeImage + 2760 (CMPhotoDecompressionContainer+JFIF.c:1221)
+7   CMPhoto                       	0x00000001bbcaa2a0 _runAsyncDecodeRequest + 96 (CMPhotoDecompressionContainer+JFIF.c:4377)
+8   CMPhoto                       	0x00000001bbd396d0 __CMPhotoDecompressionSessionEnqueueAsynchronousRequest_block_invoke_2 + 228 (CMPhotoDecompressionSession.c:850)
+9   libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+10  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+11  libdispatch.dylib             	0x00000001d18ad664 _dispatch_continuation_pop + 596 (queue.c:349)
+12  libdispatch.dylib             	0x00000001d18accd8 _dispatch_async_redirect_invoke + 580 (queue.c:873)
+13  libdispatch.dylib             	0x00000001d18baf48 _dispatch_root_queue_drain + 364 (queue.c:7409)
+14  libdispatch.dylib             	0x00000001d18bb6fc _dispatch_worker_thread2 + 180 (queue.c:7487)
+15  libsystem_pthread.dylib       	0x00000001f54b237c _pthread_wqthread + 232 (pthread.c:2709)
+16  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 7 name:
+Thread 7:
+0   libsystem_kernel.dylib        	0x0000000243165cd4 mach_msg2_trap + 8 (:-1)
+1   libsystem_kernel.dylib        	0x00000002431692f8 mach_msg2_internal + 76 (mach_msg.c:201)
+2   libsystem_kernel.dylib        	0x0000000243169214 mach_msg_overwrite + 428 (mach_msg.c:0)
+3   libsystem_kernel.dylib        	0x000000024316905c mach_msg + 24 (mach_msg.c:323)
+4   CoreFoundation                	0x0000000199490868 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2650)
+5   CoreFoundation                	0x0000000199467848 __CFRunLoopRun + 1188 (CFRunLoop.c:3035)
+6   CoreFoundation                	0x0000000199466a6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
+7   Foundation                    	0x0000000197462d60 -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 212 (NSRunLoop.m:375)
+8   Foundation                    	0x0000000197462f38 -[NSRunLoop(NSRunLoop) runUntilDate:] + 64 (NSRunLoop.m:422)
+9   UIKitCore                     	0x000000019edffcac -[UIEventFetcher threadMain] + 408 (UIEventFetcher.m:1333)
+10  Foundation                    	0x0000000196b2221c __NSThread__start__ + 732 (NSThread.m:997)
+11  libsystem_pthread.dylib       	0x00000001f54b544c _pthread_start + 136 (pthread.c:931)
+12  libsystem_pthread.dylib       	0x00000001f54b18cc thread_start + 8 (:-1)
+
+Thread 8:
+
+Thread 9:
+
+Thread 10 name:
+Thread 10:
+0   libsystem_kernel.dylib        	0x0000000243165c50 semaphore_wait_trap + 8 (:-1)
+1   libdispatch.dylib             	0x00000001d18aa910 _dispatch_sema4_wait + 28 (lock.c:139)
+2   libdispatch.dylib             	0x00000001d18aaec0 _dispatch_semaphore_wait_slow + 132 (semaphore.c:132)
+3   CMPhoto                       	0x00000001bbcac630 _convertAndScalePixelBuffer + 568 (CMPhotoScaleAndRotateSession.c:786)
+4   CMPhoto                       	0x00000001bbcb3a38 _convertAndScalePixelBufferOddSafe + 3060 (CMPhotoScaleAndRotateSession.c:1617)
+5   CMPhoto                       	0x00000001bbcb45b8 CMPhotoScaleAndRotateSessionTransformImage + 1488 (CMPhotoScaleAndRotateSession.c:2430)
+6   CMPhoto                       	0x00000001bbc81bb4 _decodeImage + 2760 (CMPhotoDecompressionContainer+JFIF.c:1221)
+7   CMPhoto                       	0x00000001bbcaa2a0 _runAsyncDecodeRequest + 96 (CMPhotoDecompressionContainer+JFIF.c:4377)
+8   CMPhoto                       	0x00000001bbd396d0 __CMPhotoDecompressionSessionEnqueueAsynchronousRequest_block_invoke_2 + 228 (CMPhotoDecompressionSession.c:850)
+9   libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+10  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+11  libdispatch.dylib             	0x00000001d18ad664 _dispatch_continuation_pop + 596 (queue.c:349)
+12  libdispatch.dylib             	0x00000001d18accd8 _dispatch_async_redirect_invoke + 580 (queue.c:873)
+13  libdispatch.dylib             	0x00000001d18baf48 _dispatch_root_queue_drain + 364 (queue.c:7409)
+14  libdispatch.dylib             	0x00000001d18bb6fc _dispatch_worker_thread2 + 180 (queue.c:7487)
+15  libsystem_pthread.dylib       	0x00000001f54b237c _pthread_wqthread + 232 (pthread.c:2709)
+16  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 11:
+
+Thread 12:
+
+Thread 13 name:
+Thread 13:
+0   libsystem_kernel.dylib        	0x0000000243165c50 semaphore_wait_trap + 8 (:-1)
+1   libdispatch.dylib             	0x00000001d18aa910 _dispatch_sema4_wait + 28 (lock.c:139)
+2   libdispatch.dylib             	0x00000001d18aaec0 _dispatch_semaphore_wait_slow + 132 (semaphore.c:132)
+3   CMPhoto                       	0x00000001bbcac630 _convertAndScalePixelBuffer + 568 (CMPhotoScaleAndRotateSession.c:786)
+4   CMPhoto                       	0x00000001bbcb3b00 _convertAndScalePixelBufferOddSafe + 3260 (CMPhotoScaleAndRotateSession.c:1674)
+5   CMPhoto                       	0x00000001bbcb45b8 CMPhotoScaleAndRotateSessionTransformImage + 1488 (CMPhotoScaleAndRotateSession.c:2430)
+6   CMPhoto                       	0x00000001bbc81bb4 _decodeImage + 2760 (CMPhotoDecompressionContainer+JFIF.c:1221)
+7   CMPhoto                       	0x00000001bbcaa2a0 _runAsyncDecodeRequest + 96 (CMPhotoDecompressionContainer+JFIF.c:4377)
+8   CMPhoto                       	0x00000001bbd396d0 __CMPhotoDecompressionSessionEnqueueAsynchronousRequest_block_invoke_2 + 228 (CMPhotoDecompressionSession.c:850)
+9   libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+10  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+11  libdispatch.dylib             	0x00000001d18ad664 _dispatch_continuation_pop + 596 (queue.c:349)
+12  libdispatch.dylib             	0x00000001d18accd8 _dispatch_async_redirect_invoke + 580 (queue.c:873)
+13  libdispatch.dylib             	0x00000001d18baf48 _dispatch_root_queue_drain + 364 (queue.c:7409)
+14  libdispatch.dylib             	0x00000001d18bb6fc _dispatch_worker_thread2 + 180 (queue.c:7487)
+15  libsystem_pthread.dylib       	0x00000001f54b237c _pthread_wqthread + 232 (pthread.c:2709)
+16  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 14 name:
+Thread 14:
+0   vImage                        	0x0000000249e112a0 vHorizontal_Scale_Planar_UInt8_SME_64x16_internal + 312 (Resample_sme2.c:6055)
+1   ???                           	0x0000000000000040 0x0 + 64
+2   vImage                        	0x0000000249e10848 vHorizontal_Scale_Planar_UInt8_SME_64x16 + 3708 (Resample_sme2.c:9340)
+3   vImage                        	0x0000000249dc7298 vImageHorizontalShear_Planar8 + 496 (Geometry.c:4904)
+4   vImage                        	0x0000000249dc7068 vImageScale_Planar8 + 1268 (Geometry.c:0)
+5   VideoToolbox                  	0x00000001a61cc9ac vtScale + 248 (VTPixelTransferSession.c:0)
+6   VideoToolbox                  	0x00000001a61cce9c vt_ScaleCommon_Y_and_UVPlanes + 396 (VTPixelTransferSession.c:26061)
+7   VideoToolbox                  	0x00000001a61ce204 VTPixelTransferNodeScalerDoTransfer + 104 (VTPixelTransferSession.c:2518)
+8   VideoToolbox                  	0x00000001a62183fc VTPixelTransferChainDoTransfer + 548 (VTPixelTransferChain.c:520)
+9   VideoToolbox                  	0x00000001a61cfea4 vtPixelTransferSession_BuildChain + 6156 (VTPixelTransferSession.c:44591)
+10  VideoToolbox                  	0x00000001a5d3638c _VTPixelTransferSessionTransferImage + 1584 (VTPixelTransferSession.c:46170)
+11  VideoToolbox                  	0x00000001a5d081c8 VTPixelTransferSessionTransferImage + 476 (VTPixelTransferSession.c:46500)
+12  CMPhoto                       	0x00000001bbcacb24 _convertAndScalePixelBuffer + 1836 (CMPhotoScaleAndRotateSession.c:838)
+13  CMPhoto                       	0x00000001bbcb369c _convertAndScalePixelBufferOddSafe + 2136 (CMPhotoScaleAndRotateSession.c:1595)
+14  CMPhoto                       	0x00000001bbcb45b8 CMPhotoScaleAndRotateSessionTransformImage + 1488 (CMPhotoScaleAndRotateSession.c:2430)
+15  CMPhoto                       	0x00000001bbc81bb4 _decodeImage + 2760 (CMPhotoDecompressionContainer+JFIF.c:1221)
+16  CMPhoto                       	0x00000001bbcaa2a0 _runAsyncDecodeRequest + 96 (CMPhotoDecompressionContainer+JFIF.c:4377)
+17  CMPhoto                       	0x00000001bbd396d0 __CMPhotoDecompressionSessionEnqueueAsynchronousRequest_block_invoke_2 + 228 (CMPhotoDecompressionSession.c:850)
+18  libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+19  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+20  libdispatch.dylib             	0x00000001d18ad664 _dispatch_continuation_pop + 596 (queue.c:349)
+21  libdispatch.dylib             	0x00000001d18accd8 _dispatch_async_redirect_invoke + 580 (queue.c:873)
+22  libdispatch.dylib             	0x00000001d18baf48 _dispatch_root_queue_drain + 364 (queue.c:7409)
+23  libdispatch.dylib             	0x00000001d18bb6fc _dispatch_worker_thread2 + 180 (queue.c:7487)
+24  libsystem_pthread.dylib       	0x00000001f54b237c _pthread_wqthread + 232 (pthread.c:2709)
+25  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 15 name:
+Thread 15:
+0   libsystem_kernel.dylib        	0x0000000243165cd4 mach_msg2_trap + 8 (:-1)
+1   libsystem_kernel.dylib        	0x00000002431692f8 mach_msg2_internal + 76 (mach_msg.c:201)
+2   IOKit                         	0x00000001ad4fa9a0 io_connect_method + 520 (:-1)
+3   IOKit                         	0x00000001ad4fa76c IOConnectCallMethod + 236 (IOKitLib.c:1893)
+4   IOSurface                     	0x00000001c64d8554 IOSurfaceClientUpdateNonBulkValueCache + 360 (IOSurfaceClient.m:2023)
+5   IOSurface                     	0x00000001c64de58c IOSurfaceClientCopyAllValues + 72 (IOSurfaceClient.m:2144)
+6   CoreVideo                     	0x00000001b3486200 CVPixelBuffer::copyAttachments(CVAttachmentMode) + 132 (CVPixelBufferInternal.cpp:1579)
+7   VideoToolbox                  	0x00000001a61ce8a0 vtPixelTransferSession_BuildChain + 520 (VTPixelTransferSession.c:44108)
+8   VideoToolbox                  	0x00000001a5d3638c _VTPixelTransferSessionTransferImage + 1584 (VTPixelTransferSession.c:46170)
+9   VideoToolbox                  	0x00000001a5d081c8 VTPixelTransferSessionTransferImage + 476 (VTPixelTransferSession.c:46500)
+10  CMPhoto                       	0x00000001bbcacb24 _convertAndScalePixelBuffer + 1836 (CMPhotoScaleAndRotateSession.c:838)
+11  CMPhoto                       	0x00000001bbcb369c _convertAndScalePixelBufferOddSafe + 2136 (CMPhotoScaleAndRotateSession.c:1595)
+12  CMPhoto                       	0x00000001bbcb45b8 CMPhotoScaleAndRotateSessionTransformImage + 1488 (CMPhotoScaleAndRotateSession.c:2430)
+13  CMPhoto                       	0x00000001bbc81bb4 _decodeImage + 2760 (CMPhotoDecompressionContainer+JFIF.c:1221)
+14  CMPhoto                       	0x00000001bbcaa2a0 _runAsyncDecodeRequest + 96 (CMPhotoDecompressionContainer+JFIF.c:4377)
+15  CMPhoto                       	0x00000001bbd396d0 __CMPhotoDecompressionSessionEnqueueAsynchronousRequest_block_invoke_2 + 228 (CMPhotoDecompressionSession.c:850)
+16  libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+17  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+18  libdispatch.dylib             	0x00000001d18ad664 _dispatch_continuation_pop + 596 (queue.c:349)
+19  libdispatch.dylib             	0x00000001d18accd8 _dispatch_async_redirect_invoke + 580 (queue.c:873)
+20  libdispatch.dylib             	0x00000001d18baf48 _dispatch_root_queue_drain + 364 (queue.c:7409)
+21  libdispatch.dylib             	0x00000001d18bb6fc _dispatch_worker_thread2 + 180 (queue.c:7487)
+22  libsystem_pthread.dylib       	0x00000001f54b237c _pthread_wqthread + 232 (pthread.c:2709)
+23  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 16:
+
+Thread 17 name:
+Thread 17:
+0   libsystem_kernel.dylib        	0x0000000243165c50 semaphore_wait_trap + 8 (:-1)
+1   libdispatch.dylib             	0x00000001d18aa910 _dispatch_sema4_wait + 28 (lock.c:139)
+2   libdispatch.dylib             	0x00000001d18aaec0 _dispatch_semaphore_wait_slow + 132 (semaphore.c:132)
+3   CMPhoto                       	0x00000001bbcac630 _convertAndScalePixelBuffer + 568 (CMPhotoScaleAndRotateSession.c:786)
+4   CMPhoto                       	0x00000001bbcb369c _convertAndScalePixelBufferOddSafe + 2136 (CMPhotoScaleAndRotateSession.c:1595)
+5   CMPhoto                       	0x00000001bbcb45b8 CMPhotoScaleAndRotateSessionTransformImage + 1488 (CMPhotoScaleAndRotateSession.c:2430)
+6   CMPhoto                       	0x00000001bbc81bb4 _decodeImage + 2760 (CMPhotoDecompressionContainer+JFIF.c:1221)
+7   CMPhoto                       	0x00000001bbcaa2a0 _runAsyncDecodeRequest + 96 (CMPhotoDecompressionContainer+JFIF.c:4377)
+8   CMPhoto                       	0x00000001bbd396d0 __CMPhotoDecompressionSessionEnqueueAsynchronousRequest_block_invoke_2 + 228 (CMPhotoDecompressionSession.c:850)
+9   libdispatch.dylib             	0x00000001d18a8adc _dispatch_call_block_and_release + 32 (init.c:1575)
+10  libdispatch.dylib             	0x00000001d18c27ec _dispatch_client_callout + 16 (client_callout.mm:85)
+11  libdispatch.dylib             	0x00000001d18ad664 _dispatch_continuation_pop + 596 (queue.c:349)
+12  libdispatch.dylib             	0x00000001d18accd8 _dispatch_async_redirect_invoke + 580 (queue.c:873)
+13  libdispatch.dylib             	0x00000001d18baf48 _dispatch_root_queue_drain + 364 (queue.c:7409)
+14  libdispatch.dylib             	0x00000001d18bb6fc _dispatch_worker_thread2 + 180 (queue.c:7487)
+15  libsystem_pthread.dylib       	0x00000001f54b237c _pthread_wqthread + 232 (pthread.c:2709)
+16  libsystem_pthread.dylib       	0x00000001f54b18c0 start_wqthread + 8 (:-1)
+
+Thread 18:
+
+Thread 19:
+
+Thread 20:
+
+
+Thread 0 crashed with ARM Thread State (64-bit):
+    x0: 0x0000000119a0abc8   x1: 0x0000000200000003   x2: 0xfffff0007fc00000   x3: 0x0000000000000001
+    x4: 0x00000001094b0b00   x5: 0x0000000000000013   x6: 0x0000000000000020   x7: 0xfffff0003ffff800
+    x8: 0xfffffffe00000000   x9: 0x0000000200000003  x10: 0x0000000000000003  x11: 0x0000000000000000
+   x12: 0x0006f037004200a8  x13: 0x0006e0360041f87e  x14: 0x0000000000020000  x15: 0x0000000000000029
+   x16: 0x952d0001094b0a80  x17: 0x000000006e03607e  x18: 0x0000000000000000  x19: 0x000000010c39fa98
+   x20: 0x000000016bc7a130  x21: 0x000000016bc7a188  x22: 0xd000000000000017  x23: 0x80000001041b1390
+   x24: 0xd000000000000020  x25: 0x0000000000000000  x26: 0x0000000000000114  x27: 0x0000000000000000
+   x28: 0xffffffff76ffffff   fp: 0x000000016bc7a110   lr: 0x00000001966698c0
+    sp: 0x000000016bc7a090   pc: 0x00000001966698c0 cpsr: 0x60000000
+   esr: 0xf2000001 (Breakpoint) brk 1
+
+
+Binary Images:
+        0x104184000 -         0x1041b3fff PhotoSync arm64  <902cb8a085bf38be851f0365dc85f7de> /var/containers/Bundle/Application/D51FF10A-D3C4-41D9-9BCE-81E45FE52464/PhotoSync.app/PhotoSync
+        0x104264000 -         0x10426ffff libobjc-trampolines.dylib arm64e  <a068c18d51c33c9aa2875c9c122ada7d> /private/preboot/Cryptexes/OS/usr/lib/libobjc-trampolines.dylib
+        0x19647a000 -         0x196518ad7 dyld arm64e  <ef27e3863cff3752b152d96a0aa9effd> /usr/lib/dyld
+        0x196534000 -         0x196abf2ff libswiftCore.dylib arm64e  <fc4d41760f93347e8138e20c2734660b> /usr/lib/swift/libswiftCore.dylib
+        0x196ac0000 -         0x1979067df Foundation arm64e  <218da4dc727a3341b59e8fdb39a2d7c4> /System/Library/Frameworks/Foundation.framework/Foundation
+        0x197907000 -         0x19799026f libswift_Concurrency.dylib arm64e  <d785a303cb4a30228462001cd20258e3> /usr/lib/swift/libswift_Concurrency.dylib
+        0x19944a000 -         0x1999ce5ff CoreFoundation arm64e  <b4a0233bf37d3ef6a977e4f36199c5a4> /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+        0x19c1bd000 -         0x19c66ab7f ImageIO arm64e  <f9804ec9d2313d2991a2f923436b5aac> /System/Library/Frameworks/ImageIO.framework/ImageIO
+        0x19ed8d000 -         0x1a11db0df UIKitCore arm64e  <a0e1cefbfd0136f9b82351b092e4dbc6> /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+        0x1a20ae000 -         0x1a332dfdf SwiftUI arm64e  <c641825df01c3495b74c66810079938b> /System/Library/Frameworks/SwiftUI.framework/SwiftUI
+        0x1a5d00000 -         0x1a625919f VideoToolbox arm64e  <1e0ab898906b3570be648258d4b6c8a5> /System/Library/Frameworks/VideoToolbox.framework/VideoToolbox
+        0x1a78ff000 -         0x1a7a0083f AXCoreUtilities arm64e  <c2181f76c4753e888770f6051b093535> /System/Library/PrivateFrameworks/AXCoreUtilities.framework/AXCoreUtilities
+        0x1ad4f9000 -         0x1ad5c63bf IOKit arm64e  <338c86a376233be7bc3026fb0bf56f57> /System/Library/Frameworks/IOKit.framework/Versions/A/IOKit
+        0x1b2283000 -         0x1b2bd203f PhotoLibraryServices arm64e  <0c1e863c45ef3fe1bed5e00f6830eeda> /System/Library/PrivateFrameworks/PhotoLibraryServices.framework/PhotoLibraryServices
+        0x1b2bd3000 -         0x1b2f999bf Photos arm64e  <a2ab71f89cb936948779fe73f0b0abdb> /System/Library/Frameworks/Photos.framework/Photos
+        0x1b347f000 -         0x1b34e71df CoreVideo arm64e  <12bde3d8c05e3cf7b9e0969b29b510ba> /System/Library/Frameworks/CoreVideo.framework/CoreVideo
+        0x1bbc78000 -         0x1bbe5eedf CMPhoto arm64e  <2cccd3e02a553cadbb9d0ebee9f25600> /System/Library/PrivateFrameworks/CMPhoto.framework/CMPhoto
+        0x1bfee7000 -         0x1bff8e01f UIAccessibility arm64e  <f21fc3346b1331a3bcf67a60647222c2> /System/Library/PrivateFrameworks/UIAccessibility.framework/UIAccessibility
+        0x1c64d7000 -         0x1c64f393f IOSurface arm64e  <a031faef3f6237b5bda7e27d71a8cb74> /System/Library/Frameworks/IOSurface.framework/IOSurface
+        0x1d18a7000 -         0x1d18ed25f libdispatch.dylib arm64e  <6a1b4fabb32633738bab8e8464c68c66> /usr/lib/system/libdispatch.dylib
+        0x1f54b1000 -         0x1f54bd44f libsystem_pthread.dylib arm64e  <6e1be86b581a306790653412103e1df4> /usr/lib/system/libsystem_pthread.dylib
+        0x23a08f000 -         0x23a0977ff GraphicsServices arm64e  <3688150f0fff38a4914910b3c47b53b1> /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+        0x243165000 -         0x24319fd2b libsystem_kernel.dylib arm64e  <ff136c45738b3f6e82e57340e51a1478> /usr/lib/system/libsystem_kernel.dylib
+        0x249d05000 -         0x24a04466f vImage arm64e  <b05d717fdf4031249679fdc0b9f27f27> /System/Library/Frameworks/Accelerate.framework/Frameworks/vImage.framework/vImage
+
+EOF

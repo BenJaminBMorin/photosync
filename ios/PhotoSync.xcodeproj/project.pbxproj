@@ -28,7 +28,6 @@
 		018 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* SyncProgressView.swift */; };
 		019 /* HashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* HashService.swift */; };
 		251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DCDC25052A126FAC4725B5 /* Logger.swift */; };
-		7804ABA539CA8B7AFD7CC6F7 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446D0D7558A633DF6E4D48D4 /* Logging.swift */; };
 		C9F93724387E41977CA795AC /* CrashReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */; };
 		T001 /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T101 /* SettingsViewModelTests.swift */; };
 		T002 /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T102 /* SyncProgressTests.swift */; };
@@ -70,7 +69,6 @@
 		119 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		120 /* HashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashService.swift; sourceTree = "<group>"; };
 		1D2E1A7148056F980C94BD46 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = LogsView.swift; sourceTree = "<group>"; };
-		446D0D7558A633DF6E4D48D4 /* Logging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logging.swift; path = Logging.swift; sourceTree = "<group>"; };
 		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = CrashReportView.swift; sourceTree = "<group>"; };
 		F4DCDC25052A126FAC4725B5 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Logger.swift; sourceTree = "<group>"; };
 		T100 /* PhotoSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,7 +94,6 @@
 		1F8D7B4E767A1D29D23225A8 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				446D0D7558A633DF6E4D48D4 /* Logging.swift */,
 			);
 			name = Utilities;
 			path = Utilities;
@@ -307,7 +304,6 @@
 				251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */,
 				01613EC47586276951EB5225 /* LogsView.swift in Sources */,
 				C9F93724387E41977CA795AC /* CrashReportView.swift in Sources */,
-				7804ABA539CA8B7AFD7CC6F7 /* Logging.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
