@@ -77,7 +77,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         let userInfo = notification.request.content.userInfo
 
         // Check if this is an auth request notification
-        if let authRequestId = userInfo["authRequestId"] as? String {
+        if let authRequestId = userInfo["requestId"] as? String {
             Task {
                 await Logger.shared.info("Received auth request notification: \(authRequestId)")
                 await NotificationService.shared.handleAuthRequest(
@@ -99,7 +99,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) {
         let userInfo = response.notification.request.content.userInfo
 
-        if let authRequestId = userInfo["authRequestId"] as? String {
+        if let authRequestId = userInfo["requestId"] as? String {
             Task {
                 await Logger.shared.info("User tapped auth request notification: \(authRequestId)")
                 await NotificationService.shared.showAuthRequestUI(
