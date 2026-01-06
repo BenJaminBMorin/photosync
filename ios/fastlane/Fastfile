@@ -24,14 +24,14 @@ platform :ios do
     puts "✅ Build complete, starting upload..."
 
     # Upload to TestFlight using API Key authentication
+    # Fastlane will automatically find the key file in ~/.appstoreconnect/private_keys/
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       skip_submission: true,
       ipa: "./build/PhotoSync.ipa",
       api_key: {
         key_id: ENV['APP_STORE_CONNECT_API_KEY_KEY_ID'],
-        issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
-        key_filepath: "#{ENV['HOME']}/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_KEY_ID']}.p8"
+        issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID']
       }
     )
 
