@@ -166,6 +166,33 @@ class GalleryViewModel: ObservableObject {
         }
     }
 
+    func ignoreSelected() {
+        let selectedIndices = photos.indices.filter { photos[$0].isSelected && photos[$0].syncState != .ignored }
+        guard !selectedIndices.isEmpty else { return }
+
+        Task {
+            await Logger.shared.info("Ignoring \(selectedIndices.count) selected photos")
+        }
+
+        for index in selectedIndices {
+            let photo = photos[index]
+            _ = IgnoredPhotoEntity.create(context: context, localIdentifier: photo.photo.localIdentifier)
+            photos[index].syncState = .ignored
+            photos[index].isSelected = false
+        }
+
+        do {
+            try context.save()
+            Task {
+                await Logger.shared.info("Successfully ignored \(selectedIndices.count) photos")
+            }
+        } catch {
+            Task {
+                await Logger.shared.error("Failed to ignore selected photos: \(error.localizedDescription)")
+            }
+        }
+    }
+
     func syncSelected() {
         let selectedPhotos = photos.filter { $0.isSelected }.map { $0.photo }
         guard !selectedPhotos.isEmpty else {

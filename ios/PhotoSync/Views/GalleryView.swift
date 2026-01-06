@@ -203,6 +203,16 @@ struct GalleryView: View {
             .buttonStyle(.bordered)
 
             Button {
+                viewModel.ignoreSelected()
+            } label: {
+                HStack {
+                    Image(systemName: "eye.slash")
+                    Text("Ignore")
+                }
+            }
+            .buttonStyle(.bordered)
+
+            Button {
                 viewModel.syncSelected()
             } label: {
                 HStack {
