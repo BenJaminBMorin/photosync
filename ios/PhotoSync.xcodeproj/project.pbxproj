@@ -23,13 +23,13 @@
 		014 /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114 /* GalleryViewModel.swift */; };
 		015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115 /* SettingsView.swift */; };
 		016 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116 /* SettingsViewModel.swift */; };
+		01613EC47586276951EB5225 /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D2E1A7148056F980C94BD46 /* LogsView.swift */; };
 		017 /* PhotoGridItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117 /* PhotoGridItem.swift */; };
 		018 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* SyncProgressView.swift */; };
 		019 /* HashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* HashService.swift */; };
-		217ECB5929D2CE60E0730802 /* CrashReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A04FEFF8B50BE1E54886712 /* CrashReportView.swift */; };
-		5C9CF4C70B208454FCC530B9 /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EADCECAE3B7278178E79D43 /* LogsView.swift */; };
-		7295D89ACC359BF444C33B56 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8DC6592C1F8B04CF1C5748 /* Logger.swift */; };
-		7CB09775E834E052F02A17AF /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A3A9E63C00A46EE7C0CFDA /* Logging.swift */; };
+		251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DCDC25052A126FAC4725B5 /* Logger.swift */; };
+		7804ABA539CA8B7AFD7CC6F7 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446D0D7558A633DF6E4D48D4 /* Logging.swift */; };
+		C9F93724387E41977CA795AC /* CrashReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */; };
 		T001 /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T101 /* SettingsViewModelTests.swift */; };
 		T002 /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T102 /* SyncProgressTests.swift */; };
 		T003 /* APIModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T103 /* APIModelsTests.swift */; };
@@ -69,10 +69,10 @@
 		118 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		119 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		120 /* HashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashService.swift; sourceTree = "<group>"; };
-		7A04FEFF8B50BE1E54886712 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = ios/PhotoSync/Views/CrashReportView.swift; sourceTree = "<group>"; };
-		7EADCECAE3B7278178E79D43 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = ios/PhotoSync/Views/LogsView.swift; sourceTree = "<group>"; };
-		CA8DC6592C1F8B04CF1C5748 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = ios/PhotoSync/Services/Logger.swift; sourceTree = "<group>"; };
-		D9A3A9E63C00A46EE7C0CFDA /* Logging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logging.swift; path = ios/PhotoSync/Utilities/Logging.swift; sourceTree = "<group>"; };
+		1D2E1A7148056F980C94BD46 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = PhotoSync/Views/LogsView.swift; sourceTree = "<group>"; };
+		446D0D7558A633DF6E4D48D4 /* Logging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logging.swift; path = PhotoSync/Utilities/Logging.swift; sourceTree = "<group>"; };
+		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = PhotoSync/Views/CrashReportView.swift; sourceTree = "<group>"; };
+		F4DCDC25052A126FAC4725B5 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = PhotoSync/Services/Logger.swift; sourceTree = "<group>"; };
 		T100 /* PhotoSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T101 /* SettingsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModelTests.swift; sourceTree = "<group>"; };
 		T102 /* SyncProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressTests.swift; sourceTree = "<group>"; };
@@ -96,7 +96,7 @@
 		1F8D7B4E767A1D29D23225A8 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				D9A3A9E63C00A46EE7C0CFDA /* Logging.swift */,
+				446D0D7558A633DF6E4D48D4 /* Logging.swift */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -146,8 +146,8 @@
 				115 /* SettingsView.swift */,
 				117 /* PhotoGridItem.swift */,
 				118 /* SyncProgressView.swift */,
-				7EADCECAE3B7278178E79D43 /* LogsView.swift */,
-				7A04FEFF8B50BE1E54886712 /* CrashReportView.swift */,
+				1D2E1A7148056F980C94BD46 /* LogsView.swift */,
+				BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -168,7 +168,7 @@
 				109 /* APIService.swift */,
 				110 /* SyncService.swift */,
 				120 /* HashService.swift */,
-				CA8DC6592C1F8B04CF1C5748 /* Logger.swift */,
+				F4DCDC25052A126FAC4725B5 /* Logger.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -303,10 +303,10 @@
 				017 /* PhotoGridItem.swift in Sources */,
 				018 /* SyncProgressView.swift in Sources */,
 				019 /* HashService.swift in Sources */,
-				7295D89ACC359BF444C33B56 /* Logger.swift in Sources */,
-				5C9CF4C70B208454FCC530B9 /* LogsView.swift in Sources */,
-				217ECB5929D2CE60E0730802 /* CrashReportView.swift in Sources */,
-				7CB09775E834E052F02A17AF /* Logging.swift in Sources */,
+				251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */,
+				01613EC47586276951EB5225 /* LogsView.swift in Sources */,
+				C9F93724387E41977CA795AC /* CrashReportView.swift in Sources */,
+				7804ABA539CA8B7AFD7CC6F7 /* Logging.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
