@@ -48,6 +48,33 @@ struct ErrorResponse: Codable {
     let error: String
 }
 
+// MARK: - Device Registration
+
+/// Request to register a device for push notifications
+struct RegisterDeviceRequest: Codable {
+    let fcmToken: String
+    let deviceName: String
+    let platform: String
+}
+
+/// Response from device registration
+struct DeviceResponse: Codable {
+    let id: String
+    let deviceName: String
+    let platform: String
+    let registeredAt: String
+    let lastSeenAt: String
+    let isActive: Bool
+}
+
+// MARK: - Auth Response
+
+/// Request to respond to a web authentication request
+struct AuthResponseRequest: Codable {
+    let requestId: String
+    let approved: Bool
+}
+
 /// Sync progress tracking
 struct SyncProgress {
     let total: Int

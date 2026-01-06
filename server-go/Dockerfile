@@ -1,6 +1,7 @@
 FROM golang:1.21-alpine AS builder
 
-RUN apk add --no-cache gcc musl-dev git
+# Install build dependencies including libvips for image processing
+RUN apk add --no-cache gcc musl-dev git vips-dev
 
 # Install swag for swagger doc generation
 RUN go install github.com/swaggo/swag/cmd/swag@latest
@@ -23,11 +24,17 @@ RUN CGO_ENABLED=1 GOOS=linux go build -o /photosync-server ./cmd/server
 
 FROM alpine:latest
 
-RUN apk add --no-cache ca-certificates tzdata
+# Install runtime dependencies
+# - ca-certificates: HTTPS connections
+# - tzdata: timezone support
+# - vips: image processing (thumbnails, format conversion)
+# - libheif: HEIC/HEIF image support
+RUN apk add --no-cache ca-certificates tzdata vips libheif
 
 WORKDIR /app
 
 COPY --from=builder /photosync-server /app/photosync-server
+COPY --from=builder /app/web /app/web
 
 EXPOSE 5000
 

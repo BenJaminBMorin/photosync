@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoSync Gallery</title>
+    <!-- Leaflet CSS for map view -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1e293b;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .navbar-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #334155;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .view-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .view-btn:hover:not(.active) {
+            background: #475569;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .logout-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #475569;
+        }
+
+        .gallery-header {
+            padding: 16px 24px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+        }
+
+        .gallery-stats {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Skeleton Loader Animation */
+        @keyframes skeleton-pulse {
+            0%, 100% { background-color: #334155; }
+            50% { background-color: #475569; }
+        }
+
+        .skeleton {
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        .photo-skeleton {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 4px;
+            padding: 4px;
+        }
+
+        /* Grid View */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 4px;
+            padding: 4px;
+        }
+
+        .photo-grid.large {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .photo-item {
+            aspect-ratio: 1;
+            background: #1e293b;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .photo-item img.loaded {
+            opacity: 1;
+        }
+
+        .photo-item .skeleton-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        .photo-item:hover {
+            transform: scale(1.02);
+            z-index: 1;
+        }
+
+        .photo-item .photo-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            font-size: 11px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .photo-item:hover .photo-overlay {
+            opacity: 1;
+        }
+
+        /* List View */
+        .photo-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .photo-list .photo-item {
+            aspect-ratio: auto;
+            display: flex;
+            align-items: flex-start;
+            padding: 16px 24px;
+            border-bottom: 1px solid #334155;
+            gap: 20px;
+        }
+
+        .photo-list .photo-item:hover {
+            background: #1e293b;
+            transform: none;
+        }
+
+        .photo-list .photo-item img {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .photo-list .photo-item .skeleton-placeholder {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .photo-list .photo-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .photo-list .photo-filename {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .photo-list .photo-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px 24px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .photo-list .meta-item {
+            display: flex;
+            gap: 8px;
+        }
+
+        .photo-list .meta-label {
+            color: #64748b;
+            min-width: 80px;
+        }
+
+        .photo-list .meta-value {
+            color: #e2e8f0;
+        }
+
+        .photo-list .meta-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .photo-list .meta-link:hover {
+            text-decoration: underline;
+        }
+
+        .photo-list .photo-overlay {
+            display: none;
+        }
+
+        /* Carousel View */
+        .carousel-container {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0f172a;
+            z-index: 50;
+        }
+
+        .carousel-container.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .carousel-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel-image-wrapper {
+            max-width: 90%;
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-image {
+            max-width: 100%;
+            max-height: calc(100vh - 200px);
+            object-fit: contain;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 48px;
+            cursor: pointer;
+            padding: 20px;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .carousel-nav:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .carousel-prev { left: 20px; }
+        .carousel-next { right: 20px; }
+
+        .carousel-info {
+            background: #1e293b;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .carousel-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .carousel-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .carousel-btn {
+            background: #334155;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .carousel-btn.active {
+            background: #667eea;
+        }
+
+        .carousel-progress {
+            height: 4px;
+            background: #334155;
+            position: relative;
+        }
+
+        .carousel-progress-bar {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s;
+        }
+
+        .carousel-strip {
+            height: 100px;
+            background: #1e293b;
+            display: flex;
+            overflow-x: auto;
+            gap: 4px;
+            padding: 8px;
+            scroll-behavior: smooth;
+        }
+
+        .carousel-strip::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .carousel-strip::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .carousel-strip::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        .carousel-thumb {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .carousel-thumb.active {
+            opacity: 1;
+            border: 2px solid #667eea;
+        }
+
+        .carousel-thumb:hover {
+            opacity: 0.8;
+        }
+
+        /* Map View */
+        .map-container {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 50;
+        }
+
+        .map-container.active {
+            display: block;
+        }
+
+        #photo-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-popup-thumb {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .map-popup-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .leaflet-popup-content-wrapper {
+            padding: 0;
+        }
+
+        .leaflet-popup-content {
+            margin: 8px;
+        }
+
+        .map-stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        /* Loading */
+        .loading-indicator {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #94a3b8;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .lightbox-delete {
+            position: absolute;
+            top: 20px;
+            right: 80px;
+            background: rgba(239, 68, 68, 0.8);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .lightbox-delete:hover {
+            background: rgba(239, 68, 68, 1);
+        }
+
+        /* Delete Modal */
+        .delete-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .delete-modal.active {
+            display: flex;
+        }
+
+        .delete-modal-content {
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .delete-modal-content h3 {
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+
+        .delete-modal-content p {
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        .delete-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .delete-modal-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .delete-modal-btn.cancel {
+            background: #334155;
+            color: white;
+        }
+
+        .delete-modal-btn.cancel:hover {
+            background: #475569;
+        }
+
+        .delete-modal-btn.confirm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .delete-modal-btn.confirm:hover {
+            background: #dc2626;
+        }
+
+        .delete-api-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #0f172a;
+            color: white;
+            font-size: 14px;
+        }
+
+        .delete-api-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .delete-auth-error {
+            color: #ef4444;
+            font-size: 13px;
+            margin-bottom: 16px;
+            min-height: 20px;
+        }
+
+        .lightbox-content {
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+        }
+
+        .lightbox-loading {
+            color: white;
+            font-size: 18px;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+            padding: 16px;
+            border-radius: 50%;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .lightbox-prev { left: 20px; }
+        .lightbox-next { right: 20px; }
+
+        .lightbox-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 12px 24px;
+            border-radius: 8px;
+            max-width: 90%;
+        }
+
+        .lightbox-info .filename {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .lightbox-info .date {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* Infinite scroll sentinel */
+        .scroll-sentinel {
+            height: 1px;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .photo-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2px;
+                padding: 2px;
+            }
+
+            .skeleton-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2px;
+                padding: 2px;
+            }
+
+            .navbar-controls {
+                gap: 8px;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .view-btn {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            .lightbox-nav {
+                padding: 12px;
+                font-size: 24px;
+            }
+
+            .carousel-nav {
+                padding: 12px;
+                font-size: 32px;
+            }
+
+            .carousel-meta {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .photo-list .photo-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">PhotoSync</div>
+        <div class="navbar-controls">
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" title="Grid View">&#9638;</button>
+                <button class="view-btn" data-view="large" title="Large Grid">&#9635;</button>
+                <button class="view-btn" data-view="list" title="List View">&#9776;</button>
+                <button class="view-btn" data-view="carousel" title="Carousel">&#9654;</button>
+                <button class="view-btn" data-view="map" title="Map View">&#127758;</button>
+            </div>
+            <div class="navbar-user">
+                <span class="user-name" id="user-name"></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="gallery-header" id="gallery-header">
+        <div class="gallery-stats" id="gallery-stats">Loading photos...</div>
+    </div>
+
+    <!-- Skeleton Loader -->
+    <div class="skeleton-grid" id="skeleton-loader">
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+        <div class="photo-skeleton"></div>
+    </div>
+
+    <div class="photo-grid" id="photo-container" style="display: none;"></div>
+
+    <div class="loading-indicator" id="loading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div>Loading more photos...</div>
+    </div>
+
+    <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-state-icon">&#128247;</div>
+        <h2>No Photos Yet</h2>
+        <p>Photos you sync from the mobile app will appear here</p>
+    </div>
+
+    <div class="scroll-sentinel" id="scroll-sentinel"></div>
+
+    <!-- Carousel View -->
+    <div class="carousel-container" id="carousel-container">
+        <div class="carousel-main">
+            <button class="carousel-nav carousel-prev" onclick="carouselPrev()">&#8249;</button>
+            <div class="carousel-image-wrapper">
+                <img class="carousel-image" id="carousel-image" src="" alt="">
+            </div>
+            <button class="carousel-nav carousel-next" onclick="carouselNext()">&#8250;</button>
+        </div>
+        <div class="carousel-progress">
+            <div class="carousel-progress-bar" id="carousel-progress"></div>
+        </div>
+        <div class="carousel-info">
+            <div class="carousel-meta" id="carousel-meta"></div>
+            <div class="carousel-controls">
+                <button class="carousel-btn" id="autoplay-btn" onclick="toggleAutoplay()">&#9654; Auto</button>
+                <span id="carousel-counter">1 / 100</span>
+            </div>
+        </div>
+        <div class="carousel-strip" id="carousel-strip"></div>
+    </div>
+
+    <!-- Map View -->
+    <div class="map-container" id="map-container">
+        <div id="photo-map"></div>
+        <div class="map-stats" id="map-stats">Loading photos with locations...</div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-counter" id="lightbox-counter">1 / 100</div>
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-delete" onclick="deleteCurrentPhoto()" title="Delete photo">&#128465;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="prevPhoto()">&#8249;</button>
+        <div class="lightbox-content">
+            <div class="lightbox-loading" id="lightbox-loading">Loading...</div>
+            <img class="lightbox-image" id="lightbox-image" src="" alt="" style="display: none;">
+        </div>
+        <button class="lightbox-nav lightbox-next" onclick="nextPhoto()">&#8250;</button>
+        <div class="lightbox-info">
+            <div class="filename" id="lightbox-filename"></div>
+            <div class="date" id="lightbox-date"></div>
+        </div>
+    </div>
+
+    <!-- Delete Authorization Modal -->
+    <div class="delete-modal" id="delete-auth-modal">
+        <div class="delete-modal-content">
+            <h3>Authorize Deletion</h3>
+            <p>Enter your API key to enable photo deletion for this session.</p>
+            <input type="password" id="delete-api-key" class="delete-api-input" placeholder="API Key">
+            <div id="delete-auth-error" class="delete-auth-error"></div>
+            <div class="delete-modal-actions">
+                <button class="delete-modal-btn cancel" onclick="cancelDeleteAuth()">Cancel</button>
+                <button class="delete-modal-btn confirm" onclick="verifyDeleteAuth()">Authorize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="delete-modal" id="delete-modal">
+        <div class="delete-modal-content">
+            <h3>Delete Photo?</h3>
+            <p>Are you sure you want to delete this photo? This action cannot be undone.</p>
+            <div class="delete-modal-actions">
+                <button class="delete-modal-btn cancel" onclick="cancelDelete()">Cancel</button>
+                <button class="delete-modal-btn confirm" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS for map view -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <script>
+        let photos = [];
+        let locationPhotos = [];
+        let currentPhotoIndex = 0;
+        let skip = 0;
+        const take = 50;
+        let totalCount = 0;
+        let loading = false;
+        let hasMore = true;
+        let currentView = 'grid';
+        let map = null;
+        let markerCluster = null;
+        let autoplayInterval = null;
+        let autoplayActive = false;
+
+        // Check session and load user info
+        fetch('/api/web/session')
+            .then(r => {
+                if (!r.ok) {
+                    window.location.href = '/login.html';
+                    throw new Error('Not authenticated');
+                }
+                return r.json();
+            })
+            .then(session => {
+                document.getElementById('user-name').textContent = session.user.displayName;
+                loadPhotos();
+                setupInfiniteScroll();
+            })
+            .catch(() => {});
+
+        function loadPhotos() {
+            if (loading || !hasMore) return;
+            loading = true;
+
+            if (photos.length > 0) {
+                document.getElementById('loading').style.display = 'block';
+            }
+
+            fetch(`/api/web/photos?skip=${skip}&take=${take}`)
+                .then(r => r.json())
+                .then(data => {
+                    loading = false;
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('skeleton-loader').style.display = 'none';
+
+                    totalCount = data.totalCount;
+                    document.getElementById('gallery-stats').textContent =
+                        `${totalCount.toLocaleString()} photos`;
+
+                    if (data.photos && data.photos.length > 0) {
+                        document.getElementById('photo-container').style.display = '';
+                        const startIndex = photos.length;
+                        photos = photos.concat(data.photos);
+                        renderPhotos(data.photos, startIndex);
+                        skip += data.photos.length;
+                        hasMore = skip < totalCount;
+
+                        // Update carousel strip if in carousel view
+                        if (currentView === 'carousel') {
+                            updateCarouselStrip();
+                        }
+                    } else if (photos.length === 0) {
+                        document.getElementById('empty-state').style.display = 'block';
+                        hasMore = false;
+                    }
+                })
+                .catch(err => {
+                    loading = false;
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('skeleton-loader').style.display = 'none';
+                    console.error('Failed to load photos:', err);
+                });
+        }
+
+        function renderPhotos(newPhotos, startIndex) {
+            const container = document.getElementById('photo-container');
+
+            newPhotos.forEach((photo, i) => {
+                const index = startIndex + i;
+                const div = document.createElement('div');
+                div.className = 'photo-item';
+                div.onclick = () => openLightbox(index);
+
+                // Skeleton placeholder
+                const skeleton = document.createElement('div');
+                skeleton.className = 'skeleton-placeholder';
+                div.appendChild(skeleton);
+
+                // Lazy loaded image with appropriate size
+                const img = document.createElement('img');
+                const thumbSize = currentView === 'list' ? 'small' : (currentView === 'large' ? 'medium' : 'small');
+                img.dataset.src = `/api/web/photos/${photo.id}/thumbnail?size=${thumbSize}`;
+                img.alt = photo.originalFilename;
+                img.onload = function() {
+                    this.classList.add('loaded');
+                    skeleton.style.display = 'none';
+                };
+                div.appendChild(img);
+
+                // Overlay info (for grid view)
+                const overlay = document.createElement('div');
+                overlay.className = 'photo-overlay';
+                overlay.textContent = formatDate(photo.dateTaken);
+                div.appendChild(overlay);
+
+                // For list view - detailed info
+                const info = document.createElement('div');
+                info.className = 'photo-info';
+                info.innerHTML = buildPhotoInfoHTML(photo);
+                div.appendChild(info);
+
+                container.appendChild(div);
+
+                // Observe for lazy loading
+                lazyLoadObserver.observe(img);
+            });
+        }
+
+        function buildPhotoInfoHTML(photo) {
+            let html = `<div class="photo-filename">${escapeHtml(photo.originalFilename)}</div>`;
+            html += '<div class="photo-meta">';
+
+            // Date
+            html += `<div class="meta-item"><span class="meta-label">Date:</span><span class="meta-value">${formatDateTime(photo.dateTaken)}</span></div>`;
+
+            // Dimensions
+            if (photo.width && photo.height) {
+                html += `<div class="meta-item"><span class="meta-label">Size:</span><span class="meta-value">${photo.width} x ${photo.height}</span></div>`;
+            }
+
+            // File size
+            if (photo.fileSize) {
+                html += `<div class="meta-item"><span class="meta-label">File:</span><span class="meta-value">${formatFileSize(photo.fileSize)}</span></div>`;
+            }
+
+            // Camera
+            if (photo.cameraMake || photo.cameraModel) {
+                const camera = [photo.cameraMake, photo.cameraModel].filter(Boolean).join(' ');
+                html += `<div class="meta-item"><span class="meta-label">Camera:</span><span class="meta-value">${escapeHtml(camera)}</span></div>`;
+            }
+
+            // Lens
+            if (photo.lensModel) {
+                html += `<div class="meta-item"><span class="meta-label">Lens:</span><span class="meta-value">${escapeHtml(photo.lensModel)}</span></div>`;
+            }
+
+            // Settings
+            const settings = [];
+            if (photo.focalLength) settings.push(photo.focalLength);
+            if (photo.aperture) settings.push(photo.aperture);
+            if (photo.shutterSpeed) settings.push(photo.shutterSpeed);
+            if (photo.iso) settings.push(`ISO ${photo.iso}`);
+            if (settings.length > 0) {
+                html += `<div class="meta-item"><span class="meta-label">Settings:</span><span class="meta-value">${escapeHtml(settings.join(' | '))}</span></div>`;
+            }
+
+            // Location
+            if (photo.latitude && photo.longitude) {
+                const mapsUrl = `https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`;
+                html += `<div class="meta-item"><span class="meta-label">Location:</span><a class="meta-link" href="${mapsUrl}" target="_blank" onclick="event.stopPropagation()">View on Google Maps</a></div>`;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Lazy loading with Intersection Observer
+        const lazyLoadObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        delete img.dataset.src;
+                        lazyLoadObserver.unobserve(img);
+                    }
+                }
+            });
+        }, {
+            rootMargin: '200px'
+        });
+
+        // Infinite scroll
+        function setupInfiniteScroll() {
+            const sentinel = document.getElementById('scroll-sentinel');
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && !loading && hasMore) {
+                    loadPhotos();
+                }
+            }, {
+                rootMargin: '500px'
+            });
+            observer.observe(sentinel);
+        }
+
+        // View switching
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const view = btn.dataset.view;
+                switchView(view);
+            });
+        });
+
+        function switchView(view) {
+            currentView = view;
+            const container = document.getElementById('photo-container');
+            const carousel = document.getElementById('carousel-container');
+            const mapContainer = document.getElementById('map-container');
+            const header = document.getElementById('gallery-header');
+            const scrollSentinel = document.getElementById('scroll-sentinel');
+
+            // Hide all views first
+            carousel.classList.remove('active');
+            mapContainer.classList.remove('active');
+            container.style.display = '';
+            header.style.display = '';
+            scrollSentinel.style.display = '';
+            stopAutoplay();
+
+            if (view === 'carousel') {
+                container.style.display = 'none';
+                header.style.display = 'none';
+                scrollSentinel.style.display = 'none';
+                carousel.classList.add('active');
+                initCarousel();
+            } else if (view === 'map') {
+                container.style.display = 'none';
+                header.style.display = 'none';
+                scrollSentinel.style.display = 'none';
+                mapContainer.classList.add('active');
+                initMap();
+            } else {
+                container.className = view === 'list' ? 'photo-list' :
+                                     view === 'large' ? 'photo-grid large' : 'photo-grid';
+            }
+        }
+
+        // Carousel
+        function initCarousel() {
+            if (photos.length === 0) return;
+            currentPhotoIndex = 0;
+            updateCarousel();
+            updateCarouselStrip();
+        }
+
+        function updateCarouselStrip() {
+            const strip = document.getElementById('carousel-strip');
+            strip.innerHTML = '';
+
+            photos.forEach((photo, i) => {
+                const thumb = document.createElement('img');
+                thumb.className = 'carousel-thumb' + (i === currentPhotoIndex ? ' active' : '');
+                thumb.src = `/api/web/photos/${photo.id}/thumbnail?size=small`;
+                thumb.alt = photo.originalFilename;
+                thumb.onclick = () => {
+                    currentPhotoIndex = i;
+                    updateCarousel();
+                };
+                strip.appendChild(thumb);
+            });
+        }
+
+        function updateCarousel() {
+            const photo = photos[currentPhotoIndex];
+            if (!photo) return;
+
+            const img = document.getElementById('carousel-image');
+            img.src = `/api/web/photos/${photo.id}/thumbnail?size=large`;
+
+            // Update counter
+            document.getElementById('carousel-counter').textContent =
+                `${currentPhotoIndex + 1} / ${totalCount}`;
+
+            // Update progress bar
+            document.getElementById('carousel-progress').style.width =
+                `${((currentPhotoIndex + 1) / totalCount) * 100}%`;
+
+            // Update meta info
+            const meta = document.getElementById('carousel-meta');
+            let metaHtml = `<span>${escapeHtml(photo.originalFilename)}</span>`;
+            metaHtml += `<span>${formatDateTime(photo.dateTaken)}</span>`;
+            if (photo.cameraMake || photo.cameraModel) {
+                metaHtml += `<span>${escapeHtml([photo.cameraMake, photo.cameraModel].filter(Boolean).join(' '))}</span>`;
+            }
+            if (photo.latitude && photo.longitude) {
+                metaHtml += `<a href="https://www.google.com/maps?q=${photo.latitude},${photo.longitude}" target="_blank" style="color: #667eea;">View Location</a>`;
+            }
+            meta.innerHTML = metaHtml;
+
+            // Update active thumb
+            document.querySelectorAll('.carousel-thumb').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === currentPhotoIndex);
+            });
+
+            // Scroll thumb into view
+            const activeThumb = document.querySelector('.carousel-thumb.active');
+            if (activeThumb) {
+                activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+
+            // Load more if near the end
+            if (currentPhotoIndex >= photos.length - 5 && hasMore) {
+                loadPhotos();
+            }
+        }
+
+        function carouselPrev() {
+            if (currentPhotoIndex > 0) {
+                currentPhotoIndex--;
+                updateCarousel();
+            }
+        }
+
+        function carouselNext() {
+            if (currentPhotoIndex < photos.length - 1) {
+                currentPhotoIndex++;
+                updateCarousel();
+            } else if (hasMore) {
+                loadPhotos();
+            }
+        }
+
+        function toggleAutoplay() {
+            if (autoplayActive) {
+                stopAutoplay();
+            } else {
+                startAutoplay();
+            }
+        }
+
+        function startAutoplay() {
+            autoplayActive = true;
+            document.getElementById('autoplay-btn').classList.add('active');
+            document.getElementById('autoplay-btn').innerHTML = '&#10074;&#10074; Auto';
+            autoplayInterval = setInterval(() => {
+                if (currentPhotoIndex < photos.length - 1) {
+                    currentPhotoIndex++;
+                    updateCarousel();
+                } else if (hasMore) {
+                    loadPhotos();
+                } else {
+                    currentPhotoIndex = 0;
+                    updateCarousel();
+                }
+            }, 5000);
+        }
+
+        function stopAutoplay() {
+            autoplayActive = false;
+            if (autoplayInterval) {
+                clearInterval(autoplayInterval);
+                autoplayInterval = null;
+            }
+            const btn = document.getElementById('autoplay-btn');
+            if (btn) {
+                btn.classList.remove('active');
+                btn.innerHTML = '&#9654; Auto';
+            }
+        }
+
+        // Map View
+        function initMap() {
+            if (map) {
+                map.invalidateSize();
+                return;
+            }
+
+            // Initialize map
+            map = L.map('photo-map').setView([0, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            markerCluster = L.markerClusterGroup({
+                showCoverageOnHover: false,
+                maxClusterRadius: 50
+            });
+            map.addLayer(markerCluster);
+
+            // Load photos with locations
+            loadLocationPhotos();
+        }
+
+        function loadLocationPhotos() {
+            document.getElementById('map-stats').textContent = 'Loading photos with locations...';
+
+            fetch('/api/web/photos/locations?take=1000')
+                .then(r => r.json())
+                .then(data => {
+                    locationPhotos = data.photos || [];
+                    document.getElementById('map-stats').textContent =
+                        `${locationPhotos.length} photos with location data`;
+
+                    if (locationPhotos.length === 0) {
+                        document.getElementById('map-stats').textContent =
+                            'No photos with location data found';
+                        return;
+                    }
+
+                    // Add markers
+                    const bounds = [];
+                    locationPhotos.forEach(photo => {
+                        if (photo.latitude && photo.longitude) {
+                            const marker = L.marker([photo.latitude, photo.longitude]);
+
+                            const popupContent = `
+                                <img class="map-popup-thumb"
+                                     src="/api/web/photos/${photo.id}/thumbnail?size=small"
+                                     alt="${escapeHtml(photo.originalFilename)}"
+                                     onclick="openLightboxForPhoto('${photo.id}')">
+                                <div class="map-popup-info">
+                                    <strong>${escapeHtml(photo.originalFilename)}</strong><br>
+                                    ${formatDate(photo.dateTaken)}
+                                </div>
+                            `;
+                            marker.bindPopup(popupContent);
+                            markerCluster.addLayer(marker);
+                            bounds.push([photo.latitude, photo.longitude]);
+                        }
+                    });
+
+                    if (bounds.length > 0) {
+                        map.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load location photos:', err);
+                    document.getElementById('map-stats').textContent =
+                        'Failed to load location data';
+                });
+        }
+
+        function openLightboxForPhoto(photoId) {
+            const index = photos.findIndex(p => p.id === photoId);
+            if (index >= 0) {
+                openLightbox(index);
+            } else {
+                // Photo might be in locationPhotos but not in main photos array
+                const locPhoto = locationPhotos.find(p => p.id === photoId);
+                if (locPhoto) {
+                    // Add to photos temporarily and open
+                    const tempIndex = photos.length;
+                    photos.push(locPhoto);
+                    openLightbox(tempIndex);
+                }
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Lightbox
+        function openLightbox(index) {
+            currentPhotoIndex = index;
+            updateLightbox();
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('lightbox-image').src = '';
+        }
+
+        function updateLightbox() {
+            const photo = photos[currentPhotoIndex];
+            const img = document.getElementById('lightbox-image');
+            const loadingEl = document.getElementById('lightbox-loading');
+
+            loadingEl.style.display = 'block';
+            img.style.display = 'none';
+
+            document.getElementById('lightbox-counter').textContent =
+                `${currentPhotoIndex + 1} / ${totalCount}`;
+
+            document.getElementById('lightbox-filename').textContent = photo.originalFilename;
+            document.getElementById('lightbox-date').textContent = formatDateTime(photo.dateTaken);
+
+            img.onload = function() {
+                loadingEl.style.display = 'none';
+                img.style.display = 'block';
+            };
+            img.src = `/api/web/photos/${photo.id}/image`;
+        }
+
+        function prevPhoto() {
+            if (currentPhotoIndex > 0) {
+                currentPhotoIndex--;
+                updateLightbox();
+            }
+        }
+
+        function nextPhoto() {
+            if (currentPhotoIndex < photos.length - 1) {
+                currentPhotoIndex++;
+                updateLightbox();
+
+                if (currentPhotoIndex >= photos.length - 5 && hasMore) {
+                    loadPhotos();
+                }
+            }
+        }
+
+        function logout() {
+            fetch('/api/web/auth/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login.html';
+                });
+        }
+
+        // Delete functionality
+        let deleteApiKey = null;  // Stored in memory only for this session
+        let pendingDeleteIndex = null;
+
+        function deleteCurrentPhoto() {
+            if (!deleteApiKey) {
+                // Need to authorize first
+                document.getElementById('delete-auth-modal').classList.add('active');
+                document.getElementById('delete-api-key').focus();
+            } else {
+                // Already authorized, show confirmation
+                pendingDeleteIndex = currentPhotoIndex;
+                document.getElementById('delete-modal').classList.add('active');
+            }
+        }
+
+        function cancelDeleteAuth() {
+            document.getElementById('delete-auth-modal').classList.remove('active');
+            document.getElementById('delete-api-key').value = '';
+            document.getElementById('delete-auth-error').textContent = '';
+        }
+
+        function verifyDeleteAuth() {
+            const apiKey = document.getElementById('delete-api-key').value.trim();
+            if (!apiKey) {
+                document.getElementById('delete-auth-error').textContent = 'Please enter your API key';
+                return;
+            }
+
+            // Verify API key by trying to access the API
+            fetch('/api/photos?take=1', {
+                headers: { 'X-API-Key': apiKey }
+            })
+            .then(r => {
+                if (r.ok) {
+                    deleteApiKey = apiKey;
+                    cancelDeleteAuth();
+                    // Now show the delete confirmation
+                    pendingDeleteIndex = currentPhotoIndex;
+                    document.getElementById('delete-modal').classList.add('active');
+                } else {
+                    document.getElementById('delete-auth-error').textContent = 'Invalid API key';
+                }
+            })
+            .catch(() => {
+                document.getElementById('delete-auth-error').textContent = 'Failed to verify API key';
+            });
+        }
+
+        function cancelDelete() {
+            document.getElementById('delete-modal').classList.remove('active');
+            pendingDeleteIndex = null;
+        }
+
+        function confirmDelete() {
+            if (pendingDeleteIndex === null) return;
+
+            const photo = photos[pendingDeleteIndex];
+
+            // Use the API key to delete
+            fetch(`/api/photos/${photo.id}`, {
+                method: 'DELETE',
+                headers: { 'X-API-Key': deleteApiKey }
+            })
+            .then(r => {
+                if (r.ok || r.status === 204) {
+                    // Remove from photos array
+                    photos.splice(pendingDeleteIndex, 1);
+                    totalCount--;
+
+                    // Update gallery stats
+                    document.getElementById('gallery-stats').textContent =
+                        `${totalCount.toLocaleString()} photos`;
+
+                    // Remove from DOM
+                    const container = document.getElementById('photo-container');
+                    if (container.children[pendingDeleteIndex]) {
+                        container.children[pendingDeleteIndex].remove();
+                    }
+
+                    // Close modal
+                    cancelDelete();
+
+                    // Navigate to next photo or close lightbox
+                    if (photos.length === 0) {
+                        closeLightbox();
+                        document.getElementById('empty-state').style.display = 'block';
+                    } else if (currentPhotoIndex >= photos.length) {
+                        currentPhotoIndex = photos.length - 1;
+                        updateLightbox();
+                    } else {
+                        updateLightbox();
+                    }
+                } else {
+                    alert('Failed to delete photo');
+                    cancelDelete();
+                }
+            })
+            .catch(err => {
+                console.error('Delete failed:', err);
+                alert('Failed to delete photo');
+                cancelDelete();
+            });
+        }
+
+        // Handle Enter key in API key input
+        document.getElementById('delete-api-key').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                verifyDeleteAuth();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightbox');
+            const carousel = document.getElementById('carousel-container');
+
+            if (lightbox.classList.contains('active')) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') prevPhoto();
+                if (e.key === 'ArrowRight') nextPhoto();
+            } else if (carousel.classList.contains('active')) {
+                if (e.key === 'ArrowLeft') carouselPrev();
+                if (e.key === 'ArrowRight') carouselNext();
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    toggleAutoplay();
+                }
+            }
+        });
+
+        // Touch swipe for lightbox
+        let touchStartX = 0;
+        document.getElementById('lightbox').addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.getElementById('lightbox').addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) nextPhoto();
+                else prevPhoto();
+            }
+        });
+
+        // Touch swipe for carousel
+        document.getElementById('carousel-container').addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.getElementById('carousel-container').addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) carouselNext();
+                else carouselPrev();
+            }
+        });
+    </script>
+</body>
+</html>

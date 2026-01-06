@@ -118,6 +118,42 @@ actor APIService {
         return try JSONDecoder().decode(PhotoListResponse.self, from: data)
     }
 
+    // MARK: - Device Registration
+
+    /// Register device for push notifications
+    func registerDevice(fcmToken: String, name: String) async throws -> DeviceResponse {
+        let url = try buildURL(path: "/api/devices/register")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &request)
+
+        let body = RegisterDeviceRequest(fcmToken: fcmToken, deviceName: name, platform: "ios")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        return try JSONDecoder().decode(DeviceResponse.self, from: data)
+    }
+
+    // MARK: - Auth Response
+
+    /// Respond to a web authentication request
+    func respondToAuthRequest(id: String, approved: Bool) async throws {
+        let url = try buildURL(path: "/api/web/auth/respond")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &request)
+
+        let body = AuthResponseRequest(requestId: id, approved: approved)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
     // MARK: - Helpers
 
     private func buildURL(path: String) throws -> URL {

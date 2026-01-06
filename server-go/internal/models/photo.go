@@ -17,6 +17,31 @@ type Photo struct {
 	FileSize         int64     `json:"fileSize"`
 	DateTaken        time.Time `json:"dateTaken"`
 	UploadedAt       time.Time `json:"uploadedAt"`
+	UserID           *string   `json:"userId,omitempty"`
+
+	// Thumbnail paths (relative to storage base)
+	ThumbSmall  *string `json:"thumbSmall,omitempty"`
+	ThumbMedium *string `json:"thumbMedium,omitempty"`
+	ThumbLarge  *string `json:"thumbLarge,omitempty"`
+
+	// EXIF Metadata
+	CameraMake   *string `json:"cameraMake,omitempty"`
+	CameraModel  *string `json:"cameraModel,omitempty"`
+	LensModel    *string `json:"lensModel,omitempty"`
+	FocalLength  *string `json:"focalLength,omitempty"`
+	Aperture     *string `json:"aperture,omitempty"`
+	ShutterSpeed *string `json:"shutterSpeed,omitempty"`
+	ISO          *int    `json:"iso,omitempty"`
+	Orientation  int     `json:"orientation"`
+
+	// GPS Location
+	Latitude  *float64 `json:"latitude,omitempty"`
+	Longitude *float64 `json:"longitude,omitempty"`
+	Altitude  *float64 `json:"altitude,omitempty"`
+
+	// Image dimensions
+	Width  *int `json:"width,omitempty"`
+	Height *int `json:"height,omitempty"`
 }
 
 // NewPhoto creates a new Photo with validation and sanitization
@@ -42,6 +67,7 @@ func NewPhoto(originalFilename, storedPath, fileHash string, fileSize int64, dat
 		FileSize:         fileSize,
 		DateTaken:        dateTaken,
 		UploadedAt:       time.Now().UTC(),
+		Orientation:      1, // Default: normal orientation
 	}, nil
 }
 

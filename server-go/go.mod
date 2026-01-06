@@ -3,13 +3,17 @@ module github.com/photosync/server
 go 1.21
 
 require (
+	firebase.google.com/go/v4 v4.14.0
+	github.com/disintegration/imaging v1.6.2
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/google/uuid v1.5.0
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.19
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
+	google.golang.org/api v0.172.0
 )
 
 require (

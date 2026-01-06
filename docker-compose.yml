@@ -18,7 +18,10 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - photosync-net
+      - proxy-network
 
 networks:
   photosync-net:
     driver: bridge
+  proxy-network:
+    external: true

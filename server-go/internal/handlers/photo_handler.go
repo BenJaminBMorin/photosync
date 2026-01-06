@@ -18,9 +18,11 @@ import (
 
 // PhotoHandler handles photo-related endpoints
 type PhotoHandler struct {
-	repo           repository.PhotoRepo
-	storageService *services.PhotoStorageService
-	hashService    *services.HashService
+	repo             repository.PhotoRepo
+	storageService   *services.PhotoStorageService
+	hashService      *services.HashService
+	exifService      *services.EXIFService
+	thumbnailService *services.ThumbnailService
 }
 
 // NewPhotoHandler creates a new PhotoHandler
@@ -28,11 +30,15 @@ func NewPhotoHandler(
 	repo repository.PhotoRepo,
 	storageService *services.PhotoStorageService,
 	hashService *services.HashService,
+	exifService *services.EXIFService,
+	thumbnailService *services.ThumbnailService,
 ) *PhotoHandler {
 	return &PhotoHandler{
-		repo:           repo,
-		storageService: storageService,
-		hashService:    hashService,
+		repo:             repo,
+		storageService:   storageService,
+		hashService:      hashService,
+		exifService:      exifService,
+		thumbnailService: thumbnailService,
 	}
 }
 
@@ -108,6 +114,18 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Extract EXIF metadata
+	exifData, err := h.exifService.ExtractFromBytes(content)
+	if err != nil {
+		log.Printf("Warning: failed to extract EXIF data: %v", err)
+		exifData = &services.EXIFData{Orientation: 1}
+	}
+
+	// Use EXIF date if available and no date was provided
+	if dateTakenStr == "" && exifData.DateTaken != nil {
+		dateTaken = *exifData.DateTaken
+	}
+
 	// Store the file
 	storedPath, err := h.storageService.Store(
 		bytes.NewReader(content),
@@ -136,14 +154,46 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Copy EXIF metadata to photo
+	photo.CameraMake = exifData.CameraMake
+	photo.CameraModel = exifData.CameraModel
+	photo.LensModel = exifData.LensModel
+	photo.FocalLength = exifData.FocalLength
+	photo.Aperture = exifData.Aperture
+	photo.ShutterSpeed = exifData.ShutterSpeed
+	photo.ISO = exifData.ISO
+	photo.Orientation = exifData.Orientation
+	photo.Latitude = exifData.Latitude
+	photo.Longitude = exifData.Longitude
+	photo.Altitude = exifData.Altitude
+
+	// Generate thumbnails (if supported format)
+	if services.IsSupportedFormat(originalFilename) {
+		thumbResult, err := h.thumbnailService.GenerateThumbnails(content, photo.ID, storedPath, exifData.Orientation)
+		if err != nil {
+			log.Printf("Warning: failed to generate thumbnails: %v", err)
+		} else {
+			photo.ThumbSmall = &thumbResult.SmallPath
+			photo.ThumbMedium = &thumbResult.MediumPath
+			photo.ThumbLarge = &thumbResult.LargePath
+			photo.Width = &thumbResult.Width
+			photo.Height = &thumbResult.Height
+		}
+	} else if services.IsHEIC(originalFilename) {
+		log.Printf("HEIC file detected, thumbnail generation skipped (requires libheif)")
+	}
+
 	if err := h.repo.Add(r.Context(), photo); err != nil {
 		h.storageService.Delete(storedPath) // Clean up
+		if photo.ThumbSmall != nil {
+			h.thumbnailService.DeleteThumbnails(*photo.ThumbSmall, *photo.ThumbMedium, *photo.ThumbLarge)
+		}
 		log.Printf("Error saving to database: %v", err)
 		h.respondError(w, http.StatusInternalServerError, "Failed to save photo record.")
 		return
 	}
 
-	log.Printf("Photo uploaded: %s -> %s", photo.ID, storedPath)
+	log.Printf("Photo uploaded: %s -> %s (GPS: %v)", photo.ID, storedPath, photo.Latitude != nil)
 
 	h.respondJSON(w, http.StatusOK, models.NewUploadResult(photo.ID, storedPath, photo.UploadedAt))
 }
@@ -336,8 +386,21 @@ func (h *PhotoHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Delete file
+	// Delete file and thumbnails
 	h.storageService.Delete(photo.StoredPath)
+	if photo.ThumbSmall != nil || photo.ThumbMedium != nil || photo.ThumbLarge != nil {
+		var small, medium, large string
+		if photo.ThumbSmall != nil {
+			small = *photo.ThumbSmall
+		}
+		if photo.ThumbMedium != nil {
+			medium = *photo.ThumbMedium
+		}
+		if photo.ThumbLarge != nil {
+			large = *photo.ThumbLarge
+		}
+		h.thumbnailService.DeleteThumbnails(small, medium, large)
+	}
 
 	// Delete from database
 	deleted, err := h.repo.Delete(r.Context(), id)

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoSync Login</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Waiting state */
+        .waiting-container {
+            display: none;
+            text-align: center;
+        }
+
+        .waiting-container.active {
+            display: block;
+        }
+
+        .waiting-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .waiting-title {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .waiting-description {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .countdown {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 16px;
+        }
+
+        .status-text {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .cancel-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 24px;
+            display: inline-block;
+        }
+
+        .cancel-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-container {
+            display: block;
+        }
+
+        .form-container.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>PhotoSync</h1>
+            <p>Sign in to view your photos</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="form-container" id="form-container">
+            <div class="error-message" id="error-message"></div>
+
+            <form onsubmit="initiateLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="you@example.com" required autofocus>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="login-btn">
+                    Send Login Request
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 16px; color: #64748b; font-size: 13px;">
+                A push notification will be sent to your registered device
+            </p>
+
+            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                <p style="text-align: center; color: #64748b; font-size: 13px; margin-bottom: 12px;">
+                    Or login with API key
+                </p>
+                <div class="form-group">
+                    <input type="password" id="api-key" placeholder="Enter your API key" style="font-size: 14px;">
+                </div>
+                <button type="button" class="btn btn-primary" style="background: #475569;" onclick="adminLogin()">
+                    Login with API Key
+                </button>
+            </div>
+        </div>
+
+        <!-- Waiting for Approval -->
+        <div class="waiting-container" id="waiting-container">
+            <div class="waiting-icon">📱</div>
+            <h2 class="waiting-title">Check Your Phone</h2>
+            <p class="waiting-description">
+                We've sent a push notification to your device.<br>
+                Tap Approve to sign in.
+            </p>
+
+            <div class="countdown" id="countdown">60</div>
+            <p class="status-text" id="status-text">Waiting for approval...</p>
+
+            <a href="#" class="cancel-link" onclick="cancelLogin()">Cancel and try again</a>
+        </div>
+    </div>
+
+    <script>
+        let requestId = null;
+        let pollInterval = null;
+        let countdownInterval = null;
+        let secondsLeft = 60;
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function initiateLogin(e) {
+            e.preventDefault();
+            hideError();
+
+            const email = document.getElementById('email').value.trim();
+            const btn = document.getElementById('login-btn');
+
+            if (!email) {
+                showError('Please enter your email address');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Sending...';
+
+            fetch('/api/web/auth/initiate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            })
+            .then(r => {
+                if (!r.ok) return r.text().then(t => { throw new Error(t); });
+                return r.json();
+            })
+            .then(result => {
+                requestId = result.requestId;
+                showWaitingState();
+                startPolling();
+            })
+            .catch(err => {
+                showError(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Send Login Request';
+            });
+        }
+
+        function showWaitingState() {
+            document.getElementById('form-container').classList.add('hidden');
+            document.getElementById('waiting-container').classList.add('active');
+            secondsLeft = 60;
+            updateCountdown();
+
+            countdownInterval = setInterval(() => {
+                secondsLeft--;
+                updateCountdown();
+                if (secondsLeft <= 0) {
+                    handleExpired();
+                }
+            }, 1000);
+        }
+
+        function updateCountdown() {
+            document.getElementById('countdown').textContent = secondsLeft;
+        }
+
+        function startPolling() {
+            pollInterval = setInterval(() => {
+                fetch(`/api/web/auth/status/${requestId}`)
+                    .then(r => r.json())
+                    .then(status => {
+                        if (status.status === 'approved') {
+                            document.getElementById('status-text').textContent = 'Approved! Redirecting...';
+                            stopPolling();
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1000);
+                        } else if (status.status === 'denied') {
+                            handleDenied();
+                        } else if (status.status === 'expired') {
+                            handleExpired();
+                        }
+                    })
+                    .catch(() => {
+                        // Ignore polling errors
+                    });
+            }, 2000);
+        }
+
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+        }
+
+        function handleDenied() {
+            stopPolling();
+            document.getElementById('status-text').textContent = 'Login denied';
+            document.getElementById('countdown').textContent = '❌';
+            setTimeout(cancelLogin, 2000);
+        }
+
+        function handleExpired() {
+            stopPolling();
+            document.getElementById('status-text').textContent = 'Request expired';
+            document.getElementById('countdown').textContent = '⏰';
+            setTimeout(cancelLogin, 2000);
+        }
+
+        function cancelLogin() {
+            stopPolling();
+            requestId = null;
+            document.getElementById('form-container').classList.remove('hidden');
+            document.getElementById('waiting-container').classList.remove('active');
+            document.getElementById('login-btn').disabled = false;
+            document.getElementById('login-btn').textContent = 'Send Login Request';
+        }
+
+        function adminLogin() {
+            hideError();
+            const apiKey = document.getElementById('api-key').value.trim();
+
+            if (!apiKey) {
+                showError('Please enter your API key');
+                return;
+            }
+
+            fetch('/api/web/auth/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey })
+            })
+            .then(r => {
+                if (!r.ok) return r.text().then(t => { throw new Error(t); });
+                return r.json();
+            })
+            .then(result => {
+                window.location.href = '/';
+            })
+            .catch(err => {
+                showError(err.message);
+            });
+        }
+    </script>
+</body>
+</html>

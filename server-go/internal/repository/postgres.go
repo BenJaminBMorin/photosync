@@ -29,21 +29,172 @@ func NewPostgresDB(connStr string) (*sql.DB, error) {
 }
 
 func createPostgresTables(db *sql.DB) error {
+	// First, run migrations for existing tables
+	if err := runPostgresMigrations(db); err != nil {
+		return err
+	}
+
 	schema := `
+	-- Users table
+	CREATE TABLE IF NOT EXISTS users (
+		id TEXT PRIMARY KEY,
+		email TEXT UNIQUE NOT NULL,
+		display_name TEXT NOT NULL,
+		api_key TEXT UNIQUE NOT NULL,
+		api_key_hash TEXT NOT NULL,
+		is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		is_active BOOLEAN NOT NULL DEFAULT TRUE
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_users_api_key_hash ON users(api_key_hash);
+	CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+	-- Devices table (for push notifications)
+	CREATE TABLE IF NOT EXISTS devices (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		device_name TEXT NOT NULL,
+		platform TEXT NOT NULL,
+		fcm_token TEXT NOT NULL,
+		registered_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		last_seen_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		is_active BOOLEAN NOT NULL DEFAULT TRUE
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
+	CREATE INDEX IF NOT EXISTS idx_devices_fcm_token ON devices(fcm_token);
+
+	-- Auth requests (pending push approvals)
+	CREATE TABLE IF NOT EXISTS auth_requests (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		status TEXT NOT NULL DEFAULT 'pending',
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		expires_at TIMESTAMP NOT NULL,
+		responded_at TIMESTAMP,
+		device_id TEXT REFERENCES devices(id),
+		ip_address TEXT,
+		user_agent TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_auth_requests_user_id ON auth_requests(user_id);
+	CREATE INDEX IF NOT EXISTS idx_auth_requests_status ON auth_requests(status);
+
+	-- Web sessions
+	CREATE TABLE IF NOT EXISTS web_sessions (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		auth_request_id TEXT REFERENCES auth_requests(id),
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		expires_at TIMESTAMP NOT NULL,
+		last_activity_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		ip_address TEXT,
+		user_agent TEXT,
+		is_active BOOLEAN NOT NULL DEFAULT TRUE
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_web_sessions_user_id ON web_sessions(user_id);
+
+	-- Photos table (with user_id, thumbnails, EXIF metadata, GPS)
 	CREATE TABLE IF NOT EXISTS photos (
 		id TEXT PRIMARY KEY,
+		user_id TEXT REFERENCES users(id),
 		original_filename TEXT NOT NULL,
 		stored_path TEXT NOT NULL,
 		file_hash TEXT NOT NULL,
 		file_size BIGINT NOT NULL,
 		date_taken TIMESTAMP NOT NULL,
-		uploaded_at TIMESTAMP NOT NULL
+		uploaded_at TIMESTAMP NOT NULL,
+
+		-- Thumbnail paths (relative to storage base)
+		thumb_small TEXT,
+		thumb_medium TEXT,
+		thumb_large TEXT,
+
+		-- EXIF Metadata
+		camera_make TEXT,
+		camera_model TEXT,
+		lens_model TEXT,
+		focal_length TEXT,
+		aperture TEXT,
+		shutter_speed TEXT,
+		iso INTEGER,
+		orientation INTEGER DEFAULT 1,
+
+		-- GPS Location
+		latitude DOUBLE PRECISION,
+		longitude DOUBLE PRECISION,
+		altitude DOUBLE PRECISION,
+
+		-- Image dimensions
+		width INTEGER,
+		height INTEGER
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_photos_hash ON photos(file_hash);
 	CREATE INDEX IF NOT EXISTS idx_photos_date ON photos(date_taken);
+	CREATE INDEX IF NOT EXISTS idx_photos_user_id ON photos(user_id);
+
+	-- Setup config table
+	CREATE TABLE IF NOT EXISTS setup_config (
+		key TEXT PRIMARY KEY,
+		value TEXT NOT NULL,
+		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	);
 	`
 
 	_, err := db.Exec(schema)
 	return err
+}
+
+// runPostgresMigrations handles incremental migrations for existing tables
+func runPostgresMigrations(db *sql.DB) error {
+	// Check if photos table exists
+	var tableExists bool
+	err := db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1 FROM information_schema.tables
+			WHERE table_name = 'photos'
+		)
+	`).Scan(&tableExists)
+
+	if err != nil || !tableExists {
+		return nil
+	}
+
+	// Add new columns if they don't exist (for migration from older schema)
+	migrations := []string{
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS user_id TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS thumb_small TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS thumb_medium TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS thumb_large TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS camera_make TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS camera_model TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS lens_model TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS focal_length TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS aperture TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS shutter_speed TEXT`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS iso INTEGER`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS orientation INTEGER DEFAULT 1`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS altitude DOUBLE PRECISION`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS width INTEGER`,
+		`ALTER TABLE photos ADD COLUMN IF NOT EXISTS height INTEGER`,
+	}
+
+	for _, migration := range migrations {
+		if _, err := db.Exec(migration); err != nil {
+			return err
+		}
+	}
+
+	// Create partial index for photos with GPS coordinates (for map view)
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS idx_photos_location ON photos(latitude, longitude) WHERE latitude IS NOT NULL`)
+	if err != nil {
+		// Index might already exist with different definition, ignore
+	}
+
+	return nil
 }
