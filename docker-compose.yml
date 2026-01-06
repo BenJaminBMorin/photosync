@@ -12,6 +12,9 @@ services:
       - DATABASE_URL=postgres://admin:IBjamin42!@host.docker.internal:5432/photosync?sslmode=disable
       - PHOTO_STORAGE_PATH=/photos
       - API_KEY=67f0fee6bd8b016074d4ae7d5f5aad9faba27740bc54da224f7ce30933496182
+      - GOOGLE_APPLICATION_CREDENTIALS=/photos/.config/firebase-service-account.json
+      - GOOGLE_CLOUD_PROJECT=photosync-5f3f7
+      - GCLOUD_PROJECT=photosync-5f3f7
     volumes:
       - /mnt/nas/photosync:/photos
     extra_hosts:
