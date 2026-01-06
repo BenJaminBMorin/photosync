@@ -2,8 +2,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    @State private var showCrashReport = false
-    @State private var crashLogURL: URL?
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -19,21 +17,11 @@ struct ContentView: View {
                 }
                 .tag(1)
         }
-        .sheet(isPresented: $showCrashReport) {
-            CrashReportView(logURL: crashLogURL)
-        }
         .onAppear {
-            checkForCrash()
-        }
-    }
-
-    private func checkForCrash() {
-        Task {
-            if await Logger.shared.didCrashLastSession() {
-                if let logURL = await Logger.shared.getPreviousSessionLog() {
-                    crashLogURL = logURL
-                    showCrashReport = true
-                    await Logger.shared.info("Detected crash from previous session, showing crash report")
+            // Log crash detection but don't show popup
+            Task {
+                if await Logger.shared.didCrashLastSession() {
+                    await Logger.shared.info("Detected crash from previous session (crash report popup disabled)")
                 }
             }
         }
