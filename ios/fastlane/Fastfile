@@ -8,19 +8,16 @@ platform :ios do
     puts "🔨 Starting build process..."
 
     # Build the app
-    # Use automatic code signing for build (SPM packages require this)
-    # Manual signing is applied during export
+    # Project is configured for manual code signing
+    # Match provisioning profiles are synced before build
     build_app(
       scheme: "PhotoSync",
       export_method: "app-store",
       export_options: {
         provisioningProfiles: {
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
-        },
-        signingStyle: "manual",
-        manageAppVersionAndBuildNumber: false
+        }
       },
-      xcargs: "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM=#{ENV['TEAM_ID']}",
       output_directory: "./build",
       buildlog_path: "./build/logs"
     )
