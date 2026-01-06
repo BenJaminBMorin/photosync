@@ -28,7 +28,6 @@ platform :ios do
       skip_waiting_for_build_processing: true,
       skip_submission: true,
       ipa: "./build/PhotoSync.ipa",
-      api_key_path: "#{ENV['HOME']}/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_KEY_ID']}.p8",
       api_key: {
         key_id: ENV['APP_STORE_CONNECT_API_KEY_KEY_ID'],
         issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
