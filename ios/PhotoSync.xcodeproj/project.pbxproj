@@ -28,6 +28,7 @@
 		018 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* SyncProgressView.swift */; };
 		019 /* HashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* HashService.swift */; };
 		251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DCDC25052A126FAC4725B5 /* Logger.swift */; };
+		30BF3715543B02E330296D8F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 401C2F0F51DB6ED8498ADD65 /* FirebaseCore */; };
 		41FD3E0C9D4BA2BBE9388B13 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477008FDF921B346D977CBC1 /* AppDelegate.swift */; };
 		51E8C094DE4B61FB753A96E6 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DA4BF7D6A1C201229B5824 /* NotificationService.swift */; };
 		666FE7D5F37C28A61F404649 /* AuthRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */; };
@@ -37,6 +38,7 @@
 		DDD96A346BA2A8A75979D16A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 284C7AE3EE5F62B7841C19BB /* GoogleService-Info.plist */; };
 		E228E7E4BE8222916A072D5A /* PhotoCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A94B3F5D81F581778CBCA6 /* PhotoCollection.swift */; };
 		EFAAC606454A8775376371B3 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D185D39309C1A85B79218B /* KeychainService.swift */; };
+		FD9049720DA6D238C74D178B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 56006064295AB90360215AC0 /* FirebaseMessaging */; };
 		T001 /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T101 /* SettingsViewModelTests.swift */; };
 		T002 /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T102 /* SyncProgressTests.swift */; };
 		T003 /* APIModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T103 /* APIModelsTests.swift */; };
@@ -77,7 +79,7 @@
 		119 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		120 /* HashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashService.swift; sourceTree = "<group>"; };
 		1D2E1A7148056F980C94BD46 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = LogsView.swift; sourceTree = "<group>"; };
-		284C7AE3EE5F62B7841C19BB /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../GoogleService-Info.plist"; sourceTree = "<group>"; };
+		284C7AE3EE5F62B7841C19BB /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		2DC5B224E4E4D737B5F5CA80 /* IgnoredPhoto.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IgnoredPhoto.swift; sourceTree = "<group>"; };
 		45DA4BF7D6A1C201229B5824 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		477008FDF921B346D977CBC1 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -98,6 +100,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		16F9E798D9525702085B9C81 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30BF3715543B02E330296D8F /* FirebaseCore in Frameworks */,
+				FD9049720DA6D238C74D178B /* FirebaseMessaging in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		T301 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -228,12 +239,17 @@
 			buildPhases = (
 				301 /* Sources */,
 				302 /* Resources */,
+				16F9E798D9525702085B9C81 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = PhotoSync;
+			packageProductDependencies = (
+				401C2F0F51DB6ED8498ADD65 /* FirebaseCore */,
+				56006064295AB90360215AC0 /* FirebaseMessaging */,
+			);
 			productName = PhotoSync;
 			productReference = 100 /* PhotoSync.app */;
 			productType = "com.apple.product-type.application";
@@ -283,6 +299,9 @@
 				Base,
 			);
 			mainGroup = 200;
+			packageReferences = (
+				FE3B10CF66F5582EEA092A5D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 200;
 			projectDirPath = "";
 			projectRoot = "";
@@ -511,6 +530,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FE3B10CF66F5582EEA092A5D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		401C2F0F51DB6ED8498ADD65 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FE3B10CF66F5582EEA092A5D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		56006064295AB90360215AC0 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FE3B10CF66F5582EEA092A5D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 500 /* Project object */;
 }

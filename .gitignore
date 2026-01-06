@@ -1,0 +1,36 @@
+# Firebase configuration (contains sensitive API keys)
+GoogleService-Info.plist
+ios/GoogleService-Info.plist
+ios/PhotoSync/GoogleService-Info.plist
+
+# Xcode
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata
+ios/PhotoSync.xcodeproj/project.xcworkspace/
+ios/PhotoSync.xcodeproj/xcuserdata/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Build artifacts
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Temporary Ruby scripts
+*.rb
+
+# macOS
+.DS_Store
