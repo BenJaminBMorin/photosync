@@ -69,10 +69,10 @@
 		118 /* SyncProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressView.swift; sourceTree = "<group>"; };
 		119 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		120 /* HashService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashService.swift; sourceTree = "<group>"; };
-		1D2E1A7148056F980C94BD46 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = PhotoSync/Views/LogsView.swift; sourceTree = "<group>"; };
-		446D0D7558A633DF6E4D48D4 /* Logging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logging.swift; path = PhotoSync/Utilities/Logging.swift; sourceTree = "<group>"; };
-		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = PhotoSync/Views/CrashReportView.swift; sourceTree = "<group>"; };
-		F4DCDC25052A126FAC4725B5 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = PhotoSync/Services/Logger.swift; sourceTree = "<group>"; };
+		1D2E1A7148056F980C94BD46 /* LogsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LogsView.swift; path = LogsView.swift; sourceTree = "<group>"; };
+		446D0D7558A633DF6E4D48D4 /* Logging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logging.swift; path = Logging.swift; sourceTree = "<group>"; };
+		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = CrashReportView.swift; sourceTree = "<group>"; };
+		F4DCDC25052A126FAC4725B5 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Logger.swift; sourceTree = "<group>"; };
 		T100 /* PhotoSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T101 /* SettingsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModelTests.swift; sourceTree = "<group>"; };
 		T102 /* SyncProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgressTests.swift; sourceTree = "<group>"; };
