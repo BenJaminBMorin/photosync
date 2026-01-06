@@ -191,31 +191,30 @@ struct GalleryView: View {
     }
 
     private var selectionBar: some View {
-        HStack {
+        HStack(spacing: 12) {
             Text("\(viewModel.selectedCount) selected")
                 .font(.subheadline)
 
             Spacer()
 
-            Button("Clear") {
+            Button {
                 viewModel.clearSelection()
+            } label: {
+                Image(systemName: "xmark.circle")
             }
             .buttonStyle(.bordered)
 
             Button {
                 viewModel.ignoreSelected()
             } label: {
-                HStack {
-                    Image(systemName: "eye.slash")
-                    Text("Ignore")
-                }
+                Image(systemName: "eye.slash.fill")
             }
             .buttonStyle(.bordered)
 
             Button {
                 viewModel.syncSelected()
             } label: {
-                HStack {
+                HStack(spacing: 4) {
                     Image(systemName: "icloud.and.arrow.up")
                     Text("Sync")
                 }
