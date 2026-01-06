@@ -66,6 +66,17 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Debugging") {
+                    NavigationLink {
+                        LogsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.text")
+                            Text("View Logs")
+                        }
+                    }
+                }
+
                 Section("About") {
                     HStack {
                         Text("Version")

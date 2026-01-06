@@ -18,12 +18,6 @@ struct ContentView: View {
                     Label("Settings", systemImage: "gear")
                 }
                 .tag(1)
-
-            LogsView()
-                .tabItem {
-                    Label("Logs", systemImage: "doc.text")
-                }
-                .tag(2)
         }
         .sheet(isPresented: $showCrashReport) {
             CrashReportView(logURL: crashLogURL)
@@ -36,9 +30,11 @@ struct ContentView: View {
     private func checkForCrash() {
         Task {
             if await Logger.shared.didCrashLastSession() {
-                crashLogURL = await Logger.shared.getPreviousSessionLog()
-                showCrashReport = true
-                await Logger.shared.info("Detected crash from previous session, showing crash report")
+                if let logURL = await Logger.shared.getPreviousSessionLog() {
+                    crashLogURL = logURL
+                    showCrashReport = true
+                    await Logger.shared.info("Detected crash from previous session, showing crash report")
+                }
             }
         }
     }
