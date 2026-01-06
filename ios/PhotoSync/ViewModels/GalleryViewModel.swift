@@ -2,6 +2,7 @@ import Foundation
 import Photos
 import CoreData
 import Combine
+import UIKit
 
 @MainActor
 class GalleryViewModel: ObservableObject {
@@ -80,6 +81,17 @@ class GalleryViewModel: ObservableObject {
         Task {
             await Logger.shared.info("GalleryViewModel initialized")
         }
+
+        // Listen for collection changes
+        NotificationCenter.default.addObserver(
+            forName: .collectionDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task {
+                await self?.loadPhotos()
+            }
+        }
     }
 
     func requestAuthorization() async {
@@ -99,8 +111,26 @@ class GalleryViewModel: ObservableObject {
         error = nil
 
         do {
-            let assets = await photoLibrary.fetchAllPhotos()
-            await Logger.shared.info("Fetched \(assets.count) photos from library")
+            // Check if a collection is selected
+            let selectedCollectionId = UserDefaults.standard.string(forKey: "selectedCollectionId")
+            let assets: [PHAsset]
+
+            if let collectionId = selectedCollectionId {
+                // Load photos from specific collection
+                let collections = await photoLibrary.fetchCollections()
+                if let collection = collections.first(where: { $0.id == collectionId }) {
+                    assets = await photoLibrary.fetchPhotos(from: collection.collection)
+                    await Logger.shared.info("Fetched \(assets.count) photos from collection: \(collection.title)")
+                } else {
+                    // Collection not found, load all photos
+                    assets = await photoLibrary.fetchAllPhotos()
+                    await Logger.shared.info("Fetched \(assets.count) photos from library (collection not found)")
+                }
+            } else {
+                // Load all photos
+                assets = await photoLibrary.fetchAllPhotos()
+                await Logger.shared.info("Fetched \(assets.count) photos from library")
+            }
 
             let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
             await Logger.shared.info("Found \(syncedIds.count) synced photos in database")

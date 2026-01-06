@@ -34,6 +34,62 @@ actor PhotoLibraryService {
         return assets
     }
 
+    /// Fetch photos from a specific collection
+    func fetchPhotos(from collection: PHAssetCollection) async -> [PHAsset] {
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+        fetchOptions.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
+
+        let fetchResult = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+
+        var assets: [PHAsset] = []
+        fetchResult.enumerateObjects { asset, _, _ in
+            assets.append(asset)
+        }
+
+        return assets
+    }
+
+    /// Fetch all collections (albums) from the library
+    func fetchCollections() async -> [PhotoCollection] {
+        var collections: [PhotoCollection] = []
+
+        // User albums
+        let userAlbums = PHAssetCollection.fetchAssetCollections(
+            with: .album,
+            subtype: .albumRegular,
+            options: nil
+        )
+        userAlbums.enumerateObjects { collection, _, _ in
+            let count = self.countPhotos(in: collection)
+            if count > 0 {
+                collections.append(PhotoCollection(collection: collection, photoCount: count))
+            }
+        }
+
+        // Smart albums (Favorites, Screenshots, etc.)
+        let smartAlbums = PHAssetCollection.fetchAssetCollections(
+            with: .smartAlbum,
+            subtype: .albumRegular,
+            options: nil
+        )
+        smartAlbums.enumerateObjects { collection, _, _ in
+            let count = self.countPhotos(in: collection)
+            if count > 0 {
+                collections.append(PhotoCollection(collection: collection, photoCount: count))
+            }
+        }
+
+        return collections.sorted { $0.title < $1.title }
+    }
+
+    private func countPhotos(in collection: PHAssetCollection) -> Int {
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
+        let result = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+        return result.count
+    }
+
     /// Get image data for a photo asset
     func getImageData(for asset: PHAsset) async throws -> Data {
         try await withCheckedThrowingContinuation { continuation in
