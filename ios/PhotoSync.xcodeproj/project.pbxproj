@@ -283,6 +283,11 @@
 				TargetAttributes = {
 					300 = {
 						CreatedOnToolsVersion = 15.0;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 					T300 = {
 						CreatedOnToolsVersion = 15.0;
