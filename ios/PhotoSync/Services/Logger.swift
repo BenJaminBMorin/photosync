@@ -16,6 +16,10 @@ class Logger {
 
         try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
 
+        // Check if last session crashed
+        let crashMarkerFile = logsDir.appendingPathComponent(".crash_marker")
+        let didCrashLastTime = FileManager.default.fileExists(atPath: crashMarkerFile.path)
+
         // Create log file with timestamp
         let timestamp = ISO8601DateFormatter().string(from: Date())
         logFile = logsDir.appendingPathComponent("log_\(timestamp).txt")
@@ -37,6 +41,15 @@ class Logger {
         log("Device: \(UIDevice.current.model)", level: .info)
         log("iOS Version: \(UIDevice.current.systemVersion)", level: .info)
         log("App Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")", level: .info)
+
+        if didCrashLastTime {
+            log("⚠️ PREVIOUS SESSION CRASHED - Check previous log file", level: .error)
+            // Remove crash marker
+            try? FileManager.default.removeItem(at: crashMarkerFile)
+        }
+
+        // Create crash marker for this session
+        FileManager.default.createFile(atPath: crashMarkerFile.path, contents: nil)
 
         // Set up crash handler
         setupCrashHandler()
@@ -187,6 +200,27 @@ class Logger {
 
     func getLogContent(from url: URL) -> String? {
         return try? String(contentsOf: url, encoding: .utf8)
+    }
+
+    func didCrashLastSession() -> Bool {
+        let logsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Logs", isDirectory: true)
+        let crashMarkerFile = logsDir.appendingPathComponent(".crash_marker")
+        return FileManager.default.fileExists(atPath: crashMarkerFile.path)
+    }
+
+    func markSessionCleanExit() {
+        let logsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Logs", isDirectory: true)
+        let crashMarkerFile = logsDir.appendingPathComponent(".crash_marker")
+        try? FileManager.default.removeItem(at: crashMarkerFile)
+        log("=== PhotoSync Clean Exit ===", level: .info)
+    }
+
+    func getPreviousSessionLog() -> URL? {
+        let allLogs = getAllLogURLs()
+        // Return second log (first is current session)
+        return allLogs.count > 1 ? allLogs[1] : nil
     }
 }
 
