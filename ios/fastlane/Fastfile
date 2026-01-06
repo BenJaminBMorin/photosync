@@ -5,6 +5,8 @@ default_platform(:ios)
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
+    puts "🔨 Starting build process..."
+
     # Build the app
     build_app(
       scheme: "PhotoSync",
@@ -14,14 +16,21 @@ platform :ios do
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
         }
       },
-      xcargs: "-allowProvisioningUpdates CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=#{ENV['TEAM_ID']} PROVISIONING_PROFILE_SPECIFIER='match AppStore com.morinclan.photosync.app'"
+      xcargs: "-allowProvisioningUpdates CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=#{ENV['TEAM_ID']} PROVISIONING_PROFILE_SPECIFIER='match AppStore com.morinclan.photosync.app'",
+      output_directory: "./build",
+      buildlog_path: "./build/logs"
     )
+
+    puts "✅ Build complete, starting upload..."
 
     # Upload to TestFlight
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
-      skip_submission: true
+      skip_submission: true,
+      ipa: "./build/PhotoSync.ipa"
     )
+
+    puts "✅ Upload complete!"
 
     # Clean up build artifacts
     clean_build_artifacts
