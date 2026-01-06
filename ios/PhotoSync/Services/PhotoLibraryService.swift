@@ -75,8 +75,12 @@ actor PhotoLibraryService {
                 targetSize: size,
                 contentMode: .aspectFill,
                 options: options
-            ) { image, _ in
-                continuation.resume(returning: image)
+            ) { image, info in
+                // Only resume with the final image, not degraded ones
+                let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+                if !isDegraded {
+                    continuation.resume(returning: image)
+                }
             }
         }
     }
