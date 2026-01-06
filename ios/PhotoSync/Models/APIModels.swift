@@ -55,6 +55,7 @@ struct SyncProgress {
     var failed: Int
     var currentFileName: String?
     var isCancelled: Bool = false
+    var sequence: Int = 0  // Sequence number to ensure ordered updates
 
     var progressPercent: Double {
         total > 0 ? Double(completed) / Double(total) : 0

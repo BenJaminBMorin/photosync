@@ -128,9 +128,13 @@ class GalleryViewModel: ObservableObject {
             syncProgress = SyncProgress(total: selectedPhotos.count, completed: 0, failed: 0)
 
             do {
-                let result = await syncService.syncPhotos(selectedPhotos, context: context) { [weak self] progress in
-                    Task { @MainActor in
-                        self?.syncProgress = progress
+                let result = await syncService.syncPhotos(selectedPhotos, context: context) { progress in
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        // Only update if this is newer progress (using sequence number)
+                        if self.syncProgress == nil || progress.sequence > (self.syncProgress?.sequence ?? -1) {
+                            self.syncProgress = progress
+                        }
                     }
                 }
 

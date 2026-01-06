@@ -17,19 +17,21 @@ actor SyncService {
         context: NSManagedObjectContext,
         progressHandler: @escaping (SyncProgress) -> Void
     ) async -> SyncResult {
-        var progress = SyncProgress(total: photos.count, completed: 0, failed: 0)
+        var progress = SyncProgress(total: photos.count, completed: 0, failed: 0, sequence: 0)
         var successfulUploads: [String] = []
         var errors: [String: Error] = [:]
 
         for photo in photos {
             if Task.isCancelled {
                 progress.isCancelled = true
+                progress.sequence += 1
                 progressHandler(progress)
                 break
             }
 
             let filename = await photoLibrary.getFilename(for: photo.asset)
             progress.currentFileName = filename
+            progress.sequence += 1
             progressHandler(progress)
 
             do {
@@ -65,6 +67,7 @@ actor SyncService {
                 progress.failed += 1
             }
 
+            progress.sequence += 1
             progressHandler(progress)
         }
 
