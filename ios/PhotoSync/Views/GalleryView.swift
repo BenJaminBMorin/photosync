@@ -127,18 +127,38 @@ struct GalleryView: View {
             // Filter bar
             filterBar
 
-            // Photo grid
+            // Photo grid grouped by month
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 2) {
-                    ForEach(viewModel.displayedPhotos) { photoState in
-                        PhotoGridItem(
-                            photoState: photoState,
-                            onTap: { viewModel.toggleSelection(for: photoState.id) },
-                            onIgnoreTap: { viewModel.toggleIgnore(for: photoState.id) }
-                        )
+                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    ForEach(viewModel.groupedPhotos) { group in
+                        Section {
+                            LazyVGrid(columns: columns, spacing: 2) {
+                                ForEach(group.photos) { photoState in
+                                    PhotoGridItem(
+                                        photoState: photoState,
+                                        onTap: { viewModel.toggleSelection(for: photoState.id) },
+                                        onIgnoreTap: { viewModel.toggleIgnore(for: photoState.id) }
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, 2)
+                            .padding(.bottom, 16)
+                        } header: {
+                            HStack {
+                                Text(group.displayTitle)
+                                    .font(.title3.bold())
+                                Spacer()
+                                Text("\(group.syncedCount)/\(group.totalCount) synced")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemBackground))
+                        }
                     }
                 }
-                .padding(2)
+                .padding(.top, 2)
             }
 
             // Bottom bar with selection controls

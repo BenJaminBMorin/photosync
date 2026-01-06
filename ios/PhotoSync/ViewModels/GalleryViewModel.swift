@@ -52,6 +52,25 @@ class GalleryViewModel: ObservableObject {
         return filtered
     }
 
+    var groupedPhotos: [PhotoGroup] {
+        let filtered = displayedPhotos
+
+        // Group by year and month
+        let grouped = Dictionary(grouping: filtered) { photo -> String in
+            let components = Calendar.current.dateComponents([.year, .month], from: photo.photo.creationDate)
+            return String(format: "%04d-%02d", components.year ?? 0, components.month ?? 0)
+        }
+
+        // Convert to PhotoGroup array and sort
+        return grouped.map { key, photos in
+            let components = key.split(separator: "-")
+            let year = Int(components[0]) ?? 0
+            let month = Int(components[1]) ?? 0
+            return PhotoGroup(id: key, year: year, month: month, photos: photos)
+        }
+        .sorted { $0.year == $1.year ? $0.month > $1.month : $0.year > $1.year }
+    }
+
     var isConfigured: Bool {
         AppSettings.isConfigured
     }

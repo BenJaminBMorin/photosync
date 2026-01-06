@@ -62,3 +62,26 @@ struct PhotoWithState: Identifiable {
         self.syncState = photo.isSynced ? .synced : .notSynced
     }
 }
+
+/// Group of photos by year and month
+struct PhotoGroup: Identifiable {
+    let id: String  // Format: "2024-01"
+    let year: Int
+    let month: Int
+    let photos: [PhotoWithState]
+
+    var displayTitle: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        let date = Calendar.current.date(from: DateComponents(year: year, month: month)) ?? Date()
+        return formatter.string(from: date)
+    }
+
+    var syncedCount: Int {
+        photos.filter { $0.syncState == .synced }.count
+    }
+
+    var totalCount: Int {
+        photos.count
+    }
+}
