@@ -69,17 +69,53 @@ jobs:
       run: |
         fastlane match appstore --readonly
 
-    - name: Build and Upload to TestFlight
+    - name: Build App
       working-directory: ios
+      timeout-minutes: 30
       env:
         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        FASTLANE_USER: ${{ secrets.APPLE_ID }}
         TEAM_ID: ${{ secrets.TEAM_ID }}
+      run: |
+        set -x
+        xcodebuild -version
+        xcodebuild clean archive \
+          -project PhotoSync.xcodeproj \
+          -scheme PhotoSync \
+          -archivePath build/PhotoSync.xcarchive \
+          -destination 'generic/platform=iOS' \
+          -configuration Release \
+          -allowProvisioningUpdates \
+          CODE_SIGN_STYLE=Manual \
+          CODE_SIGN_IDENTITY='Apple Distribution' \
+          DEVELOPMENT_TEAM="${TEAM_ID}" \
+          PROVISIONING_PROFILE_SPECIFIER='match AppStore com.morinclan.photosync.app' \
+          | tee build.log
+
+    - name: Export IPA
+      working-directory: ios
+      timeout-minutes: 10
+      run: |
+        set -x
+        xcodebuild -exportArchive \
+          -archivePath build/PhotoSync.xcarchive \
+          -exportPath build \
+          -exportOptionsPlist exportOptions.plist \
+          | tee -a build.log
+
+    - name: Upload to TestFlight
+      working-directory: ios
+      timeout-minutes: 20
+      env:
+        FASTLANE_USER: ${{ secrets.APPLE_ID }}
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
         APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
       run: |
-        fastlane beta
+        set -x
+        fastlane pilot upload \
+          --skip_waiting_for_build_processing \
+          --skip_submission \
+          --ipa build/PhotoSync.ipa
 
     - name: Clean up API Key and Git Credentials
       if: always()
