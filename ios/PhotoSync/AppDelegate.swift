@@ -150,7 +150,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
         await Logger.shared.info("Handling delete request: \(requestId), tapped: \(tapped)")
 
-        // TODO: Implement delete request handling
         if tapped {
             await NotificationService.shared.showDeleteRequestUI(
                 id: requestId,

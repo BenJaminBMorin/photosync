@@ -73,6 +73,7 @@ struct DeviceResponse: Codable {
 struct AuthResponseRequest: Codable {
     let requestId: String
     let approved: Bool
+    let deviceId: String?
 }
 
 // MARK: - Delete Response
@@ -81,6 +82,7 @@ struct AuthResponseRequest: Codable {
 struct DeleteResponseRequest: Codable {
     let requestId: String
     let approved: Bool
+    let deviceId: String?
 }
 
 /// Sync progress tracking

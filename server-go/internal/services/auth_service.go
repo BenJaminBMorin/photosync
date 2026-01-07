@@ -154,34 +154,47 @@ func (s *AuthService) CheckAuthStatus(ctx context.Context, requestID string) (*m
 
 // RespondToAuth handles approve/deny from mobile app
 func (s *AuthService) RespondToAuth(ctx context.Context, requestID string, approved bool, deviceID string) error {
+	fmt.Printf("DEBUG: RespondToAuth called - requestID: %s, approved: %v, deviceID: %s\n", requestID, approved, deviceID)
+
 	authReq, err := s.authRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
+		fmt.Printf("ERROR: Failed to get auth request: %v\n", err)
 		return fmt.Errorf("failed to get auth request: %w", err)
 	}
 	if authReq == nil {
+		fmt.Printf("ERROR: Auth request not found: %s\n", requestID)
 		return models.ErrAuthRequestNotFound
 	}
 
+	fmt.Printf("DEBUG: Auth request found - status: %s, expires: %v\n", authReq.Status, authReq.ExpiresAt)
+
 	if authReq.Status != models.AuthStatusPending {
+		fmt.Printf("ERROR: Auth request already resolved - status: %s\n", authReq.Status)
 		return models.ErrAuthAlreadyResolved
 	}
 
 	if authReq.IsExpired() {
+		fmt.Printf("ERROR: Auth request expired\n")
 		authReq.Status = models.AuthStatusExpired
 		s.authRequestRepo.Update(ctx, authReq)
 		return models.ErrAuthRequestExpired
 	}
 
 	if approved {
+		fmt.Printf("DEBUG: Approving auth request\n")
 		authReq.Approve(deviceID)
 	} else {
+		fmt.Printf("DEBUG: Denying auth request\n")
 		authReq.Deny(deviceID)
 	}
 
+	fmt.Printf("DEBUG: Updating auth request with status: %s\n", authReq.Status)
 	if err := s.authRequestRepo.Update(ctx, authReq); err != nil {
+		fmt.Printf("ERROR: Failed to update auth request: %v\n", err)
 		return fmt.Errorf("failed to update auth request: %w", err)
 	}
 
+	fmt.Printf("DEBUG: Auth request updated successfully\n")
 	return nil
 }
 

@@ -128,9 +128,11 @@ func (h *WebAuthHandler) RespondAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get device ID from context (if we track which device responded)
+	// Get device ID from request body (sent by mobile app)
 	deviceID := ""
-	// TODO: Get from device registration context
+	if req.DeviceID != nil {
+		deviceID = *req.DeviceID
+	}
 
 	if err := h.authService.RespondToAuth(r.Context(), req.RequestID, req.Approved, deviceID); err != nil {
 		if err == models.ErrAuthRequestNotFound {

@@ -129,25 +129,34 @@ func (s *DeleteService) CheckDeleteStatus(ctx context.Context, requestID string)
 
 // RespondToDelete handles approve/deny from mobile app
 func (s *DeleteService) RespondToDelete(ctx context.Context, requestID string, approved bool, deviceID string) error {
+	fmt.Printf("DEBUG: RespondToDelete called - requestID: %s, approved: %v, deviceID: %s\n", requestID, approved, deviceID)
+
 	deleteReq, err := s.deleteRequestRepo.GetByID(ctx, requestID)
 	if err != nil {
+		fmt.Printf("ERROR: Failed to get delete request: %v\n", err)
 		return fmt.Errorf("failed to get delete request: %w", err)
 	}
 	if deleteReq == nil {
+		fmt.Printf("ERROR: Delete request not found: %s\n", requestID)
 		return models.ErrDeleteRequestNotFound
 	}
 
+	fmt.Printf("DEBUG: Delete request found - status: %s, photoCount: %d\n", deleteReq.Status, len(deleteReq.PhotoIDs))
+
 	if deleteReq.Status != models.DeleteStatusPending {
+		fmt.Printf("ERROR: Delete request already resolved - status: %s\n", deleteReq.Status)
 		return models.ErrDeleteAlreadyResolved
 	}
 
 	if deleteReq.IsExpired() {
+		fmt.Printf("ERROR: Delete request expired\n")
 		deleteReq.Status = models.DeleteStatusExpired
 		s.deleteRequestRepo.Update(ctx, deleteReq)
 		return models.ErrDeleteRequestExpired
 	}
 
 	if approved {
+		fmt.Printf("DEBUG: Approving delete request - deleting %d photos\n", len(deleteReq.PhotoIDs))
 		deleteReq.Approve(deviceID)
 
 		// Actually delete the photos
@@ -155,17 +164,23 @@ func (s *DeleteService) RespondToDelete(ctx context.Context, requestID string, a
 			// TODO: Also delete physical files from storage
 			if err := s.photoRepo.Delete(ctx, photoID); err != nil {
 				// Log error but continue with other photos
-				fmt.Printf("Failed to delete photo %s: %v\n", photoID, err)
+				fmt.Printf("ERROR: Failed to delete photo %s: %v\n", photoID, err)
+			} else {
+				fmt.Printf("DEBUG: Deleted photo %s from database\n", photoID)
 			}
 		}
 	} else {
+		fmt.Printf("DEBUG: Denying delete request\n")
 		deleteReq.Deny(deviceID)
 	}
 
+	fmt.Printf("DEBUG: Updating delete request with status: %s\n", deleteReq.Status)
 	if err := s.deleteRequestRepo.Update(ctx, deleteReq); err != nil {
+		fmt.Printf("ERROR: Failed to update delete request: %v\n", err)
 		return fmt.Errorf("failed to update delete request: %w", err)
 	}
 
+	fmt.Printf("DEBUG: Delete request updated successfully\n")
 	return nil
 }
 

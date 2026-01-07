@@ -43,8 +43,9 @@ type DeleteStatusResponse struct {
 
 // RespondDeleteRequest is the request body from mobile to approve/deny
 type RespondDeleteRequest struct {
-	RequestID string `json:"requestId"`
-	Approved  bool   `json:"approved"`
+	RequestID string  `json:"requestId"`
+	Approved  bool    `json:"approved"`
+	DeviceID  *string `json:"deviceId,omitempty"`
 }
 
 // NewDeleteRequest creates a new pending delete request

@@ -43,8 +43,9 @@ type AuthStatusResponse struct {
 
 // RespondAuthRequest is the request body from mobile to approve/deny
 type RespondAuthRequest struct {
-	RequestID string `json:"requestId"`
-	Approved  bool   `json:"approved"`
+	RequestID string  `json:"requestId"`
+	Approved  bool    `json:"approved"`
+	DeviceID  *string `json:"deviceId,omitempty"`
 }
 
 // NewAuthRequest creates a new pending auth request

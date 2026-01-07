@@ -151,10 +151,11 @@ actor APIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         addAPIKeyHeader(to: &request)
 
-        let body = AuthResponseRequest(requestId: id, approved: approved)
+        let deviceId = AppSettings.deviceId
+        let body = AuthResponseRequest(requestId: id, approved: approved, deviceId: deviceId)
         request.httpBody = try JSONEncoder().encode(body)
 
-        await Logger.shared.info("Sending POST request to /api/web/auth/respond")
+        await Logger.shared.info("Sending POST request to /api/web/auth/respond with deviceId: \(deviceId ?? "nil")")
 
         let (data, response) = try await session.data(for: request)
 
@@ -178,10 +179,11 @@ actor APIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         addAPIKeyHeader(to: &request)
 
-        let body = DeleteResponseRequest(requestId: id, approved: approved)
+        let deviceId = AppSettings.deviceId
+        let body = DeleteResponseRequest(requestId: id, approved: approved, deviceId: deviceId)
         request.httpBody = try JSONEncoder().encode(body)
 
-        await Logger.shared.info("Sending POST request to /api/web/delete/respond")
+        await Logger.shared.info("Sending POST request to /api/web/delete/respond with deviceId: \(deviceId ?? "nil")")
 
         let (data, response) = try await session.data(for: request)
 
