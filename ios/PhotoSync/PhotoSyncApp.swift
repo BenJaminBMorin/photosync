@@ -40,9 +40,6 @@ struct PhotoSyncApp: App {
                 }
                 .sheet(isPresented: $showAuthRequest) {
                     if let request = currentAuthRequest {
-                        Task {
-                            await Logger.shared.info("Sheet presenting with request - id: \(request.id), email: \(request.email)")
-                        }
                         AuthRequestView(
                             request: request,
                             onApprove: {
