@@ -52,9 +52,6 @@ struct PhotoSyncApp: App {
                     }
                 }
                 .sheet(item: $authRequestToShow) { request in
-                    Task {
-                        await Logger.shared.info("Sheet closure executing with request: \(request.id)")
-                    }
                     AuthRequestView(
                         request: request,
                         onApprove: {
