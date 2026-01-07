@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
 
     defaults:
       run:
@@ -27,6 +27,9 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'
+
+    - name: Tidy dependencies
+      run: go mod tidy
 
     - name: Download dependencies
       run: go mod download
@@ -47,7 +50,7 @@ jobs:
         path: server-go/coverage.out
 
   publish:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
