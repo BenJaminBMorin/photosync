@@ -141,7 +141,11 @@ actor APIService {
 
     /// Respond to a web authentication request
     func respondToAuthRequest(id: String, approved: Bool) async throws {
+        await Logger.shared.info("APIService.respondToAuthRequest called - id: \(id), approved: \(approved)")
+
         let url = try buildURL(path: "/api/web/auth/respond")
+        await Logger.shared.info("API URL: \(url.absoluteString)")
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -150,8 +154,14 @@ actor APIService {
         let body = AuthResponseRequest(requestId: id, approved: approved)
         request.httpBody = try JSONEncoder().encode(body)
 
-        let (_, response) = try await session.data(for: request)
+        await Logger.shared.info("Sending POST request to /api/web/auth/respond")
+
+        let (data, response) = try await session.data(for: request)
+
+        await Logger.shared.info("Response received - status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+
         try validateResponse(response)
+        await Logger.shared.info("Response validation passed")
     }
 
     // MARK: - Helpers

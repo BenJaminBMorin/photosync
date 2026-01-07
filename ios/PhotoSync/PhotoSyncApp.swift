@@ -44,7 +44,9 @@ struct PhotoSyncApp: App {
                             request: request,
                             onApprove: {
                                 Task {
+                                    await Logger.shared.info("User tapped APPROVE button for request: \(request.id)")
                                     await NotificationService.shared.approveAuthRequest()
+                                    await Logger.shared.info("Approve completed, dismissing sheet")
                                     await MainActor.run {
                                         showAuthRequest = false
                                         currentAuthRequest = nil
@@ -53,7 +55,9 @@ struct PhotoSyncApp: App {
                             },
                             onDeny: {
                                 Task {
+                                    await Logger.shared.info("User tapped DENY button for request: \(request.id)")
                                     await NotificationService.shared.denyAuthRequest()
+                                    await Logger.shared.info("Deny completed, dismissing sheet")
                                     await MainActor.run {
                                         showAuthRequest = false
                                         currentAuthRequest = nil

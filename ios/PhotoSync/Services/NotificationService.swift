@@ -114,40 +114,52 @@ actor NotificationService {
     }
 
     func approveAuthRequest() async {
+        await Logger.shared.info("approveAuthRequest() called")
+
         guard let request = pendingAuthRequest else {
             await Logger.shared.warning("No pending auth request to approve")
             return
         }
+
+        await Logger.shared.info("Sending approval for request: \(request.id)")
 
         do {
             try await APIService.shared.respondToAuthRequest(
                 id: request.id,
                 approved: true
             )
-            await Logger.shared.info("Auth request approved: \(request.id)")
+            await Logger.shared.info("Auth request approved successfully: \(request.id)")
 
             await clearAuthRequest()
+            await Logger.shared.info("Auth request cleared")
         } catch {
             await Logger.shared.error("Failed to approve auth request: \(error)")
+            await Logger.shared.error("Error details: \(String(describing: error))")
         }
     }
 
     func denyAuthRequest() async {
+        await Logger.shared.info("denyAuthRequest() called")
+
         guard let request = pendingAuthRequest else {
             await Logger.shared.warning("No pending auth request to deny")
             return
         }
+
+        await Logger.shared.info("Sending denial for request: \(request.id)")
 
         do {
             try await APIService.shared.respondToAuthRequest(
                 id: request.id,
                 approved: false
             )
-            await Logger.shared.info("Auth request denied: \(request.id)")
+            await Logger.shared.info("Auth request denied successfully: \(request.id)")
 
             await clearAuthRequest()
+            await Logger.shared.info("Auth request cleared")
         } catch {
             await Logger.shared.error("Failed to deny auth request: \(error)")
+            await Logger.shared.error("Error details: \(String(describing: error))")
         }
     }
 
