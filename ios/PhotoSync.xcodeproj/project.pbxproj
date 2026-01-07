@@ -38,6 +38,7 @@
 		DDD96A346BA2A8A75979D16A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 284C7AE3EE5F62B7841C19BB /* GoogleService-Info.plist */; };
 		E228E7E4BE8222916A072D5A /* PhotoCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6A94B3F5D81F581778CBCA6 /* PhotoCollection.swift */; };
 		EFAAC606454A8775376371B3 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D185D39309C1A85B79218B /* KeychainService.swift */; };
+		F30403FE4297D8869C8E7130 /* DeleteRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B352E8572DACCBD36304D418 /* DeleteRequestView.swift */; };
 		FD9049720DA6D238C74D178B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 56006064295AB90360215AC0 /* FirebaseMessaging */; };
 		T001 /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T101 /* SettingsViewModelTests.swift */; };
 		T002 /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T102 /* SyncProgressTests.swift */; };
@@ -87,6 +88,7 @@
 		82A9CEC6D42B4F5EEE0D2122 /* PhotoSync.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = PhotoSync.entitlements; sourceTree = "<group>"; };
 		94B7393A715D37AF94FA60FC /* CollectionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
 		9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthRequestView.swift; sourceTree = "<group>"; };
+		B352E8572DACCBD36304D418 /* DeleteRequestView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeleteRequestView.swift; sourceTree = "<group>"; };
 		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = CrashReportView.swift; sourceTree = "<group>"; };
 		D6A94B3F5D81F581778CBCA6 /* PhotoCollection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoCollection.swift; sourceTree = "<group>"; };
 		F4DCDC25052A126FAC4725B5 /* Logger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 				BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */,
 				94B7393A715D37AF94FA60FC /* CollectionsView.swift */,
 				9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */,
+				B352E8572DACCBD36304D418 /* DeleteRequestView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -362,6 +365,7 @@
 				EFAAC606454A8775376371B3 /* KeychainService.swift in Sources */,
 				51E8C094DE4B61FB753A96E6 /* NotificationService.swift in Sources */,
 				666FE7D5F37C28A61F404649 /* AuthRequestView.swift in Sources */,
+				F30403FE4297D8869C8E7130 /* DeleteRequestView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
