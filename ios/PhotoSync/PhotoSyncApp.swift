@@ -53,12 +53,6 @@ struct PhotoSyncApp: App {
                     }
                 }
                 .sheet(isPresented: $showAuthRequest) {
-                    Task {
-                        await Logger.shared.info("Sheet is presenting. currentAuthRequest is: \(currentAuthRequest == nil ? "nil" : "not nil")")
-                        if let req = currentAuthRequest {
-                            await Logger.shared.info("currentAuthRequest details - id: \(req.id), email: \(req.email)")
-                        }
-                    }
                     if let request = currentAuthRequest {
                         AuthRequestView(
                             request: request,
