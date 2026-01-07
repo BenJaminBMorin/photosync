@@ -275,6 +275,74 @@ func (s *FCMService) SendAuthRequestToMultiple(ctx context.Context, fcmTokens []
 	return successCount, nil
 }
 
+// SendDataNotification sends a generic data notification to a single device
+func (s *FCMService) SendDataNotification(ctx context.Context, fcmToken, title, body string, data map[string]string) error {
+	token, err := s.getAccessToken(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get access token: %w", err)
+	}
+
+	message := fcmMessage{
+		Message: fcmMessageBody{
+			Token: fcmToken,
+			Data:  data,
+			Notification: &fcmNotification{
+				Title: title,
+				Body:  body,
+			},
+			Android: &fcmAndroid{
+				Priority: "high",
+			},
+			APNS: &fcmAPNS{
+				Headers: map[string]string{
+					"apns-priority":  "10",
+					"apns-push-type": "alert",
+				},
+				Payload: &fcmAPNSPayload{
+					Aps: &fcmAps{
+						Alert: &fcmApsAlert{
+							Title: title,
+							Body:  body,
+						},
+						Sound:            "default",
+						ContentAvailable: 1,
+					},
+				},
+			},
+		},
+	}
+
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %w", err)
+	}
+
+	url := fmt.Sprintf("https://fcm.googleapis.com/v1/projects/%s/messages:send", s.projectID)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("FCM API error: %s", string(respBody))
+	}
+
+	log.Printf("FCM notification sent successfully: %s", string(respBody))
+	return nil
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a

@@ -91,7 +91,7 @@ func (s *DeleteService) InitiateDelete(ctx context.Context, userID string, photo
 			UserAgent: userAgent,
 		}
 
-		sent, _ := s.fcmService.SendDeleteRequestToMultiple(ctx, tokens, notification)
+		sent, _ := s.SendDeleteRequestToMultiple(ctx, tokens, notification)
 		if sent == 0 {
 			return nil, fmt.Errorf("failed to send push notification to any device")
 		}
@@ -162,7 +162,7 @@ func (s *DeleteService) RespondToDelete(ctx context.Context, requestID string, a
 		// Actually delete the photos
 		for _, photoID := range deleteReq.PhotoIDs {
 			// TODO: Also delete physical files from storage
-			if err := s.photoRepo.Delete(ctx, photoID); err != nil {
+			if _, err := s.photoRepo.Delete(ctx, photoID); err != nil {
 				// Log error but continue with other photos
 				fmt.Printf("ERROR: Failed to delete photo %s: %v\n", photoID, err)
 			} else {
@@ -194,22 +194,33 @@ type DeleteRequestNotification struct {
 }
 
 // SendDeleteRequestToMultiple sends delete request notification to multiple devices
-func (f *FCMService) SendDeleteRequestToMultiple(ctx context.Context, tokens []string, notification DeleteRequestNotification) (int, error) {
-	if f == nil {
+func (s *DeleteService) SendDeleteRequestToMultiple(ctx context.Context, tokens []string, notification DeleteRequestNotification) (int, error) {
+	if s.fcmService == nil {
 		return 0, fmt.Errorf("FCM service not initialized")
 	}
 
-	payload := map[string]string{
-		"type":      "delete_request",
-		"requestId": notification.RequestID,
-		"photoIds":  strings.Join(notification.PhotoIDs, ","),
-		"email":     notification.Email,
-		"ipAddress": notification.IPAddress,
-		"userAgent": notification.UserAgent,
+	if len(tokens) == 0 {
+		return 0, nil
 	}
 
-	title := "Photo Deletion Request"
-	body := fmt.Sprintf("Request to delete %d photo(s) from web interface", len(notification.PhotoIDs))
+	successCount := 0
+	for _, token := range tokens {
+		if err := s.fcmService.SendDataNotification(ctx, token, "Photo Deletion Request",
+			fmt.Sprintf("Request to delete %d photo(s) from web interface", len(notification.PhotoIDs)),
+			map[string]string{
+				"type":      "delete_request",
+				"requestId": notification.RequestID,
+				"photoIds":  strings.Join(notification.PhotoIDs, ","),
+				"email":     notification.Email,
+				"ipAddress": notification.IPAddress,
+				"userAgent": notification.UserAgent,
+			}); err != nil {
+			fmt.Printf("FCM send failed for token %s...: %v\n", token[:min(20, len(token))], err)
+			continue
+		}
+		successCount++
+	}
 
-	return f.SendToMultiple(ctx, tokens, title, body, payload)
+	return successCount, nil
 }
+

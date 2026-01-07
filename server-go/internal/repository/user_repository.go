@@ -129,3 +129,10 @@ func (r *UserRepository) Delete(ctx context.Context, id string) (bool, error) {
 	rows, err := result.RowsAffected()
 	return rows > 0, err
 }
+
+// UpdateAPIKeyHash updates a user's API key hash (used for API key reset)
+func (r *UserRepository) UpdateAPIKeyHash(ctx context.Context, id, apiKeyHash string) error {
+	query := `UPDATE users SET api_key_hash = $2 WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id, apiKeyHash)
+	return err
+}

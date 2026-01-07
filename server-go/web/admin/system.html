@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Status - PhotoSync Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1e293b;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .admin-badge {
+            background: #667eea;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .logout-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #475569;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .refresh-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .refresh-btn:hover {
+            background: #475569;
+        }
+
+        /* Status Cards Grid */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 16px;
+        }
+
+        .status-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .status-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .status-card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-indicator.online {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-indicator.offline {
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+
+        .status-indicator.warning {
+            background: #f59e0b;
+            box-shadow: 0 0 8px #f59e0b;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: #22c55e20;
+            color: #22c55e;
+        }
+
+        .status-badge.warning {
+            background: #f59e0b20;
+            color: #f59e0b;
+        }
+
+        .status-badge.error {
+            background: #ef444420;
+            color: #ef4444;
+        }
+
+        .status-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .status-item-label {
+            color: #94a3b8;
+        }
+
+        .status-item-value {
+            color: white;
+            font-weight: 500;
+        }
+
+        .status-item-value.mono {
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        /* Config Section */
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .config-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .config-title {
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .config-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .config-item-label {
+            color: #94a3b8;
+        }
+
+        .config-item-value {
+            color: white;
+        }
+
+        .extensions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .extension-tag {
+            background: #334155;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        /* Skeleton */
+        @keyframes skeleton-pulse {
+            0%, 100% { background-color: #334155; }
+            50% { background-color: #475569; }
+        }
+
+        .skeleton {
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 80px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px 16px;
+            }
+
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .status-grid, .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a href="/">PhotoSync</a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <div class="navbar-nav">
+            <a href="/admin" class="nav-link">Dashboard</a>
+            <a href="/admin/users" class="nav-link">Users</a>
+            <a href="/admin/system" class="nav-link active">System</a>
+        </div>
+        <div class="navbar-user">
+            <span class="user-name" id="user-name"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">System Status</h1>
+            <p class="page-subtitle">Monitor system health and configuration</p>
+        </div>
+
+        <!-- System Health -->
+        <div class="section">
+            <div class="section-title">
+                System Health
+                <button class="refresh-btn" onclick="loadStatus()">Refresh</button>
+            </div>
+            <div class="status-grid">
+                <!-- Server Status -->
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator online" id="server-indicator"></div>
+                            Server
+                        </div>
+                        <span class="status-badge success" id="server-badge">Running</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Version</span>
+                            <span class="status-item-value" id="server-version">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Uptime</span>
+                            <span class="status-item-value" id="server-uptime">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Status -->
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator" id="db-indicator"></div>
+                            Database
+                        </div>
+                        <span class="status-badge" id="db-badge">Checking...</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Type</span>
+                            <span class="status-item-value" id="db-type">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Status</span>
+                            <span class="status-item-value" id="db-status">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Firebase Status -->
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator" id="firebase-indicator"></div>
+                            Firebase
+                        </div>
+                        <span class="status-badge" id="firebase-badge">Checking...</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Configured</span>
+                            <span class="status-item-value" id="firebase-configured">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Project ID</span>
+                            <span class="status-item-value mono" id="firebase-project">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Status -->
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator online"></div>
+                            Storage
+                        </div>
+                        <span class="status-badge success">Available</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Total Photos</span>
+                            <span class="status-item-value" id="storage-photos">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Used Space</span>
+                            <span class="status-item-value" id="storage-size">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Base Path</span>
+                            <span class="status-item-value mono" id="storage-path">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="section">
+            <div class="section-title">Statistics</div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">Usage Statistics</div>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Total Users</span>
+                            <span class="status-item-value" id="stats-users">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Total Photos</span>
+                            <span class="status-item-value" id="stats-photos">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Registered Devices</span>
+                            <span class="status-item-value" id="stats-devices">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Active Sessions</span>
+                            <span class="status-item-value" id="stats-sessions">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="section">
+            <div class="section-title">Configuration</div>
+            <div class="config-grid">
+                <div class="config-card">
+                    <div class="config-title">Photo Storage</div>
+                    <div class="config-items">
+                        <div class="config-item">
+                            <span class="config-item-label">Max File Size</span>
+                            <span class="config-item-value" id="config-maxsize">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="config-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <span class="config-item-label">Allowed Extensions</span>
+                            <div class="extensions-list" id="config-extensions">
+                                <span class="skeleton skeleton-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-card">
+                    <div class="config-title">Setup Status</div>
+                    <div class="config-items">
+                        <div class="config-item">
+                            <span class="config-item-label">Setup Complete</span>
+                            <span class="config-item-value" id="config-setup">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                        <div class="config-item">
+                            <span class="config-item-label">Firebase Configured</span>
+                            <span class="config-item-value" id="config-firebase">
+                                <span class="skeleton skeleton-text"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check session and admin status
+        fetch('/api/web/session', { credentials: 'include' })
+            .then(r => {
+                if (!r.ok) {
+                    window.location.href = '/login.html';
+                    throw new Error('Not authenticated');
+                }
+                return r.json();
+            })
+            .then(session => {
+                if (!session.user.isAdmin) {
+                    window.location.href = '/';
+                    throw new Error('Not admin');
+                }
+                document.getElementById('user-name').textContent = session.user.displayName;
+                loadStatus();
+                loadConfig();
+            })
+            .catch(() => {});
+
+        function loadStatus() {
+            fetch('/api/admin/system/status', { credentials: 'include' })
+                .then(r => r.json())
+                .then(status => {
+                    // Server
+                    document.getElementById('server-version').textContent = status.version;
+                    document.getElementById('server-uptime').textContent = status.uptime;
+
+                    // Database
+                    const dbIndicator = document.getElementById('db-indicator');
+                    const dbBadge = document.getElementById('db-badge');
+                    dbIndicator.classList.remove('online', 'offline', 'warning');
+                    dbBadge.classList.remove('success', 'warning', 'error');
+
+                    if (status.database.connected) {
+                        dbIndicator.classList.add('online');
+                        dbBadge.classList.add('success');
+                        dbBadge.textContent = 'Connected';
+                    } else {
+                        dbIndicator.classList.add('offline');
+                        dbBadge.classList.add('error');
+                        dbBadge.textContent = 'Disconnected';
+                    }
+
+                    document.getElementById('db-type').textContent =
+                        status.database.type.charAt(0).toUpperCase() + status.database.type.slice(1);
+                    document.getElementById('db-status').textContent =
+                        status.database.connected ? 'Connected' : 'Disconnected';
+
+                    // Firebase
+                    const fbIndicator = document.getElementById('firebase-indicator');
+                    const fbBadge = document.getElementById('firebase-badge');
+                    fbIndicator.classList.remove('online', 'offline', 'warning');
+                    fbBadge.classList.remove('success', 'warning', 'error');
+
+                    if (status.firebase.configured) {
+                        fbIndicator.classList.add('online');
+                        fbBadge.classList.add('success');
+                        fbBadge.textContent = 'Configured';
+                    } else {
+                        fbIndicator.classList.add('warning');
+                        fbBadge.classList.add('warning');
+                        fbBadge.textContent = 'Not Configured';
+                    }
+
+                    document.getElementById('firebase-configured').textContent =
+                        status.firebase.configured ? 'Yes' : 'No';
+                    document.getElementById('firebase-project').textContent =
+                        status.firebase.projectID || 'N/A';
+
+                    // Storage
+                    document.getElementById('storage-photos').textContent =
+                        status.storage.totalPhotos.toLocaleString();
+                    document.getElementById('storage-size').textContent =
+                        formatStorageSize(status.storage.totalSizeMB);
+                    document.getElementById('storage-path').textContent =
+                        status.storage.basePath;
+
+                    // Stats
+                    document.getElementById('stats-users').textContent = status.stats.totalUsers;
+                    document.getElementById('stats-photos').textContent =
+                        status.stats.totalPhotos.toLocaleString();
+                    document.getElementById('stats-devices').textContent = status.stats.totalDevices;
+                    document.getElementById('stats-sessions').textContent = status.stats.activeSessions;
+                })
+                .catch(err => {
+                    console.error('Failed to load status:', err);
+                });
+        }
+
+        function loadConfig() {
+            fetch('/api/admin/system/config', { credentials: 'include' })
+                .then(r => r.json())
+                .then(config => {
+                    document.getElementById('config-maxsize').textContent =
+                        config.maxFileSizeMB + ' MB';
+
+                    const extensionsEl = document.getElementById('config-extensions');
+                    extensionsEl.innerHTML = config.allowedExtensions.map(ext =>
+                        `<span class="extension-tag">.${ext}</span>`
+                    ).join('');
+
+                    document.getElementById('config-setup').textContent =
+                        config.setupComplete ? 'Yes' : 'No';
+                    document.getElementById('config-firebase').textContent =
+                        config.firebaseConfigured ? 'Yes' : 'No';
+                })
+                .catch(err => {
+                    console.error('Failed to load config:', err);
+                });
+        }
+
+        function formatStorageSize(mb) {
+            if (mb < 1024) return mb + ' MB';
+            return (mb / 1024).toFixed(2) + ' GB';
+        }
+
+        function logout() {
+            fetch('/api/web/auth/logout', { method: 'POST', credentials: 'include' })
+                .then(() => {
+                    window.location.href = '/login.html';
+                });
+        }
+    </script>
+</body>
+</html>

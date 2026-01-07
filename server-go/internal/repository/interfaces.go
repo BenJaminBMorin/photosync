@@ -33,6 +33,7 @@ type UserRepo interface {
 	GetCount(ctx context.Context) (int, error)
 	Add(ctx context.Context, user *models.User) error
 	Update(ctx context.Context, user *models.User) error
+	UpdateAPIKeyHash(ctx context.Context, id, apiKeyHash string) error
 	Delete(ctx context.Context, id string) (bool, error)
 }
 

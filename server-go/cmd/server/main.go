@@ -132,6 +132,12 @@ func main() {
 		fcmService, deleteTimeout,
 	)
 
+	// Admin service
+	adminService := services.NewAdminService(
+		userRepo, deviceRepo, sessionRepo, photoRepo, setupConfigRepo,
+		cfg.PhotoStorage.BasePath,
+	)
+
 	// Initialize handlers
 	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService)
 	healthHandler := handlers.NewHealthHandler()
@@ -139,6 +145,7 @@ func main() {
 	deviceHandler := handlers.NewDeviceHandler(deviceRepo)
 	webAuthHandler := handlers.NewWebAuthHandler(authService)
 	webDeleteHandler := handlers.NewWebDeleteHandler(deleteService)
+	adminHandler := handlers.NewAdminHandler(adminService)
 	// Web gallery handler requires PostgreSQL for location features
 	var webGalleryHandler *handlers.WebGalleryHandler
 	if photoRepoPostgres != nil {
@@ -254,6 +261,48 @@ func main() {
 				r.Delete("/{id}", webGalleryHandler.DeletePhoto)
 			})
 		}
+	})
+
+	// Admin routes requiring session auth + admin status
+	r.Group(func(r chi.Router) {
+		r.Use(custommw.AdminAuth(sessionRepo, userRepo))
+
+		r.Route("/api/admin", func(r chi.Router) {
+			// User management
+			r.Get("/users", adminHandler.ListUsers)
+			r.Post("/users", adminHandler.CreateUser)
+			r.Get("/users/{id}", adminHandler.GetUser)
+			r.Put("/users/{id}", adminHandler.UpdateUser)
+			r.Delete("/users/{id}", adminHandler.DeleteUser)
+			r.Post("/users/{id}/reset-api-key", adminHandler.ResetAPIKey)
+
+			// User's devices
+			r.Get("/users/{id}/devices", adminHandler.GetUserDevices)
+			r.Delete("/users/{id}/devices/{deviceId}", adminHandler.DeleteUserDevice)
+
+			// User's sessions
+			r.Get("/users/{id}/sessions", adminHandler.GetUserSessions)
+			r.Delete("/users/{id}/sessions/{sessionId}", adminHandler.InvalidateUserSession)
+
+			// System
+			r.Get("/system/status", adminHandler.GetSystemStatus)
+			r.Get("/system/config", adminHandler.GetSystemConfig)
+		})
+	})
+
+	// Admin UI pages
+	r.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(webDir, "admin", "index.html"))
+	})
+	r.Get("/admin/*", func(w http.ResponseWriter, r *http.Request) {
+		path := chi.URLParam(r, "*")
+		filePath := filepath.Join(webDir, "admin", path+".html")
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			// Fall back to index.html for SPA routing
+			http.ServeFile(w, r, filepath.Join(webDir, "admin", "index.html"))
+			return
+		}
+		http.ServeFile(w, r, filePath)
 	})
 
 	// Web UI pages

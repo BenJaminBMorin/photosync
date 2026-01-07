@@ -30,7 +30,7 @@ func NewWebDeleteHandler(deleteService *services.DeleteService) *WebDeleteHandle
 // @Tags web-delete
 // @Accept json
 // @Produce json
-// @Param request body models.InitiateDeleteRequest true \"Photo IDs to delete\"
+// @Param request body models.InitiateDeleteRequest true "Photo IDs to delete"
 // @Success 200 {object} services.InitiateDeleteResult
 // @Failure 400 {object} models.ErrorResponse
 // @Security SessionAuth
@@ -75,7 +75,7 @@ func (h *WebDeleteHandler) InitiateDelete(w http.ResponseWriter, r *http.Request
 // @Description Check the status of a pending delete request
 // @Tags web-delete
 // @Produce json
-// @Param id path string true \"Delete request ID\"
+// @Param id path string true "Delete request ID"
 // @Success 200 {object} models.DeleteStatusResponse
 // @Failure 404 {object} models.ErrorResponse
 // @Security SessionAuth
@@ -107,7 +107,7 @@ func (h *WebDeleteHandler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 // @Tags web-delete
 // @Accept json
 // @Produce json
-// @Param request body models.RespondDeleteRequest true \"Response\"
+// @Param request body models.RespondDeleteRequest true "Response"
 // @Success 200 {object} map[string]bool
 // @Failure 400 {object} models.ErrorResponse
 // @Security ApiKeyAuth

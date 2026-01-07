@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoSync Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1e293b;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .admin-badge {
+            background: #667eea;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .logout-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #475569;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .stat-sub {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* Quick Actions */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .action-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .action-card:hover {
+            background: #334155;
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .action-desc {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        /* Status Section */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .status-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-indicator.online {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-indicator.offline {
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+
+        .status-indicator.warning {
+            background: #f59e0b;
+            box-shadow: 0 0 8px #f59e0b;
+        }
+
+        .status-title {
+            font-weight: 600;
+        }
+
+        .status-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .status-item-label {
+            color: #94a3b8;
+        }
+
+        .status-item-value {
+            color: white;
+        }
+
+        /* Skeleton Loading */
+        @keyframes skeleton-pulse {
+            0%, 100% { background-color: #334155; }
+            50% { background-color: #475569; }
+        }
+
+        .skeleton {
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-stat {
+            height: 32px;
+            width: 80px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 120px;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: #94a3b8;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px 16px;
+            }
+
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a href="/">PhotoSync</a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <div class="navbar-nav">
+            <a href="/admin" class="nav-link active">Dashboard</a>
+            <a href="/admin/users" class="nav-link">Users</a>
+            <a href="/admin/system" class="nav-link">System</a>
+        </div>
+        <div class="navbar-user">
+            <span class="user-name" id="user-name"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">System overview and quick actions</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="stat-users"><div class="skeleton skeleton-stat"></div></div>
+                <div class="stat-sub" id="stat-users-sub"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Photos</div>
+                <div class="stat-value" id="stat-photos"><div class="skeleton skeleton-stat"></div></div>
+                <div class="stat-sub" id="stat-photos-sub"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Devices</div>
+                <div class="stat-value" id="stat-devices"><div class="skeleton skeleton-stat"></div></div>
+                <div class="stat-sub" id="stat-devices-sub"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Storage Used</div>
+                <div class="stat-value" id="stat-storage"><div class="skeleton skeleton-stat"></div></div>
+                <div class="stat-sub" id="stat-storage-sub"></div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="actions-grid">
+            <a href="/admin/users" class="action-card">
+                <div class="action-icon">&#128100;</div>
+                <div class="action-title">Manage Users</div>
+                <div class="action-desc">Add, edit, or remove users</div>
+            </a>
+            <a href="/admin/users#create" class="action-card">
+                <div class="action-icon">&#10133;</div>
+                <div class="action-title">Create User</div>
+                <div class="action-desc">Add a new user to the system</div>
+            </a>
+            <a href="/admin/system" class="action-card">
+                <div class="action-icon">&#9881;</div>
+                <div class="action-title">System Status</div>
+                <div class="action-desc">View system health and config</div>
+            </a>
+            <a href="/" class="action-card">
+                <div class="action-icon">&#128247;</div>
+                <div class="action-title">View Gallery</div>
+                <div class="action-desc">Return to photo gallery</div>
+            </a>
+        </div>
+
+        <!-- System Status -->
+        <h2 class="section-title">System Status</h2>
+        <div class="status-grid" id="status-grid">
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-indicator" id="db-status"></div>
+                    <span class="status-title">Database</span>
+                </div>
+                <div class="status-items">
+                    <div class="status-item">
+                        <span class="status-item-label">Type</span>
+                        <span class="status-item-value" id="db-type">Loading...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-item-label">Status</span>
+                        <span class="status-item-value" id="db-connected">Checking...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-indicator" id="firebase-status"></div>
+                    <span class="status-title">Firebase</span>
+                </div>
+                <div class="status-items">
+                    <div class="status-item">
+                        <span class="status-item-label">Configured</span>
+                        <span class="status-item-value" id="firebase-configured">Checking...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-item-label">Project</span>
+                        <span class="status-item-value" id="firebase-project">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-indicator online" id="server-status"></div>
+                    <span class="status-title">Server</span>
+                </div>
+                <div class="status-items">
+                    <div class="status-item">
+                        <span class="status-item-label">Version</span>
+                        <span class="status-item-value" id="server-version">Loading...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-item-label">Uptime</span>
+                        <span class="status-item-value" id="server-uptime">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check session and admin status
+        fetch('/api/web/session', { credentials: 'include' })
+            .then(r => {
+                if (!r.ok) {
+                    window.location.href = '/login.html';
+                    throw new Error('Not authenticated');
+                }
+                return r.json();
+            })
+            .then(session => {
+                if (!session.user.isAdmin) {
+                    // Not admin, redirect to gallery
+                    window.location.href = '/';
+                    throw new Error('Not admin');
+                }
+                document.getElementById('user-name').textContent = session.user.displayName;
+                loadDashboardData();
+            })
+            .catch(() => {});
+
+        function loadDashboardData() {
+            // Load system status
+            fetch('/api/admin/system/status', { credentials: 'include' })
+                .then(r => r.json())
+                .then(status => {
+                    // Stats
+                    document.getElementById('stat-users').textContent = status.stats.totalUsers;
+                    document.getElementById('stat-photos').textContent = status.stats.totalPhotos.toLocaleString();
+                    document.getElementById('stat-devices').textContent = status.stats.totalDevices;
+                    document.getElementById('stat-storage').textContent = formatStorageSize(status.storage.totalSizeMB);
+
+                    document.getElementById('stat-users-sub').textContent =
+                        `${status.stats.activeSessions} active sessions`;
+                    document.getElementById('stat-storage-sub').textContent = status.storage.basePath;
+
+                    // Database status
+                    const dbStatus = document.getElementById('db-status');
+                    dbStatus.classList.add(status.database.connected ? 'online' : 'offline');
+                    document.getElementById('db-type').textContent =
+                        status.database.type.charAt(0).toUpperCase() + status.database.type.slice(1);
+                    document.getElementById('db-connected').textContent =
+                        status.database.connected ? 'Connected' : 'Disconnected';
+
+                    // Firebase status
+                    const fbStatus = document.getElementById('firebase-status');
+                    fbStatus.classList.add(status.firebase.configured ? 'online' : 'warning');
+                    document.getElementById('firebase-configured').textContent =
+                        status.firebase.configured ? 'Yes' : 'No';
+                    document.getElementById('firebase-project').textContent =
+                        status.firebase.projectID || 'Not configured';
+
+                    // Server info
+                    document.getElementById('server-version').textContent = status.version;
+                    document.getElementById('server-uptime').textContent = status.uptime;
+                })
+                .catch(err => {
+                    console.error('Failed to load status:', err);
+                });
+        }
+
+        function formatStorageSize(mb) {
+            if (mb < 1024) return mb + ' MB';
+            return (mb / 1024).toFixed(1) + ' GB';
+        }
+
+        function logout() {
+            fetch('/api/web/auth/logout', { method: 'POST', credentials: 'include' })
+                .then(() => {
+                    window.location.href = '/login.html';
+                });
+        }
+    </script>
+</body>
+</html>
