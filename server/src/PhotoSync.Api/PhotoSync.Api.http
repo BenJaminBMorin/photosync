@@ -1,6 +1,0 @@
-@PhotoSync.Api_HostAddress = http://localhost:5007
-
-GET {{PhotoSync.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

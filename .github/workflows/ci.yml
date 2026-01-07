@@ -9,7 +9,6 @@ jobs:
   changes:
     runs-on: [self-hosted, Linux]
     outputs:
-      server-dotnet: ${{ steps.filter.outputs.server-dotnet }}
       server-go: ${{ steps.filter.outputs.server-go }}
       android: ${{ steps.filter.outputs.android }}
       ios: ${{ steps.filter.outputs.ios }}
@@ -19,30 +18,12 @@ jobs:
       id: filter
       with:
         filters: |
-          server-dotnet:
-            - 'server/**'
           server-go:
             - 'server-go/**'
           android:
             - 'android/**'
           ios:
             - 'ios/**'
-
-  dotnet-build:
-    needs: changes
-    if: ${{ needs.changes.outputs.server-dotnet == 'true' || github.event_name == 'push' }}
-    runs-on: [self-hosted, Linux]
-    defaults:
-      run:
-        working-directory: server
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-    - run: dotnet restore
-    - run: dotnet build --no-restore --configuration Release
-    - run: dotnet test --no-build --configuration Release
 
   go-build:
     needs: changes
