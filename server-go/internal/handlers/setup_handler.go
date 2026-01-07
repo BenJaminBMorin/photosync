@@ -4,18 +4,27 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/photosync/server/internal/models"
 	"github.com/photosync/server/internal/services"
 )
 
 // SetupHandler handles setup wizard endpoints
 type SetupHandler struct {
-	setupService *services.SetupService
+	setupService  *services.SetupService
+	configService *services.ConfigService
+	smtpService   *services.SMTPService
 }
 
 // NewSetupHandler creates a new SetupHandler
-func NewSetupHandler(setupService *services.SetupService) *SetupHandler {
+func NewSetupHandler(
+	setupService *services.SetupService,
+	configService *services.ConfigService,
+	smtpService *services.SMTPService,
+) *SetupHandler {
 	return &SetupHandler{
-		setupService: setupService,
+		setupService:  setupService,
+		configService: configService,
+		smtpService:   smtpService,
 	}
 }
 
@@ -118,4 +127,90 @@ func (h *SetupHandler) CompleteSetup(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// ConfigureEmail configures SMTP settings during setup
+// @Summary Configure email/SMTP
+// @Description Configure SMTP settings for email sending during setup
+// @Tags setup
+// @Accept json
+// @Produce json
+// @Param request body models.SMTPConfig true "SMTP configuration"
+// @Success 200 {object} map[string]bool
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /api/setup/email [post]
+func (h *SetupHandler) ConfigureEmail(w http.ResponseWriter, r *http.Request) {
+	var config models.SMTPConfig
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Use system user ID for setup operations
+	if err := h.configService.UpdateSMTPConfig(r.Context(), &config, "system"); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// TestEmail sends a test email during setup
+// @Summary Test email configuration
+// @Description Send a test email to verify SMTP configuration during setup
+// @Tags setup
+// @Accept json
+// @Produce json
+// @Param request body TestEmailRequest true "Test email address"
+// @Success 200 {object} map[string]bool
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /api/setup/email/test [post]
+func (h *SetupHandler) TestEmail(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.configService.TestSMTPConfig(r.Context(), req.Email, h.smtpService); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// GetValidationStatus returns critical config validation status
+// @Summary Get validation status
+// @Description Check critical configuration validation status
+// @Tags setup
+// @Produce json
+// @Success 200 {object} models.ValidationResult
+// @Failure 500 {object} models.ErrorResponse
+// @Router /api/setup/validation [get]
+func (h *SetupHandler) GetValidationStatus(w http.ResponseWriter, r *http.Request) {
+	result, err := h.configService.ValidateConfig(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+// TestEmailRequest for swagger docs
+type TestEmailRequest struct {
+	Email string `json:"email"`
 }

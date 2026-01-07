@@ -100,6 +100,24 @@
             background: #475569;
         }
 
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .icon-btn:hover {
+            background: #334155;
+            color: white;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -341,6 +359,7 @@
         </div>
         <div class="navbar-user">
             <span class="user-name" id="user-name"></span>
+            <a href="/admin/settings" class="icon-btn">⚙️</a>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </nav>

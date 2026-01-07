@@ -20,6 +20,14 @@ func SetupRequired(setupService *services.SetupService) func(http.Handler) http.
 				return
 			}
 
+			// Always allow bootstrap and recovery endpoints (emergency access)
+			if path == "/api/web/auth/bootstrap" ||
+				path == "/api/web/auth/request-recovery" ||
+				path == "/api/web/auth/recover" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			// Always allow health checks
 			if path == "/health" || path == "/api/health" {
 				next.ServeHTTP(w, r)

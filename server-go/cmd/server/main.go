@@ -83,6 +83,10 @@ func main() {
 	deleteRequestRepo := repository.NewDeleteRequestRepository(db)
 	sessionRepo := repository.NewWebSessionRepository(db)
 	setupConfigRepo := repository.NewSetupConfigRepository(db)
+	bootstrapKeyRepo := repository.NewBootstrapKeyRepository(db)
+	recoveryTokenRepo := repository.NewRecoveryTokenRepository(db)
+	configOverrideRepo := repository.NewConfigOverrideRepository(db)
+	smtpConfigRepo := repository.NewSMTPConfigRepository(db)
 
 	// Initialize services
 	hashService := services.NewHashService()
@@ -104,6 +108,47 @@ func main() {
 
 	// Setup service
 	setupService := services.NewSetupService(setupConfigRepo, userRepo, configDir)
+
+	// Encryption service for sensitive config (SMTP passwords etc)
+	encryptionKey := os.Getenv("ENCRYPTION_KEY")
+	if encryptionKey == "" {
+		log.Println("WARNING: ENCRYPTION_KEY not set, using default key (not recommended for production)")
+		encryptionKey = "photosync-default-encryption-key-change-me"
+	}
+	encryptionService, err := services.NewEncryptionService(encryptionKey)
+	if err != nil {
+		log.Fatalf("Failed to initialize encryption service: %v", err)
+	}
+
+	// SMTP service for sending emails
+	smtpService := services.NewSMTPService(smtpConfigRepo, encryptionService)
+
+	// Config service for runtime configuration management
+	configService := services.NewConfigService(
+		configOverrideRepo, smtpConfigRepo, setupConfigRepo,
+		encryptionService, cfg,
+	)
+
+	// Bootstrap service for emergency admin access
+	bootstrapService := services.NewBootstrapService(
+		bootstrapKeyRepo, userRepo, setupConfigRepo, configDir,
+	)
+
+	// Generate bootstrap key if needed (first startup, no admin exists)
+	if err := bootstrapService.GenerateBootstrapKeyIfNeeded(context.Background()); err != nil {
+		log.Printf("Warning: Failed to generate bootstrap key: %v", err)
+	}
+
+	// Recovery service for email-based account recovery
+	serverURL := os.Getenv("SERVER_URL")
+	if serverURL == "" {
+		// Default to localhost for development
+		serverURL = "http://localhost" + cfg.ServerAddress
+		log.Printf("WARNING: SERVER_URL not set, using default: %s", serverURL)
+	}
+	recoveryService := services.NewRecoveryService(
+		recoveryTokenRepo, userRepo, smtpService, serverURL,
+	)
 
 	// FCM service (optional - only if Firebase is configured)
 	var fcmService *services.FCMService
@@ -141,11 +186,12 @@ func main() {
 	// Initialize handlers
 	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService)
 	healthHandler := handlers.NewHealthHandler()
-	setupHandler := handlers.NewSetupHandler(setupService)
+	setupHandler := handlers.NewSetupHandler(setupService, configService, smtpService)
 	deviceHandler := handlers.NewDeviceHandler(deviceRepo)
-	webAuthHandler := handlers.NewWebAuthHandler(authService)
+	webAuthHandler := handlers.NewWebAuthHandler(authService, bootstrapService, recoveryService)
 	webDeleteHandler := handlers.NewWebDeleteHandler(deleteService)
 	adminHandler := handlers.NewAdminHandler(adminService)
+	configHandler := handlers.NewConfigHandler(configService, smtpService)
 	// Web gallery handler requires PostgreSQL for location features
 	var webGalleryHandler *handlers.WebGalleryHandler
 	if photoRepoPostgres != nil {
@@ -197,14 +243,20 @@ func main() {
 	r.Route("/api/setup", func(r chi.Router) {
 		r.Get("/status", setupHandler.GetStatus)
 		r.Post("/firebase", setupHandler.UploadFirebaseCredentials)
+		r.Post("/email", setupHandler.ConfigureEmail)
+		r.Post("/email/test", setupHandler.TestEmail)
+		r.Get("/validation", setupHandler.GetValidationStatus)
 		r.Post("/admin", setupHandler.CreateAdmin)
 		r.Post("/complete", setupHandler.CompleteSetup)
 	})
 
-	// Web authentication routes (no auth required for initiate/status/admin-login)
+	// Web authentication routes (no auth required for initiate/status/admin-login/bootstrap/recovery)
 	r.Post("/api/web/auth/initiate", webAuthHandler.InitiateAuth)
 	r.Get("/api/web/auth/status/{id}", webAuthHandler.CheckStatus)
 	r.Post("/api/web/auth/admin-login", webAuthHandler.AdminLogin)
+	r.Post("/api/web/auth/bootstrap", webAuthHandler.BootstrapLogin)
+	r.Post("/api/web/auth/request-recovery", webAuthHandler.RequestRecovery)
+	r.Post("/api/web/auth/recover", webAuthHandler.RecoverAccount)
 
 	// API routes requiring API key authentication
 	skipPaths := []string{
@@ -287,6 +339,14 @@ func main() {
 			// System
 			r.Get("/system/status", adminHandler.GetSystemStatus)
 			r.Get("/system/config", adminHandler.GetSystemConfig)
+
+			// Configuration management
+			r.Get("/config", configHandler.GetConfig)
+			r.Put("/config", configHandler.UpdateConfig)
+			r.Get("/config/smtp", configHandler.GetSMTPConfig)
+			r.Put("/config/smtp", configHandler.UpdateSMTPConfig)
+			r.Post("/config/smtp/test", configHandler.TestSMTP)
+			r.Get("/config/restart-status", configHandler.GetRestartStatus)
 		})
 	})
 
@@ -321,6 +381,30 @@ func main() {
 		WriteTimeout: 120 * time.Second, // Longer for uploads
 		IdleTimeout:  60 * time.Second,
 	}
+
+	// Start background cleanup goroutine for expired tokens
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			ctx := context.Background()
+
+			// Expire old bootstrap keys
+			if expired, err := bootstrapKeyRepo.ExpireOld(ctx); err != nil {
+				log.Printf("ERROR: Failed to expire old bootstrap keys: %v", err)
+			} else if expired > 0 {
+				log.Printf("Expired %d old bootstrap keys", expired)
+			}
+
+			// Expire old recovery tokens
+			if expired, err := recoveryTokenRepo.ExpireOld(ctx); err != nil {
+				log.Printf("ERROR: Failed to expire old recovery tokens: %v", err)
+			} else if expired > 0 {
+				log.Printf("Expired %d old recovery tokens", expired)
+			}
+		}
+	}()
 
 	// Start server in goroutine
 	go func() {

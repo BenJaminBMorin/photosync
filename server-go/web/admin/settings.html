@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PhotoSync Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1e293b;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .admin-badge {
+            background: #667eea;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .logout-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #475569;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .restart-banner {
+            background: #dc2626;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .restart-banner.show {
+            display: flex;
+        }
+
+        .restart-banner-text {
+            flex: 1;
+        }
+
+        .restart-banner-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .config-section {
+            background: #1e293b;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: #334155;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 20px;
+        }
+
+        .expand-icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .section-header.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            display: none;
+            padding: 0 24px 24px 24px;
+            border-top: 1px solid #334155;
+        }
+
+        .section-content.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .form-label-required::after {
+            content: '*';
+            color: #dc2626;
+            margin-left: 4px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-input[readonly] {
+            background: #1e293b;
+            cursor: not-allowed;
+        }
+
+        .restart-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .password-toggle:hover {
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #dc2626;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a href="/">PhotoSync</a>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <div class="navbar-nav">
+            <a href="/admin" class="nav-link">Dashboard</a>
+            <a href="/admin/users" class="nav-link">Users</a>
+            <a href="/admin/system" class="nav-link">System</a>
+        </div>
+        <div class="navbar-user">
+            <span class="user-name" id="user-name"></span>
+            <a href="/admin/settings" class="icon-btn active">⚙️</a>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">⚙️ Settings</h1>
+            <p class="page-subtitle">Manage server configuration</p>
+        </div>
+
+        <div class="restart-banner" id="restart-banner">
+            <div class="restart-banner-text">
+                <div class="restart-banner-title">⚠️ Server Restart Required</div>
+                <div>Some configuration changes require a server restart to take effect.</div>
+            </div>
+        </div>
+
+        <!-- Server Configuration -->
+        <div class="config-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🖥️</span>
+                    Server Configuration
+                </div>
+                <span class="expand-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label class="form-label form-label-required">
+                        Server Address
+                        <span class="restart-badge">Restart Required</span>
+                    </label>
+                    <input type="text" class="form-input" id="server_address" placeholder=":5000">
+                    <div class="form-help">Server listening address (e.g., :5000 or 0.0.0.0:5000)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Configuration -->
+        <div class="config-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">💾</span>
+                    Database Configuration
+                </div>
+                <span class="expand-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label class="form-label">
+                        Database URL (PostgreSQL)
+                        <span class="restart-badge">Restart Required</span>
+                    </label>
+                    <input type="text" class="form-input" id="database_url" placeholder="postgresql://user:pass@localhost/photosync">
+                    <div class="form-help">PostgreSQL connection string (leave empty to use SQLite)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        SQLite Database Path
+                        <span class="restart-badge">Restart Required</span>
+                    </label>
+                    <input type="text" class="form-input" id="database_path" placeholder="./photosync.db">
+                    <div class="form-help">SQLite database file path (used when database_url is empty)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Configuration -->
+        <div class="config-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📁</span>
+                    Photo Storage Configuration
+                </div>
+                <span class="expand-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label class="form-label form-label-required">Storage Base Path</label>
+                    <input type="text" class="form-input" id="storage_base_path" placeholder="/data/photos">
+                    <div class="form-help">Directory where photos are stored</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Max File Size (MB)</label>
+                    <input type="number" class="form-input" id="storage_max_file_size_mb" placeholder="50">
+                    <div class="form-help">Maximum file size for photo uploads in MB</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Allowed Extensions</label>
+                    <input type="text" class="form-input" id="storage_allowed_extensions" placeholder=".jpg, .jpeg, .png, .heic">
+                    <div class="form-help">Comma-separated list of allowed file extensions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email/SMTP Configuration -->
+        <div class="config-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📧</span>
+                    Email / SMTP Configuration
+                </div>
+                <span class="expand-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label class="form-label form-label-required">SMTP Host</label>
+                    <input type="text" class="form-input" id="smtp_host" placeholder="smtp.gmail.com">
+                    <div class="form-help">SMTP server hostname</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">SMTP Port</label>
+                    <input type="number" class="form-input" id="smtp_port" placeholder="587">
+                    <div class="form-help">SMTP server port (usually 587 for TLS)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Username</label>
+                    <input type="text" class="form-input" id="smtp_username" placeholder="your-email@gmail.com">
+                    <div class="form-help">SMTP authentication username</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" class="form-input" id="smtp_password" placeholder="••••••••">
+                        <button class="password-toggle" onclick="togglePassword('smtp_password')">👁️</button>
+                    </div>
+                    <div class="form-help">Leave as ••••••••  to keep existing password</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">From Address</label>
+                    <input type="text" class="form-input" id="smtp_from_address" placeholder="noreply@yourdomain.com">
+                    <div class="form-help">Email address shown as sender</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">From Name</label>
+                    <input type="text" class="form-input" id="smtp_from_name" placeholder="PhotoSync">
+                    <div class="form-help">Name shown as sender</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="smtp_use_tls" checked> Use TLS/STARTTLS
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="smtp_skip_verify"> Skip TLS Verification (not recommended)
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-success" onclick="testEmail()">Send Test Email</button>
+                    <button class="btn btn-primary" onclick="saveSMTPConfig()">Save Email Configuration</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Configuration -->
+        <div class="config-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🔒</span>
+                    Security Configuration
+                </div>
+                <span class="expand-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label class="form-label form-label-required">API Key Header</label>
+                    <input type="text" class="form-input" id="api_key_header" placeholder="X-API-Key">
+                    <div class="form-help">HTTP header name for API key authentication</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveAllConfig()">Save All Settings</button>
+            <button class="btn btn-secondary" onclick="loadConfig()">Reset to Current Values</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        let currentConfig = {};
+        let currentSMTPConfig = {};
+
+        async function loadConfig() {
+            try {
+                const [configRes, smtpRes] = await Promise.all([
+                    fetch('/api/admin/config'),
+                    fetch('/api/admin/config/smtp')
+                ]);
+
+                if (!configRes.ok || !smtpRes.ok) throw new Error('Failed to load configuration');
+
+                const configData = await configRes.json();
+                const smtpData = await smtpRes.json();
+
+                currentConfig = configData;
+                currentSMTPConfig = smtpData;
+
+                // Populate general config fields
+                configData.items.forEach(item => {
+                    const input = document.getElementById(item.key);
+                    if (input) {
+                        input.value = item.value || '';
+                    }
+                });
+
+                // Populate SMTP fields
+                if (smtpData) {
+                    document.getElementById('smtp_host').value = smtpData.host || '';
+                    document.getElementById('smtp_port').value = smtpData.port || 587;
+                    document.getElementById('smtp_username').value = smtpData.username || '';
+                    document.getElementById('smtp_password').value = smtpData.password || '';
+                    document.getElementById('smtp_from_address').value = smtpData.from_address || '';
+                    document.getElementById('smtp_from_name').value = smtpData.from_name || 'PhotoSync';
+                    document.getElementById('smtp_use_tls').checked = smtpData.use_tls !== false;
+                    document.getElementById('smtp_skip_verify').checked = smtpData.skip_verify === true;
+                }
+
+                // Check restart status
+                checkRestartStatus();
+            } catch (error) {
+                showToast('Failed to load configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function checkRestartStatus() {
+            try {
+                const res = await fetch('/api/admin/config/restart-status');
+                const data = await res.json();
+                const banner = document.getElementById('restart-banner');
+                if (data.restartRequired) {
+                    banner.classList.add('show');
+                } else {
+                    banner.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Failed to check restart status:', error);
+            }
+        }
+
+        async function saveAllConfig() {
+            const updates = [];
+
+            // Collect all config updates
+            const configKeys = [
+                'server_address', 'database_url', 'database_path',
+                'storage_base_path', 'storage_max_file_size_mb', 'storage_allowed_extensions',
+                'api_key_header'
+            ];
+
+            configKeys.forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    updates.push({ key, value: input.value });
+                }
+            });
+
+            try {
+                const res = await fetch('/api/admin/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+
+                if (!res.ok) throw new Error('Failed to save configuration');
+
+                showToast('✓ Configuration saved successfully', 'success');
+                await checkRestartStatus();
+            } catch (error) {
+                showToast('Failed to save configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function saveSMTPConfig() {
+            const config = {
+                host: document.getElementById('smtp_host').value,
+                port: parseInt(document.getElementById('smtp_port').value),
+                username: document.getElementById('smtp_username').value,
+                password: document.getElementById('smtp_password').value,
+                from_address: document.getElementById('smtp_from_address').value,
+                from_name: document.getElementById('smtp_from_name').value || 'PhotoSync',
+                use_tls: document.getElementById('smtp_use_tls').checked,
+                skip_verify: document.getElementById('smtp_skip_verify').checked
+            };
+
+            try {
+                const res = await fetch('/api/admin/config/smtp', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (!res.ok) throw new Error('Failed to save SMTP configuration');
+
+                showToast('✓ Email configuration saved successfully', 'success');
+                await loadConfig(); // Reload to show masked password
+            } catch (error) {
+                showToast('Failed to save email configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function testEmail() {
+            const email = prompt('Enter email address to send test email:');
+            if (!email) return;
+
+            try {
+                const res = await fetch('/api/admin/config/smtp/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                if (!res.ok) throw new Error('Failed to send test email');
+
+                showToast('✓ Test email sent successfully! Check your inbox.', 'success');
+            } catch (error) {
+                showToast('Failed to send test email: ' + error.message, 'error');
+            }
+        }
+
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const isExpanded = content.classList.contains('show');
+
+            if (isExpanded) {
+                content.classList.remove('show');
+                header.classList.remove('expanded');
+            } else {
+                content.classList.add('show');
+                header.classList.add('expanded');
+            }
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            toastMessage.textContent = message;
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/web/auth/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/api/web/session');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('user-name').textContent = data.user.display_name;
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+
+        // Load configuration and user info on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            loadUserInfo();
+        });
+    </script>
+</body>
+</html>

@@ -188,6 +188,84 @@
         .form-container.hidden {
             display: none;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .modal-description {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        .modal-close:hover {
+            color: #1e293b;
+        }
+
+        .alt-login-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alt-login-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            text-align: center;
+            padding: 8px;
+            transition: color 0.2s;
+        }
+
+        .alt-login-link:hover {
+            color: #5a67d8;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -227,6 +305,11 @@
                     Login with API Key
                 </button>
             </div>
+
+            <div class="alt-login-section">
+                <a href="#" class="alt-login-link" onclick="showBootstrapModal(); return false;">🔑 Bootstrap Access (Emergency)</a>
+                <a href="#" class="alt-login-link" onclick="showRecoveryModal(); return false;">📧 Email Recovery</a>
+            </div>
         </div>
 
         <!-- Waiting for Approval -->
@@ -242,6 +325,42 @@
             <p class="status-text" id="status-text">Waiting for approval...</p>
 
             <a href="#" class="cancel-link" onclick="cancelLogin()">Cancel and try again</a>
+        </div>
+    </div>
+
+    <!-- Bootstrap Access Modal -->
+    <div class="modal" id="bootstrap-modal" onclick="if(event.target === this) closeBootstrapModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🔑 Bootstrap Access</h2>
+                <p class="modal-description">Enter the emergency bootstrap key from your server logs or .bootstrap-key.txt file</p>
+            </div>
+            <div class="form-group">
+                <label for="bootstrap-key">Bootstrap Key</label>
+                <input type="password" id="bootstrap-key" placeholder="Enter bootstrap key" style="font-size: 14px;">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="bootstrapLogin()">
+                Login with Bootstrap Key
+            </button>
+            <button type="button" class="modal-close" onclick="closeBootstrapModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Email Recovery Modal -->
+    <div class="modal" id="recovery-modal" onclick="if(event.target === this) closeRecoveryModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📧 Email Recovery</h2>
+                <p class="modal-description">Enter your email address to receive a recovery link</p>
+            </div>
+            <div class="form-group">
+                <label for="recovery-email">Email Address</label>
+                <input type="email" id="recovery-email" placeholder="you@example.com">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="requestRecovery()">
+                Send Recovery Email
+            </button>
+            <button type="button" class="modal-close" onclick="closeRecoveryModal()">Cancel</button>
         </div>
     </div>
 
@@ -398,6 +517,137 @@
                 showError(err.message);
             });
         }
+
+        // Bootstrap Access Functions
+        function showBootstrapModal() {
+            document.getElementById('bootstrap-modal').classList.add('show');
+            setTimeout(() => {
+                document.getElementById('bootstrap-key').focus();
+            }, 100);
+        }
+
+        function closeBootstrapModal() {
+            document.getElementById('bootstrap-modal').classList.remove('show');
+            document.getElementById('bootstrap-key').value = '';
+        }
+
+        function bootstrapLogin() {
+            hideError();
+            const key = document.getElementById('bootstrap-key').value.trim();
+
+            if (!key) {
+                showError('Please enter bootstrap key');
+                return;
+            }
+
+            fetch('/api/web/auth/bootstrap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key })
+            })
+            .then(r => {
+                if (!r.ok) return r.text().then(t => { throw new Error(t); });
+                return r.json();
+            })
+            .then(result => {
+                closeBootstrapModal();
+                window.location.href = '/';
+            })
+            .catch(err => {
+                showError(err.message);
+            });
+        }
+
+        // Email Recovery Functions
+        function showRecoveryModal() {
+            document.getElementById('recovery-modal').classList.add('show');
+            setTimeout(() => {
+                document.getElementById('recovery-email').focus();
+            }, 100);
+        }
+
+        function closeRecoveryModal() {
+            document.getElementById('recovery-modal').classList.remove('show');
+            document.getElementById('recovery-email').value = '';
+        }
+
+        function requestRecovery() {
+            hideError();
+            const email = document.getElementById('recovery-email').value.trim();
+
+            if (!email) {
+                showError('Please enter your email address');
+                return;
+            }
+
+            fetch('/api/web/auth/request-recovery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            })
+            .then(r => {
+                if (!r.ok) return r.text().then(t => { throw new Error(t); });
+                return r.json();
+            })
+            .then(result => {
+                closeRecoveryModal();
+                alert('✓ If an account exists with this email, you will receive a recovery link within a few minutes.');
+            })
+            .catch(err => {
+                showError(err.message);
+            });
+        }
+
+        // Auto-detect recovery token from URL
+        function checkRecoveryToken() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('recovery');
+
+            if (token) {
+                // Show loading state
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('waiting-container').classList.add('active');
+                document.getElementById('waiting-icon').textContent = '🔐';
+                document.getElementById('waiting-title').textContent = 'Logging in with recovery token...';
+                document.getElementById('waiting-description').textContent = 'Please wait while we verify your recovery link.';
+                document.getElementById('countdown').style.display = 'none';
+                document.getElementById('status-text').style.display = 'none';
+                document.querySelector('.cancel-link').style.display = 'none';
+
+                // Attempt recovery login
+                fetch('/api/web/auth/recover', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                })
+                .then(r => {
+                    if (!r.ok) return r.text().then(t => { throw new Error(t); });
+                    return r.json();
+                })
+                .then(result => {
+                    document.getElementById('waiting-title').textContent = 'Success!';
+                    document.getElementById('waiting-description').textContent = 'Redirecting to your account...';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                })
+                .catch(err => {
+                    // Show error and reset form
+                    document.getElementById('form-container').classList.remove('hidden');
+                    document.getElementById('waiting-container').classList.remove('active');
+                    document.getElementById('countdown').style.display = 'block';
+                    document.getElementById('status-text').style.display = 'block';
+                    document.querySelector('.cancel-link').style.display = 'block';
+                    showError('Recovery link invalid or expired. Please request a new one.');
+
+                    // Clear the URL parameter
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                });
+            }
+        }
+
+        // Check for recovery token on page load
+        window.addEventListener('DOMContentLoaded', checkRecoveryToken);
     </script>
 </body>
 </html>

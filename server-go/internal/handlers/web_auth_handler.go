@@ -18,13 +18,21 @@ var _ = models.HashAPIKey
 
 // WebAuthHandler handles web authentication endpoints
 type WebAuthHandler struct {
-	authService *services.AuthService
+	authService      *services.AuthService
+	bootstrapService *services.BootstrapService
+	recoveryService  *services.RecoveryService
 }
 
 // NewWebAuthHandler creates a new WebAuthHandler
-func NewWebAuthHandler(authService *services.AuthService) *WebAuthHandler {
+func NewWebAuthHandler(
+	authService *services.AuthService,
+	bootstrapService *services.BootstrapService,
+	recoveryService *services.RecoveryService,
+) *WebAuthHandler {
 	return &WebAuthHandler{
-		authService: authService,
+		authService:      authService,
+		bootstrapService: bootstrapService,
+		recoveryService:  recoveryService,
 	}
 }
 
@@ -278,4 +286,186 @@ func (h *WebAuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// BootstrapLogin authenticates with bootstrap key (emergency access)
+// @Summary Bootstrap login
+// @Description Login using bootstrap key for emergency admin access
+// @Tags web-auth
+// @Accept json
+// @Produce json
+// @Param request body BootstrapLoginRequest true "Bootstrap key"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Router /api/web/auth/bootstrap [post]
+func (h *WebAuthHandler) BootstrapLogin(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Key string `json:"key"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Key == "" {
+		http.Error(w, "Bootstrap key is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get IP address
+	ipAddress := r.Header.Get("X-Forwarded-For")
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+
+	// Authenticate with bootstrap key
+	userID, err := h.bootstrapService.AuthenticateWithBootstrap(r.Context(), req.Key, ipAddress)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	// Create session
+	session, err := h.authService.CreateSessionForUser(r.Context(), userID, ipAddress, r.Header.Get("User-Agent"))
+	if err != nil {
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	// Set cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    session.ID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   24 * 60 * 60,
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":    "success",
+		"sessionId": session.ID,
+	})
+}
+
+// RequestRecovery initiates email-based account recovery
+// @Summary Request account recovery
+// @Description Send recovery email with temporary login link
+// @Tags web-auth
+// @Accept json
+// @Produce json
+// @Param request body RecoveryRequest true "Email address"
+// @Success 200 {object} map[string]bool
+// @Failure 400 {object} models.ErrorResponse
+// @Router /api/web/auth/request-recovery [post]
+func (h *WebAuthHandler) RequestRecovery(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get IP address
+	ipAddress := r.Header.Get("X-Forwarded-For")
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+
+	// Request recovery (always returns success to prevent enumeration)
+	if err := h.recoveryService.RequestRecovery(r.Context(), req.Email, ipAddress); err != nil {
+		// Log error but return success to prevent enumeration
+		log.Printf("ERROR: RequestRecovery failed for %s: %v", req.Email, err)
+	}
+
+	// Always return success regardless of whether user exists
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// RecoverAccount validates recovery token and creates session
+// @Summary Recover account with token
+// @Description Use recovery token to log in (from email link)
+// @Tags web-auth
+// @Accept json
+// @Produce json
+// @Param request body RecoveryTokenRequest true "Recovery token"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Router /api/web/auth/recover [post]
+func (h *WebAuthHandler) RecoverAccount(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Token string `json:"token"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Token == "" {
+		http.Error(w, "Recovery token is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get IP address
+	ipAddress := r.Header.Get("X-Forwarded-For")
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+
+	// Validate recovery token
+	userID, err := h.recoveryService.ValidateRecoveryToken(r.Context(), req.Token, ipAddress)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	// Create session
+	session, err := h.authService.CreateSessionForUser(r.Context(), userID, ipAddress, r.Header.Get("User-Agent"))
+	if err != nil {
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	// Set cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    session.ID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   24 * 60 * 60,
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":    "success",
+		"sessionId": session.ID,
+	})
+}
+
+// BootstrapLoginRequest for swagger docs
+type BootstrapLoginRequest struct {
+	Key string `json:"key"`
+}
+
+// RecoveryRequest for swagger docs
+type RecoveryRequest struct {
+	Email string `json:"email"`
+}
+
+// RecoveryTokenRequest for swagger docs
+type RecoveryTokenRequest struct {
+	Token string `json:"token"`
 }
