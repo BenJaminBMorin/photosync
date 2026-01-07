@@ -23,108 +23,210 @@
         }
 
         .navbar {
-            background: #1e293b;
-            padding: 12px 24px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(100, 116, 139, 0.2);
         }
 
         .navbar-brand {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
         }
 
         .navbar-controls {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 24px;
         }
 
         .view-toggle {
             display: flex;
-            background: #334155;
-            border-radius: 6px;
-            overflow: hidden;
+            background: rgba(51, 65, 85, 0.6);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 116, 139, 0.2);
         }
 
         .view-btn {
-            background: none;
+            background: transparent;
             border: none;
             color: #94a3b8;
-            padding: 8px 12px;
+            padding: 10px 14px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background 0.2s;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            position: relative;
         }
 
         .view-btn.active {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
         }
 
         .view-btn:hover:not(.active) {
-            background: #475569;
+            background: rgba(71, 85, 105, 0.6);
+            color: #e2e8f0;
+            transform: translateY(-1px);
         }
 
         .navbar-user {
+            position: relative;
+        }
+
+        .user-menu-btn {
             display: flex;
             align-items: center;
             gap: 12px;
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .user-menu-btn:hover {
+            background: rgba(71, 85, 105, 0.8);
+            border-color: rgba(100, 116, 139, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .user-name {
             font-size: 14px;
-            color: #94a3b8;
+            color: #e2e8f0;
+            font-weight: 500;
         }
 
-        .logout-btn {
-            background: #334155;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+        .user-menu-icon {
+            color: #94a3b8;
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .user-menu-btn.active .user-menu-icon {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: rgba(30, 41, 59, 0.98);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 12px;
+            min-width: 220px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+        }
+
+        .user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #e2e8f0;
+            text-decoration: none;
+            transition: all 0.2s;
             cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
             font-size: 14px;
         }
 
-        .logout-btn:hover {
-            background: #475569;
+        .dropdown-item:first-child {
+            border-radius: 12px 12px 0 0;
         }
 
-        .admin-btn {
-            background: #334155;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+        .dropdown-item:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(71, 85, 105, 0.6);
+        }
+
+        .dropdown-item-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(100, 116, 139, 0.3);
+            margin: 4px 0;
+        }
+
+        .select-mode-btn {
+            background: transparent;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: #94a3b8;
+            padding: 10px 18px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            display: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .admin-btn:hover {
-            background: #475569;
+        .select-mode-btn:hover {
+            background: rgba(71, 85, 105, 0.6);
+            border-color: rgba(100, 116, 139, 0.5);
+            color: #e2e8f0;
+            transform: translateY(-1px);
         }
 
-        .nav-link-btn {
-            background: #334155;
+        .select-mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
             color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-        }
-
-        .nav-link-btn:hover {
-            background: #475569;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .gallery-header {
@@ -1232,17 +1334,46 @@
                 padding: 2px;
             }
 
-            .navbar-controls {
-                gap: 8px;
+            .navbar {
+                padding: 12px 16px;
             }
 
-            .user-name {
-                display: none;
+            .navbar-brand {
+                font-size: 20px;
+            }
+
+            .navbar-controls {
+                gap: 12px;
+            }
+
+            .view-toggle {
+                padding: 2px;
+                gap: 2px;
             }
 
             .view-btn {
                 padding: 8px 10px;
                 font-size: 14px;
+            }
+
+            .select-mode-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .user-menu-btn {
+                padding: 8px 12px;
+                gap: 8px;
+            }
+
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+
+            .user-name {
+                display: none;
             }
 
             .lightbox-nav {
@@ -1277,12 +1408,28 @@
                 <button class="view-btn" data-view="carousel" title="Carousel">&#9654;</button>
                 <button class="view-btn" data-view="map" title="Map View">&#127758;</button>
             </div>
+            <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()" title="Select photos">Select</button>
             <div class="navbar-user">
-                <span class="user-name" id="user-name"></span>
-                <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()" title="Select photos">Select</button>
-                <a href="/collections" class="nav-link-btn" title="Collections">&#128194;</a>
-                <a href="/admin" class="admin-btn" id="admin-btn" title="Admin Settings">&#9881;</a>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <div class="user-menu-btn" id="user-menu-btn" onclick="toggleUserMenu()">
+                    <div class="user-avatar" id="user-avatar"></div>
+                    <span class="user-name" id="user-name"></span>
+                    <span class="user-menu-icon">▼</span>
+                </div>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="/collections" class="dropdown-item">
+                        <span class="dropdown-item-icon">&#128194;</span>
+                        <span>Collections</span>
+                    </a>
+                    <a href="/admin" class="dropdown-item" id="admin-menu-item" style="display: none;">
+                        <span class="dropdown-item-icon">&#9881;</span>
+                        <span>Admin Settings</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="logout()">
+                        <span class="dropdown-item-icon">&#128682;</span>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -1493,10 +1640,18 @@
                 return r.json();
             })
             .then(session => {
-                document.getElementById('user-name').textContent = session.user.displayName;
+                const displayName = session.user.displayName;
+                document.getElementById('user-name').textContent = displayName;
+
+                // Set user avatar initials
+                const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('user-avatar').textContent = initials;
+
+                // Show admin menu item if admin
                 if (session.user.isAdmin) {
-                    document.getElementById('admin-btn').style.display = 'block';
+                    document.getElementById('admin-menu-item').style.display = 'flex';
                 }
+
                 loadPhotos();
                 setupInfiniteScroll();
             })
@@ -2221,6 +2376,24 @@
         // Selection Mode
         let selectMode = false;
         let selectedPhotoIds = new Set();
+
+        // User menu dropdown
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('user-dropdown');
+            const button = document.getElementById('user-menu-btn');
+            dropdown.classList.toggle('active');
+            button.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('user-dropdown');
+            const button = document.getElementById('user-menu-btn');
+            if (dropdown && button && !button.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+                button.classList.remove('active');
+            }
+        });
 
         function toggleSelectMode() {
             selectMode = !selectMode;
