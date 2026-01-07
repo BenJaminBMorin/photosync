@@ -1053,6 +1053,22 @@
                             <span class="status-item-value" id="sys-server-version"><span class="skeleton skeleton-text"></span></span>
                         </div>
                         <div class="status-item">
+                            <span class="status-item-label">Build Version</span>
+                            <span class="status-item-value" id="sys-build-version"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Build Date</span>
+                            <span class="status-item-value" id="sys-build-date"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Server Start Time</span>
+                            <span class="status-item-value" id="sys-server-start-time"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Container Build Date</span>
+                            <span class="status-item-value" id="sys-container-build-date"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
                             <span class="status-item-label">Uptime</span>
                             <span class="status-item-value" id="sys-server-uptime"><span class="skeleton skeleton-text"></span></span>
                         </div>
@@ -1963,6 +1979,10 @@
                 .then(status => {
                     // Server
                     document.getElementById('sys-server-version').textContent = status.version;
+                    document.getElementById('sys-build-version').textContent = status.buildVersion || 'N/A';
+                    document.getElementById('sys-build-date').textContent = status.buildDate || 'N/A';
+                    document.getElementById('sys-server-start-time').textContent = status.serverStartTime ? new Date(status.serverStartTime).toLocaleString() : 'N/A';
+                    document.getElementById('sys-container-build-date').textContent = status.containerBuildDate || 'N/A';
                     document.getElementById('sys-server-uptime').textContent = status.uptime;
 
                     // Database
