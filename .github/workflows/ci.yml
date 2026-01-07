@@ -7,7 +7,7 @@ on:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
     outputs:
       server-dotnet: ${{ steps.filter.outputs.server-dotnet }}
       server-go: ${{ steps.filter.outputs.server-go }}
@@ -31,7 +31,7 @@ jobs:
   dotnet-build:
     needs: changes
     if: ${{ needs.changes.outputs.server-dotnet == 'true' || github.event_name == 'push' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
     defaults:
       run:
         working-directory: server
@@ -47,7 +47,7 @@ jobs:
   go-build:
     needs: changes
     if: ${{ needs.changes.outputs.server-go == 'true' || github.event_name == 'push' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
     defaults:
       run:
         working-directory: server-go
@@ -63,17 +63,15 @@ jobs:
   android-build:
     needs: changes
     if: ${{ needs.changes.outputs.android == 'true' || github.event_name == 'push' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macos]
+    env:
+      ANDROID_HOME: /Users/benjamin/Library/Android/sdk
+      ANDROID_SDK_ROOT: /Users/benjamin/Library/Android/sdk
     defaults:
       run:
         working-directory: android
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
     - run: chmod +x gradlew
     - run: ./gradlew assembleDebug
     - run: ./gradlew testDebugUnitTest
@@ -81,20 +79,18 @@ jobs:
   ios-build:
     needs: changes
     if: ${{ needs.changes.outputs.ios == 'true' || github.event_name == 'push' }}
-    runs-on: macos-latest
+    runs-on: [self-hosted, macos]
     defaults:
       run:
         working-directory: ios
     steps:
     - uses: actions/checkout@v4
-    - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode_15.2.app
     - name: Build
       run: |
         xcodebuild build \
           -project PhotoSync.xcodeproj \
           -scheme PhotoSync \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -destination 'platform=iOS Simulator' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO
@@ -103,7 +99,7 @@ jobs:
         xcodebuild test \
           -project PhotoSync.xcodeproj \
           -scheme PhotoSync \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -destination 'platform=iOS Simulator' \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO

@@ -80,6 +80,7 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	deviceRepo := repository.NewDeviceRepository(db)
 	authRequestRepo := repository.NewAuthRequestRepository(db)
+	deleteRequestRepo := repository.NewDeleteRequestRepository(db)
 	sessionRepo := repository.NewWebSessionRepository(db)
 	setupConfigRepo := repository.NewSetupConfigRepository(db)
 
@@ -124,12 +125,20 @@ func main() {
 		fcmService, authTimeout, sessionDuration,
 	)
 
+	// Delete service
+	deleteTimeout := 60 // 60 seconds for delete approval
+	deleteService := services.NewDeleteService(
+		userRepo, deviceRepo, deleteRequestRepo, photoRepo,
+		fcmService, deleteTimeout,
+	)
+
 	// Initialize handlers
 	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService)
 	healthHandler := handlers.NewHealthHandler()
 	setupHandler := handlers.NewSetupHandler(setupService)
 	deviceHandler := handlers.NewDeviceHandler(deviceRepo)
 	webAuthHandler := handlers.NewWebAuthHandler(authService)
+	webDeleteHandler := handlers.NewWebDeleteHandler(deleteService)
 	// Web gallery handler requires PostgreSQL for location features
 	var webGalleryHandler *handlers.WebGalleryHandler
 	if photoRepoPostgres != nil {
@@ -220,6 +229,9 @@ func main() {
 
 		// Auth response from mobile
 		r.Post("/api/web/auth/respond", webAuthHandler.RespondAuth)
+
+		// Delete response from mobile
+		r.Post("/api/web/delete/respond", webDeleteHandler.RespondDelete)
 	})
 
 	// Web routes requiring session authentication
@@ -228,6 +240,10 @@ func main() {
 
 		r.Get("/api/web/session", webAuthHandler.GetSession)
 		r.Post("/api/web/auth/logout", webAuthHandler.Logout)
+
+		// Delete request routes
+		r.Post("/api/web/delete/initiate", webDeleteHandler.InitiateDelete)
+		r.Get("/api/web/delete/status/{id}", webDeleteHandler.CheckStatus)
 
 		if webGalleryHandler != nil {
 			r.Route("/api/web/photos", func(r chi.Router) {

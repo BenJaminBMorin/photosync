@@ -6,6 +6,7 @@ struct PhotoSyncApp: App {
     let persistenceController = PersistenceController.shared
 
     @State private var authRequestToShow: AuthRequest?
+    @State private var deleteRequestToShow: DeleteRequest?
 
     init() {
         // Perform one-time migrations (API key to Keychain)
@@ -76,6 +77,46 @@ struct PhotoSyncApp: App {
                         }
                     )
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .showDeleteRequest)) { notification in
+                    Task {
+                        await Logger.shared.info("PhotoSyncApp received showDeleteRequest notification")
+                    }
+                    if let request = notification.object as? DeleteRequest {
+                        Task {
+                            await Logger.shared.info("Successfully cast to DeleteRequest - id: \(request.id), photoCount: \(request.photoCount)")
+                        }
+                        deleteRequestToShow = request
+                    } else {
+                        Task {
+                            await Logger.shared.error("Failed to cast notification.object to DeleteRequest")
+                        }
+                    }
+                }
+                .sheet(item: $deleteRequestToShow) { request in
+                    DeleteRequestView(
+                        request: request,
+                        onApprove: {
+                            Task {
+                                await Logger.shared.info("User tapped APPROVE button for delete request: \(request.id)")
+                                await NotificationService.shared.approveDeleteRequest()
+                                await Logger.shared.info("Delete approve completed, dismissing sheet")
+                                await MainActor.run {
+                                    deleteRequestToShow = nil
+                                }
+                            }
+                        },
+                        onDeny: {
+                            Task {
+                                await Logger.shared.info("User tapped DENY button for delete request: \(request.id)")
+                                await NotificationService.shared.denyDeleteRequest()
+                                await Logger.shared.info("Delete deny completed, dismissing sheet")
+                                await MainActor.run {
+                                    deleteRequestToShow = nil
+                                }
+                            }
+                        }
+                    )
+                }
         }
     }
 }
@@ -84,4 +125,5 @@ struct PhotoSyncApp: App {
 
 extension Notification.Name {
     static let showAuthRequest = Notification.Name("showAuthRequest")
+    static let showDeleteRequest = Notification.Name("showDeleteRequest")
 }

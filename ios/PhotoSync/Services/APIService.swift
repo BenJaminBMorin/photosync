@@ -164,6 +164,33 @@ actor APIService {
         await Logger.shared.info("Response validation passed")
     }
 
+    // MARK: - Delete Response
+
+    /// Respond to a photo deletion request
+    func respondToDeleteRequest(id: String, approved: Bool) async throws {
+        await Logger.shared.info("APIService.respondToDeleteRequest called - id: \(id), approved: \(approved)")
+
+        let url = try buildURL(path: "/api/web/delete/respond")
+        await Logger.shared.info("API URL: \(url.absoluteString)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &request)
+
+        let body = DeleteResponseRequest(requestId: id, approved: approved)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        await Logger.shared.info("Sending POST request to /api/web/delete/respond")
+
+        let (data, response) = try await session.data(for: request)
+
+        await Logger.shared.info("Response received - status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+
+        try validateResponse(response)
+        await Logger.shared.info("Response validation passed")
+    }
+
     // MARK: - Helpers
 
     private func buildURL(path: String) throws -> URL {

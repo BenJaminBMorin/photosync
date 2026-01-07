@@ -14,7 +14,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macos]
+
+    env:
+      ANDROID_HOME: /Users/benjamin/Library/Android/sdk
+      ANDROID_SDK_ROOT: /Users/benjamin/Library/Android/sdk
 
     defaults:
       run:
@@ -22,13 +26,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -53,9 +50,13 @@ jobs:
         path: android/app/build/reports/tests/
 
   build-release:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macos]
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    env:
+      ANDROID_HOME: /Users/benjamin/Library/Android/sdk
+      ANDROID_SDK_ROOT: /Users/benjamin/Library/Android/sdk
 
     defaults:
       run:
@@ -63,13 +64,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -84,7 +78,11 @@ jobs:
         path: android/app/build/outputs/apk/release/*.apk
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macos]
+
+    env:
+      ANDROID_HOME: /Users/benjamin/Library/Android/sdk
+      ANDROID_SDK_ROOT: /Users/benjamin/Library/Android/sdk
 
     defaults:
       run:
@@ -92,13 +90,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew

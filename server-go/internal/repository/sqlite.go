@@ -76,6 +76,23 @@ func createTables(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_auth_requests_user_id ON auth_requests(user_id);
 	CREATE INDEX IF NOT EXISTS idx_auth_requests_status ON auth_requests(status);
 
+	-- Delete requests (pending photo deletion approvals)
+	CREATE TABLE IF NOT EXISTS delete_requests (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		photo_ids TEXT NOT NULL,
+		status TEXT NOT NULL DEFAULT 'pending',
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		expires_at DATETIME NOT NULL,
+		responded_at DATETIME,
+		device_id TEXT REFERENCES devices(id),
+		ip_address TEXT,
+		user_agent TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_delete_requests_user_id ON delete_requests(user_id);
+	CREATE INDEX IF NOT EXISTS idx_delete_requests_status ON delete_requests(status);
+
 	-- Web sessions
 	CREATE TABLE IF NOT EXISTS web_sessions (
 		id TEXT PRIMARY KEY,

@@ -1,0 +1,21 @@
+[2026-01-06 21:06:33.208] [INFO] [Logger.swift:41] init() - === PhotoSync Log Started ===
+[2026-01-06 21:06:33.208] [INFO] [Logger.swift:42] init() - Device: iPhone
+[2026-01-06 21:06:33.208] [INFO] [Logger.swift:43] init() - iOS Version: 26.1
+[2026-01-06 21:06:33.208] [INFO] [Logger.swift:44] init() - App Version: 1.0
+[2026-01-06 21:06:33.208] [ERROR] [Logger.swift:47] init() - ⚠️ PREVIOUS SESSION CRASHED - Check previous log file
+[2026-01-06 21:06:33.209] [INFO] [AppDelegate.swift:39] requestNotificationPermissions() - Notification permissions granted: true
+[2026-01-06 21:06:33.264] [INFO] [PhotoSyncApp.swift:17] init() - PhotoSync app launched
+[2026-01-06 21:06:33.270] [INFO] [ContentView.swift:24] body - Detected crash from previous session (crash report popup disabled)
+[2026-01-06 21:06:33.270] [INFO] [PhotoSyncApp.swift:27] body - Main view appeared
+[2026-01-06 21:06:33.271] [INFO] [GalleryViewModel.swift:82] init(context:) - GalleryViewModel initialized
+[2026-01-06 21:06:33.271] [INFO] [GalleryViewModel.swift:98] requestAuthorization() - Requesting photo library authorization
+[2026-01-06 21:06:33.277] [INFO] [GalleryViewModel.swift:100] requestAuthorization() - Photo library authorization status: 3
+[2026-01-06 21:06:33.277] [INFO] [GalleryViewModel.swift:109] loadPhotos() - Loading photos from library
+[2026-01-06 21:06:33.277] [INFO] [AppDelegate.swift:56] application(_:didRegisterForRemoteNotificationsWithDeviceToken:) - APNs token received: 1c5c6343ea18621be3a3...
+[2026-01-06 21:06:33.277] [INFO] [AppDelegate.swift:123] messaging(_:didReceiveRegistrationToken:) - FCM token received: c5Hb8ZhfWkGYpeN_Gv5O...
+[2026-01-06 21:06:33.278] [INFO] [NotificationService.swift:21] updateFCMToken(_:) - FCM token updated
+[2026-01-06 21:06:33.392] [INFO] [NotificationService.swift:46] registerDeviceWithServer() - Device registered with server: c5bde68f-75d4-44c0-b5a8-c9003ab239a1
+[2026-01-06 21:06:33.538] [INFO] [GalleryViewModel.swift:132] loadPhotos() - Fetched 19305 photos from library
+[2026-01-06 21:06:33.539] [INFO] [GalleryViewModel.swift:136] loadPhotos() - Found 0 synced photos in database
+[2026-01-06 21:06:33.539] [INFO] [GalleryViewModel.swift:139] loadPhotos() - Found 0 ignored photos in database
+[2026-01-06 21:06:33.577] [INFO] [GalleryViewModel.swift:151] loadPhotos() - Loaded 19305 photos (synced: 0, unsynced: 19305, ignored: 0)

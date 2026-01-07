@@ -75,6 +75,14 @@ struct AuthResponseRequest: Codable {
     let approved: Bool
 }
 
+// MARK: - Delete Response
+
+/// Request to respond to a photo deletion request
+struct DeleteResponseRequest: Codable {
+    let requestId: String
+    let approved: Bool
+}
+
 /// Sync progress tracking
 struct SyncProgress {
     let total: Int

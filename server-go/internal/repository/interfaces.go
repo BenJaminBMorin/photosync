@@ -20,6 +20,8 @@ type PhotoRepo interface {
 	Add(ctx context.Context, photo *models.Photo) error
 	AddWithUser(ctx context.Context, photo *models.Photo, userID string) error
 	Delete(ctx context.Context, id string) (bool, error)
+	DeleteAll(ctx context.Context) (int, error)                               // Delete all photos
+	VerifyExistence(ctx context.Context, ids []string) (map[string]bool, error) // Check which IDs exist
 }
 
 // UserRepo defines the interface for user persistence operations
