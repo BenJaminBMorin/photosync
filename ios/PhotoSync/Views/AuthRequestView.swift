@@ -15,6 +15,11 @@ struct AuthRequestView: View {
                 Image(systemName: "person.badge.key.fill")
                     .font(.system(size: 48))
                     .foregroundColor(.blue)
+                    .onAppear {
+                        Task {
+                            await Logger.shared.info("AuthRequestView appeared - request.id: \(request.id), email: \(request.email)")
+                        }
+                    }
 
                 Text("Login Request")
                     .font(.title2)
@@ -91,6 +96,7 @@ struct AuthRequestView: View {
             .padding(.bottom, 24)
         }
         .padding()
+        .background(Color(.systemBackground))
     }
 }
 

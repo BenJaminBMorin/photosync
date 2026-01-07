@@ -82,6 +82,10 @@ actor NotificationService {
     }
 
     func showAuthRequestUI(id: String, userInfo: [AnyHashable: Any]) async {
+        await Logger.shared.info("showAuthRequestUI called with id: \(id)")
+        await Logger.shared.info("userInfo keys: \(userInfo.keys)")
+        await Logger.shared.info("userInfo: \(userInfo)")
+
         let request = AuthRequest(
             id: id,
             email: userInfo["email"] as? String ?? "Unknown",
@@ -90,6 +94,8 @@ actor NotificationService {
             timestamp: Date()
         )
 
+        await Logger.shared.info("Created AuthRequest - email: \(request.email), ip: \(request.ipAddress ?? "nil"), userAgent: \(request.userAgent ?? "nil")")
+
         self.pendingAuthRequest = request
 
         await MainActor.run {
@@ -97,6 +103,8 @@ actor NotificationService {
             self.showAuthRequestSheet = true
             NotificationCenter.default.post(name: .showAuthRequest, object: request)
         }
+
+        await Logger.shared.info("Sheet should now be visible with request data")
     }
 
     // MARK: - Delete Request Handling
