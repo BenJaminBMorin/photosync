@@ -143,7 +143,8 @@ func (h *WebAuthHandler) RespondAuth(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Auth request expired", http.StatusGone)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("ERROR: RespondToAuth failed for request %s: %v", req.RequestID, err)
+		http.Error(w, fmt.Sprintf("Internal server error: %v", err), http.StatusInternalServerError)
 		return
 	}
 
