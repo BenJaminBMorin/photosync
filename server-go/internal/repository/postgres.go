@@ -227,6 +227,51 @@ func createPostgresTables(db *sql.DB) error {
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_rate_limit_time ON recovery_rate_limits(last_request_at);
+
+	-- Collections table
+	CREATE TABLE IF NOT EXISTS collections (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		name TEXT NOT NULL,
+		description TEXT,
+		slug TEXT NOT NULL UNIQUE,
+		theme TEXT NOT NULL DEFAULT 'dark',
+		custom_css TEXT,
+		visibility TEXT NOT NULL DEFAULT 'private',
+		secret_token TEXT,
+		cover_photo_id TEXT REFERENCES photos(id) ON DELETE SET NULL,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_collections_user_id ON collections(user_id);
+	CREATE INDEX IF NOT EXISTS idx_collections_slug ON collections(slug);
+	CREATE INDEX IF NOT EXISTS idx_collections_secret_token ON collections(secret_token);
+
+	-- Collection photos (junction table)
+	CREATE TABLE IF NOT EXISTS collection_photos (
+		id TEXT PRIMARY KEY,
+		collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+		photo_id TEXT NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
+		position INTEGER NOT NULL DEFAULT 0,
+		added_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		UNIQUE(collection_id, photo_id)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_collection_photos_collection_id ON collection_photos(collection_id);
+	CREATE INDEX IF NOT EXISTS idx_collection_photos_photo_id ON collection_photos(photo_id);
+
+	-- Collection shares (for registered users)
+	CREATE TABLE IF NOT EXISTS collection_shares (
+		id TEXT PRIMARY KEY,
+		collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		UNIQUE(collection_id, user_id)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_collection_shares_collection_id ON collection_shares(collection_id);
+	CREATE INDEX IF NOT EXISTS idx_collection_shares_user_id ON collection_shares(user_id);
 	`
 
 	_, err := db.Exec(schema)

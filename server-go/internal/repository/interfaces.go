@@ -116,3 +116,40 @@ type SMTPConfigRepo interface {
 	Set(ctx context.Context, config *models.SMTPConfig, updatedBy string) error
 	IsConfigured(ctx context.Context) (bool, error)
 }
+
+// CollectionRepo defines the interface for collection persistence
+type CollectionRepo interface {
+	GetByID(ctx context.Context, id string) (*models.Collection, error)
+	GetBySlug(ctx context.Context, slug string) (*models.Collection, error)
+	GetBySecretToken(ctx context.Context, token string) (*models.Collection, error)
+	GetAllForUser(ctx context.Context, userID string) ([]*models.Collection, error)
+	GetSharedWithUser(ctx context.Context, userID string) ([]*models.Collection, error)
+	Add(ctx context.Context, collection *models.Collection) error
+	Update(ctx context.Context, collection *models.Collection) error
+	Delete(ctx context.Context, id string) error
+	SlugExists(ctx context.Context, slug string, excludeID string) (bool, error)
+}
+
+// CollectionPhotoRepo defines the interface for collection-photo associations
+type CollectionPhotoRepo interface {
+	GetByCollectionID(ctx context.Context, collectionID string) ([]*models.CollectionPhoto, error)
+	GetPhotosForCollection(ctx context.Context, collectionID string) ([]*models.Photo, error)
+	GetPhotoCountForCollection(ctx context.Context, collectionID string) (int, error)
+	Add(ctx context.Context, cp *models.CollectionPhoto) error
+	AddMultiple(ctx context.Context, collectionID string, photoIDs []string) error
+	Remove(ctx context.Context, collectionID, photoID string) error
+	RemoveMultiple(ctx context.Context, collectionID string, photoIDs []string) error
+	Reorder(ctx context.Context, collectionID string, photoIDs []string) error
+	IsPhotoInCollection(ctx context.Context, collectionID, photoID string) (bool, error)
+	GetMaxPosition(ctx context.Context, collectionID string) (int, error)
+}
+
+// CollectionShareRepo defines the interface for collection sharing
+type CollectionShareRepo interface {
+	GetByCollectionID(ctx context.Context, collectionID string) ([]*models.CollectionShare, error)
+	GetSharesWithUsers(ctx context.Context, collectionID string) ([]*models.CollectionShareWithUser, error)
+	IsSharedWithUser(ctx context.Context, collectionID, userID string) (bool, error)
+	Add(ctx context.Context, share *models.CollectionShare) error
+	Remove(ctx context.Context, collectionID, userID string) error
+	RemoveAll(ctx context.Context, collectionID string) error
+}

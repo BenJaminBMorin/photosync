@@ -88,6 +88,11 @@ func main() {
 	configOverrideRepo := repository.NewConfigOverrideRepository(db)
 	smtpConfigRepo := repository.NewSMTPConfigRepository(db)
 
+	// Collection repositories
+	collectionRepo := repository.NewCollectionRepository(db)
+	collectionPhotoRepo := repository.NewCollectionPhotoRepository(db)
+	collectionShareRepo := repository.NewCollectionShareRepository(db)
+
 	// Initialize services
 	hashService := services.NewHashService()
 	storageService, err := services.NewPhotoStorageService(
@@ -183,6 +188,19 @@ func main() {
 		cfg.PhotoStorage.BasePath,
 	)
 
+	// Collection service
+	collectionService := services.NewCollectionService(
+		collectionRepo, collectionPhotoRepo, collectionShareRepo,
+		photoRepo, userRepo,
+	)
+
+	// Determine web directory for static files and templates
+	webDir := filepath.Join(getExecutableDir(), "web")
+	if _, err := os.Stat(webDir); os.IsNotExist(err) {
+		// Try current directory
+		webDir = "web"
+	}
+
 	// Initialize handlers
 	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService)
 	healthHandler := handlers.NewHealthHandler()
@@ -198,6 +216,15 @@ func main() {
 		webGalleryHandler = handlers.NewWebGalleryHandler(photoRepoPostgres, cfg.PhotoStorage.BasePath)
 	}
 
+	// Collection handler
+	collectionHandler := handlers.NewCollectionHandler(collectionService)
+
+	// Public gallery handler
+	publicGalleryHandler := handlers.NewPublicGalleryHandler(
+		collectionService, collectionRepo, collectionPhotoRepo,
+		photoRepo, cfg.PhotoStorage.BasePath, webDir,
+	)
+
 	// Setup router
 	r := chi.NewRouter()
 
@@ -209,13 +236,6 @@ func main() {
 
 	// Setup required middleware (redirects to /setup if not configured)
 	r.Use(custommw.SetupRequired(setupService))
-
-	// Serve static files for web UI
-	webDir := filepath.Join(getExecutableDir(), "web")
-	if _, err := os.Stat(webDir); os.IsNotExist(err) {
-		// Try current directory
-		webDir = "web"
-	}
 
 	// Static file server for web UI
 	fileServer := http.FileServer(http.Dir(webDir))
@@ -313,6 +333,22 @@ func main() {
 				r.Delete("/{id}", webGalleryHandler.DeletePhoto)
 			})
 		}
+
+		// Collection management routes
+		r.Route("/api/web/collections", func(r chi.Router) {
+			r.Get("/", collectionHandler.ListCollections)
+			r.Post("/", collectionHandler.CreateCollection)
+			r.Get("/themes", collectionHandler.GetThemes)
+			r.Get("/{id}", collectionHandler.GetCollection)
+			r.Put("/{id}", collectionHandler.UpdateCollection)
+			r.Delete("/{id}", collectionHandler.DeleteCollection)
+			r.Put("/{id}/visibility", collectionHandler.UpdateVisibility)
+			r.Post("/{id}/photos", collectionHandler.AddPhotos)
+			r.Delete("/{id}/photos", collectionHandler.RemovePhotos)
+			r.Put("/{id}/photos/reorder", collectionHandler.ReorderPhotos)
+			r.Post("/{id}/shares", collectionHandler.ShareWithUsers)
+			r.Delete("/{id}/shares/{userId}", collectionHandler.RemoveShare)
+		})
 	})
 
 	// Admin routes requiring session auth + admin status
@@ -363,6 +399,17 @@ func main() {
 			return
 		}
 		http.ServeFile(w, r, filePath)
+	})
+
+	// Public gallery routes (no auth required)
+	r.Get("/gallery/{slug}", publicGalleryHandler.ViewGalleryBySlug)
+	r.Get("/gallery/s/{token}", publicGalleryHandler.ViewGalleryByToken)
+	r.Get("/gallery/photos/{photoId}/image", publicGalleryHandler.ServeGalleryImage)
+	r.Get("/gallery/photos/{photoId}/thumbnail", publicGalleryHandler.ServeGalleryThumbnail)
+
+	// Collections management page (requires session auth handled by JS)
+	r.Get("/collections", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(webDir, "collections.html"))
 	})
 
 	// Web UI pages

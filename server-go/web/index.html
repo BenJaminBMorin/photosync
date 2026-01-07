@@ -112,6 +112,21 @@
             background: #475569;
         }
 
+        .nav-link-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .nav-link-btn:hover {
+            background: #475569;
+        }
+
         .gallery-header {
             padding: 16px 24px;
             background: #1e293b;
@@ -599,6 +614,136 @@
             background: rgba(239, 68, 68, 1);
         }
 
+        .lightbox-add-collection {
+            position: absolute;
+            top: 20px;
+            right: 140px;
+            background: rgba(102, 126, 234, 0.8);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .lightbox-add-collection:hover {
+            background: rgba(102, 126, 234, 1);
+        }
+
+        /* Collection Modal */
+        .collection-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .collection-modal.active {
+            display: flex;
+        }
+
+        .collection-modal-content {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .collection-modal h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .collection-list {
+            margin-bottom: 16px;
+        }
+
+        .collection-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #0f172a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .collection-option:hover {
+            background: #334155;
+        }
+
+        .collection-option.selected {
+            background: #667eea;
+        }
+
+        .collection-option-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .collection-option-count {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .collection-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .collection-modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .collection-modal-btn.cancel {
+            background: #334155;
+            color: white;
+        }
+
+        .collection-modal-btn.confirm {
+            background: #667eea;
+            color: white;
+        }
+
+        .collection-modal-btn.confirm:hover {
+            background: #5a67d8;
+        }
+
+        .no-collections {
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .create-collection-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .create-collection-link:hover {
+            text-decoration: underline;
+        }
+
         /* Delete Modal */
         .delete-modal {
             position: fixed;
@@ -834,6 +979,7 @@
             </div>
             <div class="navbar-user">
                 <span class="user-name" id="user-name"></span>
+                <a href="/collections" class="nav-link-btn" title="Collections">&#128194;</a>
                 <a href="/admin" class="admin-btn" id="admin-btn" title="Admin Settings">&#9881;</a>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
@@ -908,6 +1054,7 @@
         <div class="lightbox-counter" id="lightbox-counter">1 / 100</div>
         <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
         <button class="lightbox-delete" onclick="deleteCurrentPhoto()" title="Delete photo">&#128465;</button>
+        <button class="lightbox-add-collection" onclick="showAddToCollectionModal()" title="Add to Collection">&#128194;</button>
         <button class="lightbox-nav lightbox-prev" onclick="prevPhoto()">&#8249;</button>
         <div class="lightbox-content">
             <div class="lightbox-loading" id="lightbox-loading">Loading...</div>
@@ -942,6 +1089,20 @@
             <div class="delete-modal-actions">
                 <button class="delete-modal-btn cancel" onclick="cancelDelete()">Cancel</button>
                 <button class="delete-modal-btn confirm" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add to Collection Modal -->
+    <div class="collection-modal" id="collection-modal">
+        <div class="collection-modal-content">
+            <h3>Add to Collection</h3>
+            <div class="collection-list" id="collection-list">
+                <div class="no-collections">Loading collections...</div>
+            </div>
+            <div class="collection-modal-actions">
+                <button class="collection-modal-btn cancel" onclick="closeCollectionModal()">Cancel</button>
+                <button class="collection-modal-btn confirm" id="add-to-collection-btn" onclick="addPhotoToSelectedCollection()" disabled>Add</button>
             </div>
         </div>
     </div>
@@ -1655,6 +1816,129 @@
                 else carouselPrev();
             }
         });
+
+        // Collection Modal Functions
+        let userCollections = [];
+        let selectedCollectionId = null;
+
+        async function showAddToCollectionModal() {
+            document.getElementById('collection-modal').classList.add('active');
+            selectedCollectionId = null;
+            document.getElementById('add-to-collection-btn').disabled = true;
+            await loadUserCollections();
+        }
+
+        function closeCollectionModal() {
+            document.getElementById('collection-modal').classList.remove('active');
+            selectedCollectionId = null;
+        }
+
+        async function loadUserCollections() {
+            const listEl = document.getElementById('collection-list');
+            listEl.innerHTML = '<div class="no-collections">Loading collections...</div>';
+
+            try {
+                const response = await fetch('/api/web/collections');
+                if (!response.ok) throw new Error('Failed to load collections');
+                const data = await response.json();
+                userCollections = data.owned || [];
+
+                if (userCollections.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="no-collections">
+                            <p>No collections yet</p>
+                            <a href="/collections" class="create-collection-link">Create one</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                listEl.innerHTML = userCollections.map(c => `
+                    <div class="collection-option" data-id="${c.id}" onclick="selectCollection('${c.id}')">
+                        <span class="collection-option-name">${escapeHtmlAttr(c.name)}</span>
+                        <span class="collection-option-count">${c.photoCount} photos</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load collections:', error);
+                listEl.innerHTML = '<div class="no-collections">Failed to load collections</div>';
+            }
+        }
+
+        function selectCollection(id) {
+            selectedCollectionId = id;
+            document.querySelectorAll('.collection-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.id === id);
+            });
+            document.getElementById('add-to-collection-btn').disabled = false;
+        }
+
+        async function addPhotoToSelectedCollection() {
+            if (!selectedCollectionId || currentPhotoIndex < 0 || currentPhotoIndex >= photos.length) return;
+
+            const photoId = photos[currentPhotoIndex].id;
+            const btn = document.getElementById('add-to-collection-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Adding...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/web/collections/${selectedCollectionId}/photos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photoIds: [photoId] })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to add photo');
+                }
+
+                closeCollectionModal();
+                showToast('Photo added to collection');
+            } catch (error) {
+                console.error('Failed to add photo:', error);
+                showToast(error.message || 'Failed to add photo', true);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function escapeHtmlAttr(str) {
+            return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Toast notification
+        function showToast(message, isError = false) {
+            // Create toast if it doesn't exist
+            let toast = document.getElementById('gallery-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'gallery-toast';
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    padding: 12px 24px;
+                    background: #10b981;
+                    color: white;
+                    border-radius: 8px;
+                    z-index: 3000;
+                    transition: opacity 0.3s;
+                `;
+                document.body.appendChild(toast);
+            }
+
+            toast.textContent = message;
+            toast.style.background = isError ? '#ef4444' : '#10b981';
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>
