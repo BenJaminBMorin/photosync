@@ -5,8 +5,7 @@ struct PhotoSyncApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     let persistenceController = PersistenceController.shared
 
-    @State private var showAuthRequest = false
-    @State private var currentAuthRequest: AuthRequest?
+    @State private var authRequestToShow: AuthRequest?
 
     init() {
         // Perform one-time migrations (API key to Keychain)
@@ -40,11 +39,11 @@ struct PhotoSyncApp: App {
                     if let request = notification.object as? AuthRequest {
                         Task {
                             await Logger.shared.info("Successfully cast to AuthRequest - id: \(request.id), email: \(request.email)")
+                            await Logger.shared.info("Setting authRequestToShow")
                         }
-                        currentAuthRequest = request
-                        showAuthRequest = true
+                        authRequestToShow = request
                         Task {
-                            await Logger.shared.info("Set currentAuthRequest and showAuthRequest=true")
+                            await Logger.shared.info("authRequestToShow is now: \(authRequestToShow?.id ?? "nil")")
                         }
                     } else {
                         Task {
@@ -52,34 +51,33 @@ struct PhotoSyncApp: App {
                         }
                     }
                 }
-                .sheet(isPresented: $showAuthRequest) {
-                    if let request = currentAuthRequest {
-                        AuthRequestView(
-                            request: request,
-                            onApprove: {
-                                Task {
-                                    await Logger.shared.info("User tapped APPROVE button for request: \(request.id)")
-                                    await NotificationService.shared.approveAuthRequest()
-                                    await Logger.shared.info("Approve completed, dismissing sheet")
-                                    await MainActor.run {
-                                        showAuthRequest = false
-                                        currentAuthRequest = nil
-                                    }
-                                }
-                            },
-                            onDeny: {
-                                Task {
-                                    await Logger.shared.info("User tapped DENY button for request: \(request.id)")
-                                    await NotificationService.shared.denyAuthRequest()
-                                    await Logger.shared.info("Deny completed, dismissing sheet")
-                                    await MainActor.run {
-                                        showAuthRequest = false
-                                        currentAuthRequest = nil
-                                    }
+                .sheet(item: $authRequestToShow) { request in
+                    Task {
+                        await Logger.shared.info("Sheet closure executing with request: \(request.id)")
+                    }
+                    AuthRequestView(
+                        request: request,
+                        onApprove: {
+                            Task {
+                                await Logger.shared.info("User tapped APPROVE button for request: \(request.id)")
+                                await NotificationService.shared.approveAuthRequest()
+                                await Logger.shared.info("Approve completed, dismissing sheet")
+                                await MainActor.run {
+                                    authRequestToShow = nil
                                 }
                             }
-                        )
-                    }
+                        },
+                        onDeny: {
+                            Task {
+                                await Logger.shared.info("User tapped DENY button for request: \(request.id)")
+                                await NotificationService.shared.denyAuthRequest()
+                                await Logger.shared.info("Deny completed, dismissing sheet")
+                                await MainActor.run {
+                                    authRequestToShow = nil
+                                }
+                            }
+                        }
+                    )
                 }
         }
     }
