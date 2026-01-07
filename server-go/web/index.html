@@ -1506,6 +1506,11 @@
             if (loading || !hasMore) return;
             loading = true;
 
+            // Reset month header tracking when starting fresh
+            if (photos.length === 0) {
+                lastMonthHeader = null;
+            }
+
             if (photos.length > 0) {
                 document.getElementById('loading').style.display = 'block';
             }
@@ -1554,15 +1559,21 @@
                 const index = startIndex + i;
 
                 // Add year/month header if changed
-                const photoDate = new Date(photo.dateTaken);
-                const yearMonth = photoDate.getFullYear() + '-' + String(photoDate.getMonth() + 1).padStart(2, '0');
-                if (yearMonth !== lastMonthHeader) {
-                    const header = document.createElement('div');
-                    header.className = 'month-header';
-                    const monthName = photoDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
-                    header.textContent = monthName;
-                    fragment.appendChild(header);
-                    lastMonthHeader = yearMonth;
+                try {
+                    const photoDate = new Date(photo.dateTaken);
+                    if (!isNaN(photoDate.getTime())) {
+                        const yearMonth = photoDate.getFullYear() + '-' + String(photoDate.getMonth() + 1).padStart(2, '0');
+                        if (yearMonth !== lastMonthHeader) {
+                            const header = document.createElement('div');
+                            header.className = 'month-header';
+                            const monthName = photoDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+                            header.textContent = monthName;
+                            fragment.appendChild(header);
+                            lastMonthHeader = yearMonth;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error creating month header:', e);
                 }
                 const div = document.createElement('div');
                 div.className = 'photo-item';
