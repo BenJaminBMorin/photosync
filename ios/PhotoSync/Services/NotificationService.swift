@@ -76,17 +76,41 @@ actor NotificationService {
         await MainActor.run {
             self.currentAuthRequest = request
         }
+
+        // Auto-show UI
+        await showAuthRequestUI(id: id, userInfo: userInfo)
     }
 
     func showAuthRequestUI(id: String, userInfo: [AnyHashable: Any]) async {
-        await handleAuthRequest(id: id, userInfo: userInfo)
+        let request = AuthRequest(
+            id: id,
+            email: userInfo["email"] as? String ?? "Unknown",
+            ipAddress: userInfo["ipAddress"] as? String,
+            userAgent: userInfo["userAgent"] as? String,
+            timestamp: Date()
+        )
 
-        if let request = pendingAuthRequest {
-            await MainActor.run {
-                self.showAuthRequestSheet = true
-                NotificationCenter.default.post(name: .showAuthRequest, object: request)
-            }
+        self.pendingAuthRequest = request
+
+        await MainActor.run {
+            self.currentAuthRequest = request
+            self.showAuthRequestSheet = true
+            NotificationCenter.default.post(name: .showAuthRequest, object: request)
         }
+    }
+
+    // MARK: - Delete Request Handling
+
+    func handleDeleteRequest(id: String, userInfo: [AnyHashable: Any]) async {
+        // TODO: Implement delete request handling
+        await Logger.shared.info("Delete request received: \(id)")
+        await showDeleteRequestUI(id: id, userInfo: userInfo)
+    }
+
+    func showDeleteRequestUI(id: String, userInfo: [AnyHashable: Any]) async {
+        // TODO: Implement delete request UI
+        await Logger.shared.info("Should show delete request UI for: \(id)")
+        // For now, just log. We'll implement the full UI in a future update
     }
 
     func approveAuthRequest() async {

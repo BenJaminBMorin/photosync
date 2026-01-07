@@ -76,15 +76,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) {
         let userInfo = notification.request.content.userInfo
 
-        // Check if this is an auth request notification
-        if let authRequestId = userInfo["requestId"] as? String {
-            Task {
-                await Logger.shared.info("Received auth request notification: \(authRequestId)")
-                await NotificationService.shared.handleAuthRequest(
-                    id: authRequestId,
-                    userInfo: userInfo
-                )
-            }
+        Task {
+            await handleNotification(userInfo: userInfo)
         }
 
         // Show the notification even when app is in foreground
@@ -99,17 +92,76 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) {
         let userInfo = response.notification.request.content.userInfo
 
-        if let authRequestId = userInfo["requestId"] as? String {
-            Task {
-                await Logger.shared.info("User tapped auth request notification: \(authRequestId)")
-                await NotificationService.shared.showAuthRequestUI(
-                    id: authRequestId,
-                    userInfo: userInfo
-                )
-            }
+        Task {
+            await handleNotification(userInfo: userInfo, tapped: true)
         }
 
         completionHandler()
+    }
+
+    // MARK: - Notification Handling
+
+    private func handleNotification(userInfo: [AnyHashable: Any], tapped: Bool = false) async {
+        guard let type = userInfo["type"] as? String else {
+            await Logger.shared.warning("Received notification without type field")
+            return
+        }
+
+        await Logger.shared.info("Handling notification of type: \(type), tapped: \(tapped)")
+
+        switch type {
+        case "auth_request":
+            await handleAuthRequestNotification(userInfo: userInfo, tapped: tapped)
+        case "delete_request":
+            await handleDeleteRequestNotification(userInfo: userInfo, tapped: tapped)
+        default:
+            await Logger.shared.warning("Unknown notification type: \(type)")
+        }
+    }
+
+    private func handleAuthRequestNotification(userInfo: [AnyHashable: Any], tapped: Bool) async {
+        guard let requestId = userInfo["requestId"] as? String else {
+            await Logger.shared.error("Auth request notification missing requestId")
+            return
+        }
+
+        await Logger.shared.info("Handling auth request: \(requestId), tapped: \(tapped)")
+
+        if tapped {
+            // User tapped the notification - show UI immediately
+            await NotificationService.shared.showAuthRequestUI(
+                id: requestId,
+                userInfo: userInfo
+            )
+        } else {
+            // Received while app is open - just handle it (will show UI if needed)
+            await NotificationService.shared.handleAuthRequest(
+                id: requestId,
+                userInfo: userInfo
+            )
+        }
+    }
+
+    private func handleDeleteRequestNotification(userInfo: [AnyHashable: Any], tapped: Bool) async {
+        guard let requestId = userInfo["requestId"] as? String else {
+            await Logger.shared.error("Delete request notification missing requestId")
+            return
+        }
+
+        await Logger.shared.info("Handling delete request: \(requestId), tapped: \(tapped)")
+
+        // TODO: Implement delete request handling
+        if tapped {
+            await NotificationService.shared.showDeleteRequestUI(
+                id: requestId,
+                userInfo: userInfo
+            )
+        } else {
+            await NotificationService.shared.handleDeleteRequest(
+                id: requestId,
+                userInfo: userInfo
+            )
+        }
     }
 }
 

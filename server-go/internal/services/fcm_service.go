@@ -182,11 +182,11 @@ func (s *FCMService) SendAuthRequest(ctx context.Context, fcmToken string, notif
 		Message: fcmMessageBody{
 			Token: fcmToken,
 			Data: map[string]string{
-				"type":          "auth_request",
-				"authRequestId": notification.RequestID,
-				"email":         notification.Email,
-				"ipAddress":     notification.IPAddress,
-				"userAgent":     notification.UserAgent,
+				"type":      "auth_request",
+				"requestId": notification.RequestID,
+				"email":     notification.Email,
+				"ipAddress": notification.IPAddress,
+				"userAgent": notification.UserAgent,
 			},
 			Notification: &fcmNotification{
 				Title: "Login Request",
