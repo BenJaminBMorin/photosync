@@ -33,12 +33,32 @@ struct PhotoSyncApp: App {
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .showAuthRequest)) { notification in
+                    Task {
+                        await Logger.shared.info("PhotoSyncApp received showAuthRequest notification")
+                        await Logger.shared.info("Notification object type: \(type(of: notification.object))")
+                    }
                     if let request = notification.object as? AuthRequest {
+                        Task {
+                            await Logger.shared.info("Successfully cast to AuthRequest - id: \(request.id), email: \(request.email)")
+                        }
                         currentAuthRequest = request
                         showAuthRequest = true
+                        Task {
+                            await Logger.shared.info("Set currentAuthRequest and showAuthRequest=true")
+                        }
+                    } else {
+                        Task {
+                            await Logger.shared.error("Failed to cast notification.object to AuthRequest")
+                        }
                     }
                 }
                 .sheet(isPresented: $showAuthRequest) {
+                    Task {
+                        await Logger.shared.info("Sheet is presenting. currentAuthRequest is: \(currentAuthRequest == nil ? "nil" : "not nil")")
+                        if let req = currentAuthRequest {
+                            await Logger.shared.info("currentAuthRequest details - id: \(req.id), email: \(req.email)")
+                        }
+                    }
                     if let request = currentAuthRequest {
                         AuthRequestView(
                             request: request,
