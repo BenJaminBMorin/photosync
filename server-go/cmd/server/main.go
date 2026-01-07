@@ -19,8 +19,6 @@ import (
 	"github.com/photosync/server/internal/repository"
 	"github.com/photosync/server/internal/services"
 	httpSwagger "github.com/swaggo/http-swagger"
-
-	_ "github.com/photosync/server/docs"
 )
 
 // @title PhotoSync API
