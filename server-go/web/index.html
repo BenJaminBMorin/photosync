@@ -96,6 +96,22 @@
             background: #475569;
         }
 
+        .admin-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: none;
+        }
+
+        .admin-btn:hover {
+            background: #475569;
+        }
+
         .gallery-header {
             padding: 16px 24px;
             background: #1e293b;
@@ -818,6 +834,7 @@
             </div>
             <div class="navbar-user">
                 <span class="user-name" id="user-name"></span>
+                <a href="/admin" class="admin-btn" id="admin-btn" title="Admin Settings">&#9881;</a>
                 <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -959,6 +976,9 @@
             })
             .then(session => {
                 document.getElementById('user-name').textContent = session.user.displayName;
+                if (session.user.isAdmin) {
+                    document.getElementById('admin-btn').style.display = 'block';
+                }
                 loadPhotos();
                 setupInfiniteScroll();
             })

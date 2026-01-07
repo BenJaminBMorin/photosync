@@ -18,7 +18,8 @@
             min-height: 100vh;
         }
 
-        .navbar {
+        /* Header */
+        .header {
             background: #1e293b;
             padding: 12px 24px;
             display: flex;
@@ -30,17 +31,35 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
-        .navbar-brand {
-            font-size: 20px;
-            font-weight: 600;
+        .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
         }
 
-        .navbar-brand a {
-            color: white;
+        .home-btn {
+            color: #94a3b8;
             text-decoration: none;
+            font-size: 24px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .home-btn:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .admin-badge {
@@ -51,31 +70,34 @@
             font-weight: 500;
         }
 
-        .navbar-nav {
+        .tabs {
             display: flex;
-            gap: 8px;
+            gap: 4px;
         }
 
-        .nav-link {
+        .tab-btn {
+            background: none;
+            border: none;
             color: #94a3b8;
-            text-decoration: none;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 6px;
+            cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
             transition: background 0.2s, color 0.2s;
         }
 
-        .nav-link:hover {
+        .tab-btn:hover {
             background: #334155;
             color: white;
         }
 
-        .nav-link.active {
+        .tab-btn.active {
             background: #667eea;
             color: white;
         }
 
-        .navbar-user {
+        .header-right {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -100,28 +122,20 @@
             background: #475569;
         }
 
-        .icon-btn {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: background 0.2s, color 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .icon-btn:hover {
-            background: #334155;
-            color: white;
-        }
-
+        /* Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 24px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .page-header {
@@ -170,54 +184,22 @@
             margin-top: 4px;
         }
 
-        /* Quick Actions */
+        /* Section Title */
         .section-title {
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .action-card {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 20px;
-            text-decoration: none;
-            color: white;
-            transition: background 0.2s, transform 0.2s;
-        }
-
-        .action-card:hover {
-            background: #334155;
-            transform: translateY(-2px);
-        }
-
-        .action-icon {
-            font-size: 24px;
-            margin-bottom: 12px;
-        }
-
-        .action-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .action-desc {
-            color: #94a3b8;
-            font-size: 13px;
-        }
-
-        /* Status Section */
+        /* Status Grid */
         .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 16px;
+            margin-bottom: 32px;
         }
 
         .status-card {
@@ -229,8 +211,15 @@
         .status-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             margin-bottom: 16px;
+        }
+
+        .status-card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
         }
 
         .status-indicator {
@@ -254,8 +243,26 @@
             box-shadow: 0 0 8px #f59e0b;
         }
 
-        .status-title {
-            font-weight: 600;
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: #22c55e20;
+            color: #22c55e;
+        }
+
+        .status-badge.warning {
+            background: #f59e0b20;
+            color: #f59e0b;
+        }
+
+        .status-badge.error {
+            background: #ef444420;
+            color: #ef4444;
         }
 
         .status-items {
@@ -276,6 +283,539 @@
 
         .status-item-value {
             color: white;
+            font-weight: 500;
+        }
+
+        .status-item-value.mono {
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd6;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .refresh-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .refresh-btn:hover {
+            background: #475569;
+        }
+
+        /* Search */
+        .search-bar {
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #1e293b;
+            color: white;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        /* Table */
+        .table-container {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+        }
+
+        th {
+            background: #0f172a;
+            font-weight: 600;
+            font-size: 13px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr {
+            border-bottom: 1px solid #334155;
+        }
+
+        tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #334155;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-display-name {
+            font-weight: 600;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-admin {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-active {
+            background: #22c55e;
+            color: white;
+        }
+
+        .badge-inactive {
+            background: #64748b;
+            color: white;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .form-label-required::after {
+            content: '*';
+            color: #dc2626;
+            margin-left: 4px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            background: #0f172a;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        /* API Key Display */
+        .api-key-display {
+            background: #0f172a;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .api-key-warning {
+            background: #f59e0b20;
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* Details Panel */
+        .details-section {
+            margin-top: 24px;
+        }
+
+        .details-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #94a3b8;
+        }
+
+        .details-list {
+            background: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .details-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .details-item:last-child {
+            border-bottom: none;
+        }
+
+        .details-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .details-item-main {
+            font-weight: 500;
+        }
+
+        .details-item-sub {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        /* Config Sections */
+        .config-section {
+            background: #1e293b;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: #334155;
+        }
+
+        .section-header-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 20px;
+        }
+
+        .expand-icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .section-header.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            display: none;
+            padding: 0 24px 24px 24px;
+            border-top: 1px solid #334155;
+        }
+
+        .section-content.show {
+            display: block;
+        }
+
+        .restart-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .restart-banner {
+            background: #dc2626;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .restart-banner.show {
+            display: flex;
+        }
+
+        .restart-banner-text {
+            flex: 1;
+        }
+
+        .restart-banner-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .password-toggle:hover {
+            color: white;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Extensions */
+        .extensions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .extension-tag {
+            background: #334155;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #dc2626;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         /* Skeleton Loading */
@@ -296,42 +836,22 @@
 
         .skeleton-text {
             height: 16px;
-            width: 120px;
+            width: 80px;
         }
 
-        /* Loading Spinner */
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px;
-            color: #94a3b8;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #334155;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .skeleton-row {
+            height: 60px;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .navbar {
+            .header {
                 flex-direction: column;
                 gap: 12px;
                 padding: 12px 16px;
             }
 
-            .navbar-nav {
+            .tabs {
                 flex-wrap: wrap;
                 justify-content: center;
             }
@@ -340,141 +860,662 @@
                 padding: 16px;
             }
 
-            .stats-grid {
+            .stats-grid, .status-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .actions {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <a href="/">PhotoSync</a>
-            <span class="admin-badge">Admin</span>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <a href="/" class="home-btn" title="Back to Gallery">&#127968;</a>
+            <div class="brand">
+                <span class="brand-name">PhotoSync</span>
+                <span class="admin-badge">Admin</span>
+            </div>
         </div>
-        <div class="navbar-nav">
-            <a href="/admin" class="nav-link active">Dashboard</a>
-            <a href="/admin/users" class="nav-link">Users</a>
-            <a href="/admin/system" class="nav-link">System</a>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="users">Users</button>
+            <button class="tab-btn" data-tab="system">System</button>
+            <button class="tab-btn" data-tab="settings">Settings</button>
         </div>
-        <div class="navbar-user">
+        <div class="header-right">
             <span class="user-name" id="user-name"></span>
-            <a href="/admin/settings" class="icon-btn">⚙️</a>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
-    </nav>
+    </header>
 
     <div class="container">
-        <div class="page-header">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">System overview and quick actions</p>
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">System overview and quick stats</p>
+            </div>
+
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value" id="stat-users"><div class="skeleton skeleton-stat"></div></div>
+                    <div class="stat-sub" id="stat-users-sub"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Photos</div>
+                    <div class="stat-value" id="stat-photos"><div class="skeleton skeleton-stat"></div></div>
+                    <div class="stat-sub" id="stat-photos-sub"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Devices</div>
+                    <div class="stat-value" id="stat-devices"><div class="skeleton skeleton-stat"></div></div>
+                    <div class="stat-sub" id="stat-devices-sub"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Storage Used</div>
+                    <div class="stat-value" id="stat-storage"><div class="skeleton skeleton-stat"></div></div>
+                    <div class="stat-sub" id="stat-storage-sub"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">System Status</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator" id="dash-db-indicator"></div>
+                            Database
+                        </div>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Type</span>
+                            <span class="status-item-value" id="dash-db-type">Loading...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Status</span>
+                            <span class="status-item-value" id="dash-db-status">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator" id="dash-firebase-indicator"></div>
+                            Firebase
+                        </div>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Configured</span>
+                            <span class="status-item-value" id="dash-firebase-configured">Checking...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Project</span>
+                            <span class="status-item-value" id="dash-firebase-project">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator online" id="dash-server-indicator"></div>
+                            Server
+                        </div>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Version</span>
+                            <span class="status-item-value" id="dash-server-version">Loading...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Uptime</span>
+                            <span class="status-item-value" id="dash-server-uptime">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid" id="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total Users</div>
-                <div class="stat-value" id="stat-users"><div class="skeleton skeleton-stat"></div></div>
-                <div class="stat-sub" id="stat-users-sub"></div>
+        <!-- Users Tab -->
+        <div id="users-tab" class="tab-content">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 class="page-title">User Management</h1>
+                    <p class="page-subtitle">Manage users, devices, and sessions</p>
+                </div>
+                <button class="btn btn-primary" onclick="showCreateModal()">+ Create User</button>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Total Photos</div>
-                <div class="stat-value" id="stat-photos"><div class="skeleton skeleton-stat"></div></div>
-                <div class="stat-sub" id="stat-photos-sub"></div>
+
+            <div class="search-bar">
+                <input type="text" class="search-input" id="search-input"
+                       placeholder="Search by name or email..." oninput="filterUsers()">
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Active Devices</div>
-                <div class="stat-value" id="stat-devices"><div class="skeleton skeleton-stat"></div></div>
-                <div class="stat-sub" id="stat-devices-sub"></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Storage Used</div>
-                <div class="stat-value" id="stat-storage"><div class="skeleton skeleton-stat"></div></div>
-                <div class="stat-sub" id="stat-storage-sub"></div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Photos</th>
+                            <th>Devices</th>
+                            <th>Sessions</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr>
+                            <td colspan="7" class="skeleton skeleton-row"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <h2 class="section-title">Quick Actions</h2>
-        <div class="actions-grid">
-            <a href="/admin/users" class="action-card">
-                <div class="action-icon">&#128100;</div>
-                <div class="action-title">Manage Users</div>
-                <div class="action-desc">Add, edit, or remove users</div>
-            </a>
-            <a href="/admin/users#create" class="action-card">
-                <div class="action-icon">&#10133;</div>
-                <div class="action-title">Create User</div>
-                <div class="action-desc">Add a new user to the system</div>
-            </a>
-            <a href="/admin/system" class="action-card">
-                <div class="action-icon">&#9881;</div>
-                <div class="action-title">System Status</div>
-                <div class="action-desc">View system health and config</div>
-            </a>
-            <a href="/" class="action-card">
-                <div class="action-icon">&#128247;</div>
-                <div class="action-title">View Gallery</div>
-                <div class="action-desc">Return to photo gallery</div>
-            </a>
+        <!-- System Tab -->
+        <div id="system-tab" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">System Status</h1>
+                <p class="page-subtitle">Monitor system health and configuration</p>
+            </div>
+
+            <div class="section-title">
+                System Health
+                <button class="refresh-btn" onclick="loadSystemStatus()">Refresh</button>
+            </div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator online" id="sys-server-indicator"></div>
+                            Server
+                        </div>
+                        <span class="status-badge success" id="sys-server-badge">Running</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Version</span>
+                            <span class="status-item-value" id="sys-server-version"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Uptime</span>
+                            <span class="status-item-value" id="sys-server-uptime"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator" id="sys-db-indicator"></div>
+                            Database
+                        </div>
+                        <span class="status-badge" id="sys-db-badge">Checking...</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Type</span>
+                            <span class="status-item-value" id="sys-db-type"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Status</span>
+                            <span class="status-item-value" id="sys-db-status"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator" id="sys-firebase-indicator"></div>
+                            Firebase
+                        </div>
+                        <span class="status-badge" id="sys-firebase-badge">Checking...</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Configured</span>
+                            <span class="status-item-value" id="sys-firebase-configured"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Project ID</span>
+                            <span class="status-item-value mono" id="sys-firebase-project"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">
+                            <div class="status-indicator online"></div>
+                            Storage
+                        </div>
+                        <span class="status-badge success">Available</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Total Photos</span>
+                            <span class="status-item-value" id="sys-storage-photos"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Used Space</span>
+                            <span class="status-item-value" id="sys-storage-size"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Base Path</span>
+                            <span class="status-item-value mono" id="sys-storage-path"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Usage Statistics</div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Total Users</span>
+                            <span class="status-item-value" id="sys-stats-users"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Total Photos</span>
+                            <span class="status-item-value" id="sys-stats-photos"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Registered Devices</span>
+                            <span class="status-item-value" id="sys-stats-devices"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Active Sessions</span>
+                            <span class="status-item-value" id="sys-stats-sessions"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Configuration</div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-card-title" style="margin-bottom: 16px;">Photo Storage</div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Max File Size</span>
+                            <span class="status-item-value" id="sys-config-maxsize"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <span class="status-item-label">Allowed Extensions</span>
+                            <div class="extensions-list" id="sys-config-extensions">
+                                <span class="skeleton skeleton-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-card-title" style="margin-bottom: 16px;">Setup Status</div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Setup Complete</span>
+                            <span class="status-item-value" id="sys-config-setup"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Firebase Configured</span>
+                            <span class="status-item-value" id="sys-config-firebase"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- System Status -->
-        <h2 class="section-title">System Status</h2>
-        <div class="status-grid" id="status-grid">
-            <div class="status-card">
-                <div class="status-header">
-                    <div class="status-indicator" id="db-status"></div>
-                    <span class="status-title">Database</span>
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Manage server configuration</p>
+            </div>
+
+            <div class="restart-banner" id="restart-banner">
+                <div class="restart-banner-text">
+                    <div class="restart-banner-title">Server Restart Required</div>
+                    <div>Some configuration changes require a server restart to take effect.</div>
                 </div>
-                <div class="status-items">
-                    <div class="status-item">
-                        <span class="status-item-label">Type</span>
-                        <span class="status-item-value" id="db-type">Loading...</span>
+            </div>
+
+            <!-- Server Configuration -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header-title">
+                        <span class="section-icon">&#128421;</span>
+                        Server Configuration
                     </div>
-                    <div class="status-item">
-                        <span class="status-item-label">Status</span>
-                        <span class="status-item-value" id="db-connected">Checking...</span>
+                    <span class="expand-icon">&#9660;</span>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label class="form-label form-label-required">
+                            Server Address
+                            <span class="restart-badge">Restart Required</span>
+                        </label>
+                        <input type="text" class="form-input" id="server_address" placeholder=":5000">
+                        <div class="form-help">Server listening address (e.g., :5000 or 0.0.0.0:5000)</div>
                     </div>
                 </div>
             </div>
-            <div class="status-card">
-                <div class="status-header">
-                    <div class="status-indicator" id="firebase-status"></div>
-                    <span class="status-title">Firebase</span>
-                </div>
-                <div class="status-items">
-                    <div class="status-item">
-                        <span class="status-item-label">Configured</span>
-                        <span class="status-item-value" id="firebase-configured">Checking...</span>
+
+            <!-- Database Configuration -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header-title">
+                        <span class="section-icon">&#128190;</span>
+                        Database Configuration
                     </div>
-                    <div class="status-item">
-                        <span class="status-item-label">Project</span>
-                        <span class="status-item-value" id="firebase-project">-</span>
+                    <span class="expand-icon">&#9660;</span>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Database URL (PostgreSQL)
+                            <span class="restart-badge">Restart Required</span>
+                        </label>
+                        <input type="text" class="form-input" id="database_url" placeholder="postgresql://user:pass@localhost/photosync">
+                        <div class="form-help">PostgreSQL connection string (leave empty to use SQLite)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            SQLite Database Path
+                            <span class="restart-badge">Restart Required</span>
+                        </label>
+                        <input type="text" class="form-input" id="database_path" placeholder="./photosync.db">
+                        <div class="form-help">SQLite database file path (used when database_url is empty)</div>
                     </div>
                 </div>
             </div>
-            <div class="status-card">
-                <div class="status-header">
-                    <div class="status-indicator online" id="server-status"></div>
-                    <span class="status-title">Server</span>
-                </div>
-                <div class="status-items">
-                    <div class="status-item">
-                        <span class="status-item-label">Version</span>
-                        <span class="status-item-value" id="server-version">Loading...</span>
+
+            <!-- Storage Configuration -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header-title">
+                        <span class="section-icon">&#128193;</span>
+                        Photo Storage Configuration
                     </div>
-                    <div class="status-item">
-                        <span class="status-item-label">Uptime</span>
-                        <span class="status-item-value" id="server-uptime">Loading...</span>
+                    <span class="expand-icon">&#9660;</span>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label class="form-label form-label-required">Storage Base Path</label>
+                        <input type="text" class="form-input" id="storage_base_path" placeholder="/data/photos">
+                        <div class="form-help">Directory where photos are stored</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label-required">Max File Size (MB)</label>
+                        <input type="number" class="form-input" id="storage_max_file_size_mb" placeholder="50">
+                        <div class="form-help">Maximum file size for photo uploads in MB</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label-required">Allowed Extensions</label>
+                        <input type="text" class="form-input" id="storage_allowed_extensions" placeholder=".jpg, .jpeg, .png, .heic">
+                        <div class="form-help">Comma-separated list of allowed file extensions</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Email/SMTP Configuration -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header-title">
+                        <span class="section-icon">&#128231;</span>
+                        Email / SMTP Configuration
+                    </div>
+                    <span class="expand-icon">&#9660;</span>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label class="form-label form-label-required">SMTP Host</label>
+                        <input type="text" class="form-input" id="smtp_host" placeholder="smtp.gmail.com">
+                        <div class="form-help">SMTP server hostname</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label-required">SMTP Port</label>
+                        <input type="number" class="form-input" id="smtp_port" placeholder="587">
+                        <div class="form-help">SMTP server port (usually 587 for TLS)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label-required">Username</label>
+                        <input type="text" class="form-input" id="smtp_username" placeholder="your-email@gmail.com">
+                        <div class="form-help">SMTP authentication username</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" class="form-input" id="smtp_password" placeholder="********">
+                            <button class="password-toggle" onclick="togglePassword('smtp_password')">&#128065;</button>
+                        </div>
+                        <div class="form-help">Leave as ******** to keep existing password</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label-required">From Address</label>
+                        <input type="text" class="form-input" id="smtp_from_address" placeholder="noreply@yourdomain.com">
+                        <div class="form-help">Email address shown as sender</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">From Name</label>
+                        <input type="text" class="form-input" id="smtp_from_name" placeholder="PhotoSync">
+                        <div class="form-help">Name shown as sender</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="smtp_use_tls" checked> Use TLS/STARTTLS
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="smtp_skip_verify"> Skip TLS Verification (not recommended)
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="testEmail()">Send Test Email</button>
+                        <button class="btn btn-primary" onclick="saveSMTPConfig()">Save Email Configuration</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Configuration -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header-title">
+                        <span class="section-icon">&#128274;</span>
+                        Security Configuration
+                    </div>
+                    <span class="expand-icon">&#9660;</span>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label class="form-label form-label-required">API Key Header</label>
+                        <input type="text" class="form-input" id="api_key_header" placeholder="X-API-Key">
+                        <div class="form-help">HTTP header name for API key authentication</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="saveAllConfig()">Save All Settings</button>
+                <button class="btn btn-secondary" onclick="loadSettings()">Reset to Current Values</button>
             </div>
         </div>
     </div>
 
+    <!-- Create/Edit User Modal -->
+    <div class="modal" id="user-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Create User</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="user-form" onsubmit="saveUser(event)">
+                <input type="hidden" id="user-id">
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-input" id="display-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="is-admin">
+                        <span>Administrator</span>
+                    </label>
+                </div>
+                <div class="form-group" id="active-group" style="display: none;">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="is-active" checked>
+                        <span>Active</span>
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-btn">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- API Key Modal -->
+    <div class="modal" id="api-key-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">API Key</h2>
+                <button class="modal-close" onclick="closeApiKeyModal()">&times;</button>
+            </div>
+            <div class="api-key-warning">
+                This API key will only be shown once. Please copy it now and store it securely.
+            </div>
+            <div class="api-key-display" id="api-key-display"></div>
+            <div class="copy-btn">
+                <button class="btn btn-secondary" onclick="copyApiKey()">Copy to Clipboard</button>
+                <span id="copy-status"></span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeApiKeyModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div class="modal" id="details-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="details-title">User Details</h2>
+                <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+            </div>
+
+            <div class="details-section">
+                <div class="details-title">Devices</div>
+                <div class="details-list" id="devices-list">
+                    <div class="empty-state">Loading...</div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <div class="details-title">Active Sessions</div>
+                <div class="details-list" id="sessions-list">
+                    <div class="empty-state">Loading...</div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Delete User?</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <p style="margin-bottom: 16px; color: #94a3b8;">
+                Are you sure you want to delete <strong id="delete-user-name"></strong>?
+                This action cannot be undone.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
     <script>
-        // Check session and admin status
+        // State
+        let users = [];
+        let currentUserId = null;
+        let deleteUserId = null;
+        let tabDataLoaded = { dashboard: false, users: false, system: false, settings: false };
+
+        // Tab navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabName + '-tab');
+            });
+
+            // Load data if not already loaded
+            loadTabData(tabName);
+        }
+
+        function loadTabData(tabName) {
+            if (tabDataLoaded[tabName]) return;
+
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'system':
+                    loadSystemStatus();
+                    loadSystemConfig();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+            tabDataLoaded[tabName] = true;
+        }
+
+        // Auth check
         fetch('/api/web/session', { credentials: 'include' })
             .then(r => {
                 if (!r.ok) {
@@ -485,17 +1526,17 @@
             })
             .then(session => {
                 if (!session.user.isAdmin) {
-                    // Not admin, redirect to gallery
                     window.location.href = '/';
                     throw new Error('Not admin');
                 }
                 document.getElementById('user-name').textContent = session.user.displayName;
-                loadDashboardData();
+                currentUserId = session.user.id;
+                loadTabData('dashboard');
             })
             .catch(() => {});
 
-        function loadDashboardData() {
-            // Load system status
+        // Dashboard functions
+        function loadDashboard() {
             fetch('/api/admin/system/status', { credentials: 'include' })
                 .then(r => r.json())
                 .then(status => {
@@ -504,46 +1545,598 @@
                     document.getElementById('stat-photos').textContent = status.stats.totalPhotos.toLocaleString();
                     document.getElementById('stat-devices').textContent = status.stats.totalDevices;
                     document.getElementById('stat-storage').textContent = formatStorageSize(status.storage.totalSizeMB);
-
-                    document.getElementById('stat-users-sub').textContent =
-                        `${status.stats.activeSessions} active sessions`;
+                    document.getElementById('stat-users-sub').textContent = `${status.stats.activeSessions} active sessions`;
                     document.getElementById('stat-storage-sub').textContent = status.storage.basePath;
 
-                    // Database status
-                    const dbStatus = document.getElementById('db-status');
-                    dbStatus.classList.add(status.database.connected ? 'online' : 'offline');
-                    document.getElementById('db-type').textContent =
+                    // Database
+                    const dbIndicator = document.getElementById('dash-db-indicator');
+                    dbIndicator.classList.remove('online', 'offline', 'warning');
+                    dbIndicator.classList.add(status.database.connected ? 'online' : 'offline');
+                    document.getElementById('dash-db-type').textContent =
                         status.database.type.charAt(0).toUpperCase() + status.database.type.slice(1);
-                    document.getElementById('db-connected').textContent =
+                    document.getElementById('dash-db-status').textContent =
                         status.database.connected ? 'Connected' : 'Disconnected';
 
-                    // Firebase status
-                    const fbStatus = document.getElementById('firebase-status');
-                    fbStatus.classList.add(status.firebase.configured ? 'online' : 'warning');
-                    document.getElementById('firebase-configured').textContent =
+                    // Firebase
+                    const fbIndicator = document.getElementById('dash-firebase-indicator');
+                    fbIndicator.classList.remove('online', 'offline', 'warning');
+                    fbIndicator.classList.add(status.firebase.configured ? 'online' : 'warning');
+                    document.getElementById('dash-firebase-configured').textContent =
                         status.firebase.configured ? 'Yes' : 'No';
-                    document.getElementById('firebase-project').textContent =
+                    document.getElementById('dash-firebase-project').textContent =
                         status.firebase.projectID || 'Not configured';
 
-                    // Server info
-                    document.getElementById('server-version').textContent = status.version;
-                    document.getElementById('server-uptime').textContent = status.uptime;
+                    // Server
+                    document.getElementById('dash-server-version').textContent = status.version;
+                    document.getElementById('dash-server-uptime').textContent = status.uptime;
                 })
-                .catch(err => {
-                    console.error('Failed to load status:', err);
+                .catch(err => console.error('Failed to load dashboard:', err));
+        }
+
+        // Users functions
+        function loadUsers() {
+            fetch('/api/admin/users', { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                    users = data.users || [];
+                    renderUsers(users);
+                })
+                .catch(err => console.error('Failed to load users:', err));
+        }
+
+        function renderUsers(usersToRender) {
+            const tbody = document.getElementById('users-table');
+
+            if (usersToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No users found</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = usersToRender.map(user => `
+                <tr>
+                    <td>
+                        <div class="user-info">
+                            <span class="user-display-name">${escapeHtml(user.displayName)}</span>
+                            <span class="user-email">${escapeHtml(user.email)}</span>
+                        </div>
+                    </td>
+                    <td>
+                        ${user.isAdmin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                        <span class="badge ${user.isActive ? 'badge-active' : 'badge-inactive'}">
+                            ${user.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>${user.photoCount.toLocaleString()}</td>
+                    <td>${user.deviceCount}</td>
+                    <td>${user.sessionCount}</td>
+                    <td>${formatDate(user.createdAt)}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-secondary btn-sm" onclick="showEditModal('${user.id}')">Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="showDetails('${user.id}')">Details</button>
+                            <button class="btn btn-secondary btn-sm" onclick="resetApiKey('${user.id}')" title="Reset API Key">Key</button>
+                            ${user.id !== currentUserId ?
+                                `<button class="btn btn-danger btn-sm" onclick="showDeleteModal('${user.id}', '${escapeHtml(user.displayName)}')">Delete</button>` :
+                                ''
+                            }
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterUsers() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = users.filter(u =>
+                u.displayName.toLowerCase().includes(query) ||
+                u.email.toLowerCase().includes(query)
+            );
+            renderUsers(filtered);
+        }
+
+        function showCreateModal() {
+            document.getElementById('modal-title').textContent = 'Create User';
+            document.getElementById('save-btn').textContent = 'Create';
+            document.getElementById('user-id').value = '';
+            document.getElementById('display-name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('is-admin').checked = false;
+            document.getElementById('is-active').checked = true;
+            document.getElementById('active-group').style.display = 'none';
+            document.getElementById('user-modal').classList.add('active');
+        }
+
+        function showEditModal(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            document.getElementById('modal-title').textContent = 'Edit User';
+            document.getElementById('save-btn').textContent = 'Save';
+            document.getElementById('user-id').value = user.id;
+            document.getElementById('display-name').value = user.displayName;
+            document.getElementById('email').value = user.email;
+            document.getElementById('is-admin').checked = user.isAdmin;
+            document.getElementById('is-active').checked = user.isActive;
+            document.getElementById('active-group').style.display = 'block';
+            document.getElementById('user-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('user-modal').classList.remove('active');
+        }
+
+        function saveUser(e) {
+            e.preventDefault();
+            const userId = document.getElementById('user-id').value;
+            const isCreate = !userId;
+
+            const data = {
+                email: document.getElementById('email').value,
+                displayName: document.getElementById('display-name').value,
+                isAdmin: document.getElementById('is-admin').checked
+            };
+
+            if (!isCreate) {
+                data.isActive = document.getElementById('is-active').checked;
+            }
+
+            const url = isCreate ? '/api/admin/users' : `/api/admin/users/${userId}`;
+            const method = isCreate ? 'POST' : 'PUT';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            })
+            .then(r => {
+                if (!r.ok) throw r;
+                return r.json();
+            })
+            .then(result => {
+                closeModal();
+                if (isCreate && result.apiKey) {
+                    document.getElementById('api-key-display').textContent = result.apiKey;
+                    document.getElementById('api-key-modal').classList.add('active');
+                }
+                tabDataLoaded.users = false;
+                loadUsers();
+            })
+            .catch(async err => {
+                const text = await err.text?.() || 'Failed to save user';
+                alert(text);
+            });
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('api-key-modal').classList.remove('active');
+            document.getElementById('api-key-display').textContent = '';
+            document.getElementById('copy-status').textContent = '';
+        }
+
+        function copyApiKey() {
+            const apiKey = document.getElementById('api-key-display').textContent;
+            navigator.clipboard.writeText(apiKey).then(() => {
+                document.getElementById('copy-status').textContent = 'Copied!';
+                setTimeout(() => document.getElementById('copy-status').textContent = '', 2000);
+            });
+        }
+
+        function resetApiKey(userId) {
+            if (!confirm('Are you sure you want to reset this user\'s API key? The old key will stop working immediately.')) {
+                return;
+            }
+
+            fetch(`/api/admin/users/${userId}/reset-api-key`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(r => r.json())
+            .then(result => {
+                document.getElementById('api-key-display').textContent = result.apiKey;
+                document.getElementById('api-key-modal').classList.add('active');
+            })
+            .catch(err => {
+                console.error('Failed to reset API key:', err);
+                alert('Failed to reset API key');
+            });
+        }
+
+        function showDetails(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            document.getElementById('details-title').textContent = user.displayName;
+            document.getElementById('devices-list').innerHTML = '<div class="empty-state">Loading...</div>';
+            document.getElementById('sessions-list').innerHTML = '<div class="empty-state">Loading...</div>';
+            document.getElementById('details-modal').classList.add('active');
+
+            // Load devices
+            fetch(`/api/admin/users/${userId}/devices`, { credentials: 'include' })
+                .then(r => r.json())
+                .then(devices => {
+                    const list = document.getElementById('devices-list');
+                    if (devices.length === 0) {
+                        list.innerHTML = '<div class="empty-state">No devices registered</div>';
+                    } else {
+                        list.innerHTML = devices.map(d => `
+                            <div class="details-item">
+                                <div class="details-item-info">
+                                    <span class="details-item-main">${escapeHtml(d.deviceName)}</span>
+                                    <span class="details-item-sub">${d.platform} - Last seen: ${formatDateTime(d.lastSeenAt)}</span>
+                                </div>
+                                <button class="btn btn-danger btn-sm" onclick="deleteDevice('${userId}', '${d.id}')">Remove</button>
+                            </div>
+                        `).join('');
+                    }
+                });
+
+            // Load sessions
+            fetch(`/api/admin/users/${userId}/sessions`, { credentials: 'include' })
+                .then(r => r.json())
+                .then(sessions => {
+                    const list = document.getElementById('sessions-list');
+                    if (sessions.length === 0) {
+                        list.innerHTML = '<div class="empty-state">No active sessions</div>';
+                    } else {
+                        list.innerHTML = sessions.map(s => `
+                            <div class="details-item">
+                                <div class="details-item-info">
+                                    <span class="details-item-main">${escapeHtml(s.ipAddress || 'Unknown IP')}</span>
+                                    <span class="details-item-sub">Expires: ${formatDateTime(s.expiresAt)}</span>
+                                </div>
+                                <button class="btn btn-danger btn-sm" onclick="invalidateSession('${userId}', '${s.id}')">Revoke</button>
+                            </div>
+                        `).join('');
+                    }
                 });
         }
 
+        function closeDetailsModal() {
+            document.getElementById('details-modal').classList.remove('active');
+        }
+
+        function deleteDevice(userId, deviceId) {
+            if (!confirm('Remove this device?')) return;
+
+            fetch(`/api/admin/users/${userId}/devices/${deviceId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+            .then(() => {
+                showDetails(userId);
+                tabDataLoaded.users = false;
+                loadUsers();
+            })
+            .catch(err => {
+                console.error('Failed to delete device:', err);
+                alert('Failed to remove device');
+            });
+        }
+
+        function invalidateSession(userId, sessionId) {
+            if (!confirm('Revoke this session? The user will be logged out.')) return;
+
+            fetch(`/api/admin/users/${userId}/sessions/${sessionId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+            .then(() => {
+                showDetails(userId);
+                tabDataLoaded.users = false;
+                loadUsers();
+            })
+            .catch(err => {
+                console.error('Failed to invalidate session:', err);
+                alert('Failed to revoke session');
+            });
+        }
+
+        function showDeleteModal(userId, userName) {
+            deleteUserId = userId;
+            document.getElementById('delete-user-name').textContent = userName;
+            document.getElementById('delete-modal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.remove('active');
+            deleteUserId = null;
+        }
+
+        function confirmDelete() {
+            if (!deleteUserId) return;
+
+            fetch(`/api/admin/users/${deleteUserId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+            .then(r => {
+                if (!r.ok) throw r;
+                closeDeleteModal();
+                tabDataLoaded.users = false;
+                loadUsers();
+            })
+            .catch(async err => {
+                const text = await err.text?.() || 'Failed to delete user';
+                alert(text);
+            });
+        }
+
+        // System functions
+        function loadSystemStatus() {
+            fetch('/api/admin/system/status', { credentials: 'include' })
+                .then(r => r.json())
+                .then(status => {
+                    // Server
+                    document.getElementById('sys-server-version').textContent = status.version;
+                    document.getElementById('sys-server-uptime').textContent = status.uptime;
+
+                    // Database
+                    const dbIndicator = document.getElementById('sys-db-indicator');
+                    const dbBadge = document.getElementById('sys-db-badge');
+                    dbIndicator.classList.remove('online', 'offline', 'warning');
+                    dbBadge.classList.remove('success', 'warning', 'error');
+
+                    if (status.database.connected) {
+                        dbIndicator.classList.add('online');
+                        dbBadge.classList.add('success');
+                        dbBadge.textContent = 'Connected';
+                    } else {
+                        dbIndicator.classList.add('offline');
+                        dbBadge.classList.add('error');
+                        dbBadge.textContent = 'Disconnected';
+                    }
+
+                    document.getElementById('sys-db-type').textContent =
+                        status.database.type.charAt(0).toUpperCase() + status.database.type.slice(1);
+                    document.getElementById('sys-db-status').textContent =
+                        status.database.connected ? 'Connected' : 'Disconnected';
+
+                    // Firebase
+                    const fbIndicator = document.getElementById('sys-firebase-indicator');
+                    const fbBadge = document.getElementById('sys-firebase-badge');
+                    fbIndicator.classList.remove('online', 'offline', 'warning');
+                    fbBadge.classList.remove('success', 'warning', 'error');
+
+                    if (status.firebase.configured) {
+                        fbIndicator.classList.add('online');
+                        fbBadge.classList.add('success');
+                        fbBadge.textContent = 'Configured';
+                    } else {
+                        fbIndicator.classList.add('warning');
+                        fbBadge.classList.add('warning');
+                        fbBadge.textContent = 'Not Configured';
+                    }
+
+                    document.getElementById('sys-firebase-configured').textContent =
+                        status.firebase.configured ? 'Yes' : 'No';
+                    document.getElementById('sys-firebase-project').textContent =
+                        status.firebase.projectID || 'N/A';
+
+                    // Storage
+                    document.getElementById('sys-storage-photos').textContent =
+                        status.storage.totalPhotos.toLocaleString();
+                    document.getElementById('sys-storage-size').textContent =
+                        formatStorageSize(status.storage.totalSizeMB);
+                    document.getElementById('sys-storage-path').textContent = status.storage.basePath;
+
+                    // Stats
+                    document.getElementById('sys-stats-users').textContent = status.stats.totalUsers;
+                    document.getElementById('sys-stats-photos').textContent =
+                        status.stats.totalPhotos.toLocaleString();
+                    document.getElementById('sys-stats-devices').textContent = status.stats.totalDevices;
+                    document.getElementById('sys-stats-sessions').textContent = status.stats.activeSessions;
+                })
+                .catch(err => console.error('Failed to load system status:', err));
+        }
+
+        function loadSystemConfig() {
+            fetch('/api/admin/system/config', { credentials: 'include' })
+                .then(r => r.json())
+                .then(config => {
+                    document.getElementById('sys-config-maxsize').textContent = config.maxFileSizeMB + ' MB';
+
+                    const extensionsEl = document.getElementById('sys-config-extensions');
+                    extensionsEl.innerHTML = config.allowedExtensions.map(ext =>
+                        `<span class="extension-tag">.${ext}</span>`
+                    ).join('');
+
+                    document.getElementById('sys-config-setup').textContent =
+                        config.setupComplete ? 'Yes' : 'No';
+                    document.getElementById('sys-config-firebase').textContent =
+                        config.firebaseConfigured ? 'Yes' : 'No';
+                })
+                .catch(err => console.error('Failed to load system config:', err));
+        }
+
+        // Settings functions
+        async function loadSettings() {
+            try {
+                const [configRes, smtpRes] = await Promise.all([
+                    fetch('/api/admin/config', { credentials: 'include' }),
+                    fetch('/api/admin/config/smtp', { credentials: 'include' })
+                ]);
+
+                if (!configRes.ok || !smtpRes.ok) throw new Error('Failed to load configuration');
+
+                const configData = await configRes.json();
+                const smtpData = await smtpRes.json();
+
+                // Populate general config fields
+                configData.items.forEach(item => {
+                    const input = document.getElementById(item.key);
+                    if (input) {
+                        input.value = item.value || '';
+                    }
+                });
+
+                // Populate SMTP fields
+                if (smtpData) {
+                    document.getElementById('smtp_host').value = smtpData.host || '';
+                    document.getElementById('smtp_port').value = smtpData.port || 587;
+                    document.getElementById('smtp_username').value = smtpData.username || '';
+                    document.getElementById('smtp_password').value = smtpData.password || '';
+                    document.getElementById('smtp_from_address').value = smtpData.from_address || '';
+                    document.getElementById('smtp_from_name').value = smtpData.from_name || 'PhotoSync';
+                    document.getElementById('smtp_use_tls').checked = smtpData.use_tls !== false;
+                    document.getElementById('smtp_skip_verify').checked = smtpData.skip_verify === true;
+                }
+
+                checkRestartStatus();
+            } catch (error) {
+                showToast('Failed to load configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function checkRestartStatus() {
+            try {
+                const res = await fetch('/api/admin/config/restart-status', { credentials: 'include' });
+                const data = await res.json();
+                const banner = document.getElementById('restart-banner');
+                if (data.restartRequired) {
+                    banner.classList.add('show');
+                } else {
+                    banner.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Failed to check restart status:', error);
+            }
+        }
+
+        async function saveAllConfig() {
+            const updates = [];
+            const configKeys = [
+                'server_address', 'database_url', 'database_path',
+                'storage_base_path', 'storage_max_file_size_mb', 'storage_allowed_extensions',
+                'api_key_header'
+            ];
+
+            configKeys.forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    updates.push({ key, value: input.value });
+                }
+            });
+
+            try {
+                const res = await fetch('/api/admin/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(updates)
+                });
+
+                if (!res.ok) throw new Error('Failed to save configuration');
+
+                showToast('Configuration saved successfully', 'success');
+                await checkRestartStatus();
+            } catch (error) {
+                showToast('Failed to save configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function saveSMTPConfig() {
+            const config = {
+                host: document.getElementById('smtp_host').value,
+                port: parseInt(document.getElementById('smtp_port').value),
+                username: document.getElementById('smtp_username').value,
+                password: document.getElementById('smtp_password').value,
+                from_address: document.getElementById('smtp_from_address').value,
+                from_name: document.getElementById('smtp_from_name').value || 'PhotoSync',
+                use_tls: document.getElementById('smtp_use_tls').checked,
+                skip_verify: document.getElementById('smtp_skip_verify').checked
+            };
+
+            try {
+                const res = await fetch('/api/admin/config/smtp', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(config)
+                });
+
+                if (!res.ok) throw new Error('Failed to save SMTP configuration');
+
+                showToast('Email configuration saved successfully', 'success');
+                tabDataLoaded.settings = false;
+                await loadSettings();
+            } catch (error) {
+                showToast('Failed to save email configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function testEmail() {
+            const email = prompt('Enter email address to send test email:');
+            if (!email) return;
+
+            try {
+                const res = await fetch('/api/admin/config/smtp/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email })
+                });
+
+                if (!res.ok) throw new Error('Failed to send test email');
+
+                showToast('Test email sent successfully! Check your inbox.', 'success');
+            } catch (error) {
+                showToast('Failed to send test email: ' + error.message, 'error');
+            }
+        }
+
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const isExpanded = content.classList.contains('show');
+
+            if (isExpanded) {
+                content.classList.remove('show');
+                header.classList.remove('expanded');
+            } else {
+                content.classList.add('show');
+                header.classList.add('expanded');
+            }
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Utility functions
         function formatStorageSize(mb) {
             if (mb < 1024) return mb + ' MB';
             return (mb / 1024).toFixed(1) + ' GB';
         }
 
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        function formatDateTime(dateStr) {
+            return new Date(dateStr).toLocaleString();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            toastMessage.textContent = message;
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+
         function logout() {
             fetch('/api/web/auth/logout', { method: 'POST', credentials: 'include' })
-                .then(() => {
-                    window.location.href = '/login.html';
-                });
+                .then(() => window.location.href = '/login.html');
         }
     </script>
 </body>
