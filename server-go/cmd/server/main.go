@@ -216,7 +216,7 @@ func main() {
 
 	// Initialize handlers
 	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService)
-	healthHandler := handlers.NewHealthHandler()
+	healthHandler := handlers.NewHealthHandler(setupConfigRepo)
 	setupHandler := handlers.NewSetupHandler(setupService, configService, smtpService)
 	deviceHandler := handlers.NewDeviceHandler(deviceRepo)
 	webAuthHandler := handlers.NewWebAuthHandler(authService, bootstrapService, recoveryService)
@@ -264,6 +264,7 @@ func main() {
 	// Health check and version (no auth)
 	r.Get("/health", healthHandler.HealthCheck)
 	r.Get("/api/health", healthHandler.HealthCheck)
+	r.Get("/api/info", healthHandler.GetAppInfo)
 	r.Get("/api/version", handlers.VersionHandler)
 
 	// Setup routes (no auth during setup)
@@ -295,6 +296,7 @@ func main() {
 	skipPaths := []string{
 		"/health",
 		"/api/health",
+		"/api/info",
 		"/api/setup/*",
 		"/api/web/auth/initiate",
 		"/api/web/auth/status/*",
@@ -388,6 +390,10 @@ func main() {
 			// System
 			r.Get("/system/status", adminHandler.GetSystemStatus)
 			r.Get("/system/config", adminHandler.GetSystemConfig)
+
+			// App settings
+			r.Get("/settings/app", adminHandler.GetAppSettings)
+			r.Put("/settings/app", adminHandler.UpdateAppSettings)
 
 			// Configuration management
 			r.Get("/config", configHandler.GetConfig)

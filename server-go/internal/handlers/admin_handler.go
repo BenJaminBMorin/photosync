@@ -352,3 +352,50 @@ func (h *AdminHandler) GetSystemConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(config)
 }
+
+// GetAppSettings returns app customization settings
+// @Summary Get app settings
+// @Description Get app customization settings like app name
+// @Tags admin
+// @Produce json
+// @Success 200 {object} models.AppSettingsResponse
+// @Security SessionAuth
+// @Router /api/admin/settings/app [get]
+func (h *AdminHandler) GetAppSettings(w http.ResponseWriter, r *http.Request) {
+	settings, err := h.adminService.GetAppSettings(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(settings)
+}
+
+// UpdateAppSettings updates app customization settings
+// @Summary Update app settings
+// @Description Update app customization settings like app name
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param request body models.UpdateAppSettingsRequest true "App settings"
+// @Success 200 {object} models.AppSettingsResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Security SessionAuth
+// @Router /api/admin/settings/app [put]
+func (h *AdminHandler) UpdateAppSettings(w http.ResponseWriter, r *http.Request) {
+	var req models.UpdateAppSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	settings, err := h.adminService.UpdateAppSettings(r.Context(), req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(settings)
+}

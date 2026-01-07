@@ -71,6 +71,12 @@ type HealthResponse struct {
 	Timestamp time.Time `json:"timestamp" example:"2024-01-15T12:00:00Z"`
 }
 
+// AppInfoResponse contains public app information
+// @Description Public app information
+type AppInfoResponse struct {
+	AppName string `json:"appName" example:"PhotoSync"`
+}
+
 // ErrorResponse is returned on errors
 // @Description Error response
 type ErrorResponse struct {

@@ -1306,6 +1306,27 @@
                 </div>
             </div>
 
+            <!-- App Customization -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header-title">
+                        <span class="section-icon">&#127912;</span>
+                        App Customization
+                    </div>
+                    <span class="expand-icon">&#9660;</span>
+                </div>
+                <div class="section-content" style="display: block;">
+                    <div class="form-group">
+                        <label class="form-label">App Name</label>
+                        <input type="text" class="form-input" id="app_name" placeholder="PhotoSync">
+                        <div class="form-help">Customize the name of your application (appears in navigation and login)</div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 16px; padding: 0;">
+                        <button class="btn btn-primary" onclick="saveAppSettings()">Save App Settings</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Server Configuration -->
             <div class="config-section">
                 <div class="section-header" onclick="toggleSection(this)">
@@ -1644,6 +1665,19 @@
                 }
                 document.getElementById('user-name').textContent = session.user.displayName;
                 currentUserId = session.user.id;
+
+                // Load app info (app name)
+                fetch('/api/info')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.appName) {
+                            document.querySelectorAll('.brand-name').forEach(el => {
+                                el.textContent = data.appName;
+                            });
+                            document.title = data.appName + ' Admin';
+                        }
+                    })
+                    .catch(err => console.log('Could not load app info:', err));
                 loadTabData('dashboard');
             })
             .catch(() => {});
@@ -2271,15 +2305,17 @@
         // Settings functions
         async function loadSettings() {
             try {
-                const [configRes, smtpRes] = await Promise.all([
+                const [configRes, smtpRes, appRes] = await Promise.all([
                     fetch('/api/admin/config', { credentials: 'include' }),
-                    fetch('/api/admin/config/smtp', { credentials: 'include' })
+                    fetch('/api/admin/config/smtp', { credentials: 'include' }),
+                    fetch('/api/admin/settings/app', { credentials: 'include' })
                 ]);
 
                 if (!configRes.ok || !smtpRes.ok) throw new Error('Failed to load configuration');
 
                 const configData = await configRes.json();
                 const smtpData = await smtpRes.json();
+                const appData = appRes.ok ? await appRes.json() : null;
 
                 // Populate general config fields
                 configData.items.forEach(item => {
@@ -2299,6 +2335,11 @@
                     document.getElementById('smtp_from_name').value = smtpData.from_name || 'PhotoSync';
                     document.getElementById('smtp_use_tls').checked = smtpData.use_tls !== false;
                     document.getElementById('smtp_skip_verify').checked = smtpData.skip_verify === true;
+                }
+
+                // Populate app customization fields
+                if (appData) {
+                    document.getElementById('app_name').value = appData.appName || 'PhotoSync';
                 }
 
                 checkRestartStatus();
@@ -2401,6 +2442,30 @@
                 showToast('Test email sent successfully! Check your inbox.', 'success');
             } catch (error) {
                 showToast('Failed to send test email: ' + error.message, 'error');
+            }
+        }
+
+        async function saveAppSettings() {
+            const appName = document.getElementById('app_name').value.trim() || 'PhotoSync';
+
+            try {
+                const res = await fetch('/api/admin/settings/app', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ appName })
+                });
+
+                if (!res.ok) throw new Error('Failed to save app settings');
+
+                showToast('App settings saved successfully', 'success');
+
+                // Update the brand name in the header
+                document.querySelectorAll('.brand-name').forEach(el => {
+                    el.textContent = appName;
+                });
+            } catch (error) {
+                showToast('Failed to save app settings: ' + error.message, 'error');
             }
         }
 

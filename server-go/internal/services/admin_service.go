@@ -323,3 +323,37 @@ func (s *AdminService) GetSystemConfig(ctx context.Context) (*models.SystemConfi
 		AllowedExtensions:  []string{"jpg", "jpeg", "png", "gif", "webp", "heic", "heif"},
 	}, nil
 }
+
+// GetAppSettings returns app customization settings
+func (s *AdminService) GetAppSettings(ctx context.Context) (*models.AppSettingsResponse, error) {
+	appName, err := s.setupRepo.Get(ctx, repository.SetupKeyAppName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Default to "PhotoSync" if not set
+	if appName == "" {
+		appName = "PhotoSync"
+	}
+
+	return &models.AppSettingsResponse{
+		AppName: appName,
+	}, nil
+}
+
+// UpdateAppSettings updates app customization settings
+func (s *AdminService) UpdateAppSettings(ctx context.Context, req models.UpdateAppSettingsRequest) (*models.AppSettingsResponse, error) {
+	// Validate app name
+	if req.AppName == "" {
+		req.AppName = "PhotoSync"
+	}
+
+	// Update in database
+	if err := s.setupRepo.Set(ctx, repository.SetupKeyAppName, req.AppName); err != nil {
+		return nil, err
+	}
+
+	return &models.AppSettingsResponse{
+		AppName: req.AppName,
+	}, nil
+}

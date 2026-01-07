@@ -112,3 +112,13 @@ type SystemConfigResponse struct {
 	MaxFileSizeMB      int64    `json:"maxFileSizeMB"`
 	AllowedExtensions  []string `json:"allowedExtensions"`
 }
+
+// AppSettingsResponse contains app customization settings
+type AppSettingsResponse struct {
+	AppName string `json:"appName"`
+}
+
+// UpdateAppSettingsRequest is the request body for updating app settings
+type UpdateAppSettingsRequest struct {
+	AppName string `json:"appName"`
+}

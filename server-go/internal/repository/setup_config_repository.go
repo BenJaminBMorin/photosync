@@ -10,6 +10,7 @@ const (
 	SetupKeyComplete       = "setup_complete"
 	SetupKeyFirebaseConfig = "firebase_configured"
 	SetupKeyAdminCreated   = "admin_created"
+	SetupKeyAppName        = "app_name"
 )
 
 // SetupConfigRepository implements SetupConfigRepo
