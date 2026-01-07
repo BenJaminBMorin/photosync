@@ -1179,6 +1179,98 @@
                     </div>
                 </div>
             </div>
+
+            <div class="section-title">
+                Background Maintenance
+                <button class="refresh-btn" onclick="loadMaintenanceStatus()">Refresh</button>
+            </div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-card-title">Maintenance Service</div>
+                        <span class="status-badge" id="maint-enabled-badge">Loading...</span>
+                    </div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Status</span>
+                            <span class="status-item-value" id="maint-running">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Last Run</span>
+                            <span class="status-item-value" id="maint-last-run">Never</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Last Duration</span>
+                            <span class="status-item-value" id="maint-duration">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Next Scheduled</span>
+                            <span class="status-item-value" id="maint-next-run">-</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 12px;">
+                        <button class="btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="flex: 1;">
+                            Stop
+                        </button>
+                        <button class="btn btn-primary" id="maint-run-btn" onclick="runMaintenanceNow()">
+                            Run Now
+                        </button>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-title" style="margin-bottom: 16px;">Last Run Results</div>
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Orphaned Photos Removed</span>
+                            <span class="status-item-value" id="maint-orphans">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Thumbnails Generated</span>
+                            <span class="status-item-value" id="maint-thumbs">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Errors</span>
+                            <span class="status-item-value" id="maint-errors">0</span>
+                        </div>
+                    </div>
+                    <div id="maint-error-list" style="margin-top: 12px; display: none;">
+                        <div style="color: #f87171; font-size: 12px; max-height: 100px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Thumbnail Stats</div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-item-label">Photos with Thumbnails</span>
+                            <span class="status-item-value" id="thumb-percentage"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Missing Thumbnails</span>
+                            <span class="status-item-value" id="thumb-missing"><span class="skeleton skeleton-text"></span></span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Manual Regeneration</span>
+                            <span class="status-item-value" id="thumb-status">Ready</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">Progress</span>
+                            <span class="status-item-value" id="thumb-progress">-</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 12px;">
+                        <button class="btn" onclick="loadThumbnailStats()" style="flex: 1;">
+                            Refresh
+                        </button>
+                        <button class="btn btn-primary" id="regen-thumb-btn" onclick="regenerateThumbnails()" style="flex: 2;">
+                            Generate Missing Thumbnails
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Settings Tab -->
@@ -1507,6 +1599,8 @@
                 case 'system':
                     loadSystemStatus();
                     loadSystemConfig();
+                    loadMaintenanceStatus();
+                    loadThumbnailStats();
                     break;
                 case 'settings':
                     loadSettings();
@@ -1947,6 +2041,188 @@
                         config.firebaseConfigured ? 'Yes' : 'No';
                 })
                 .catch(err => console.error('Failed to load system config:', err));
+        }
+
+        // Maintenance service functions
+        let maintenanceEnabled = true;
+
+        function loadMaintenanceStatus() {
+            fetch('/api/admin/maintenance/status', { credentials: 'include' })
+                .then(r => r.json())
+                .then(status => {
+                    maintenanceEnabled = status.enabled;
+
+                    // Update badge
+                    const badge = document.getElementById('maint-enabled-badge');
+                    badge.textContent = status.enabled ? 'Enabled' : 'Disabled';
+                    badge.className = 'status-badge ' + (status.enabled ? 'success' : 'warning');
+
+                    // Update running status
+                    document.getElementById('maint-running').textContent =
+                        status.running ? 'Running...' : 'Idle';
+
+                    // Update last run
+                    if (status.lastRun && status.lastRun !== '0001-01-01T00:00:00Z') {
+                        document.getElementById('maint-last-run').textContent =
+                            new Date(status.lastRun).toLocaleString();
+                    } else {
+                        document.getElementById('maint-last-run').textContent = 'Never';
+                    }
+
+                    // Update duration
+                    document.getElementById('maint-duration').textContent =
+                        status.lastRunDuration || '-';
+
+                    // Update next run
+                    if (status.enabled && status.nextScheduledRun && status.nextScheduledRun !== '0001-01-01T00:00:00Z') {
+                        document.getElementById('maint-next-run').textContent =
+                            new Date(status.nextScheduledRun).toLocaleString();
+                    } else {
+                        document.getElementById('maint-next-run').textContent = status.enabled ? 'Pending' : 'Disabled';
+                    }
+
+                    // Update results
+                    document.getElementById('maint-orphans').textContent = status.orphansRemoved || 0;
+                    document.getElementById('maint-thumbs').textContent = status.thumbsGenerated || 0;
+                    document.getElementById('maint-errors').textContent =
+                        status.errors ? status.errors.length : 0;
+
+                    // Show errors if any
+                    const errorList = document.getElementById('maint-error-list');
+                    if (status.errors && status.errors.length > 0) {
+                        errorList.style.display = 'block';
+                        errorList.querySelector('div').innerHTML = status.errors
+                            .slice(0, 10)
+                            .map(e => `• ${e}`)
+                            .join('<br>');
+                    } else {
+                        errorList.style.display = 'none';
+                    }
+
+                    // Update toggle button
+                    const toggleBtn = document.getElementById('maint-toggle-btn');
+                    toggleBtn.textContent = status.enabled ? 'Stop' : 'Start';
+
+                    // Disable run button if already running
+                    document.getElementById('maint-run-btn').disabled = status.running;
+                })
+                .catch(err => {
+                    console.error('Failed to load maintenance status:', err);
+                });
+        }
+
+        function toggleMaintenance() {
+            const endpoint = maintenanceEnabled ? '/api/admin/maintenance/stop' : '/api/admin/maintenance/start';
+            fetch(endpoint, { method: 'POST', credentials: 'include' })
+                .then(r => r.json())
+                .then(() => {
+                    loadMaintenanceStatus();
+                })
+                .catch(err => {
+                    console.error('Failed to toggle maintenance:', err);
+                    alert('Failed to toggle maintenance service');
+                });
+        }
+
+        function runMaintenanceNow() {
+            const btn = document.getElementById('maint-run-btn');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+
+            fetch('/api/admin/maintenance/run', { method: 'POST', credentials: 'include' })
+                .then(r => r.json())
+                .then(() => {
+                    btn.textContent = 'Run Now';
+                    // Poll for completion
+                    setTimeout(loadMaintenanceStatus, 1000);
+                    setTimeout(loadMaintenanceStatus, 5000);
+                    setTimeout(loadMaintenanceStatus, 10000);
+                    setTimeout(loadMaintenanceStatus, 30000);
+                })
+                .catch(err => {
+                    console.error('Failed to run maintenance:', err);
+                    btn.textContent = 'Run Now';
+                    btn.disabled = false;
+                    alert('Failed to trigger maintenance');
+                });
+        }
+
+        // Thumbnail stats and regeneration
+        let thumbTotal = 0;
+        let thumbProcessed = 0;
+
+        function loadThumbnailStats() {
+            fetch('/api/admin/thumbnail-stats', { credentials: 'include' })
+                .then(r => r.json())
+                .then(stats => {
+                    document.getElementById('thumb-percentage').textContent =
+                        `${stats.percentage.toFixed(1)}% (${stats.withThumbs.toLocaleString()} of ${stats.total.toLocaleString()})`;
+                    document.getElementById('thumb-missing').textContent =
+                        stats.missing.toLocaleString() + ' photos';
+
+                    // Disable button if no missing thumbnails
+                    const btn = document.getElementById('regen-thumb-btn');
+                    if (stats.missing === 0) {
+                        btn.disabled = true;
+                        btn.textContent = 'All Thumbnails Generated';
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Generate Missing Thumbnails';
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load thumbnail stats:', err);
+                    document.getElementById('thumb-percentage').textContent = 'Error loading';
+                    document.getElementById('thumb-missing').textContent = 'Error loading';
+                });
+        }
+
+        async function regenerateThumbnails() {
+            const btn = document.getElementById('regen-thumb-btn');
+            const statusEl = document.getElementById('thumb-status');
+            const progressEl = document.getElementById('thumb-progress');
+
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            statusEl.textContent = 'Running';
+            thumbProcessed = 0;
+
+            async function processBatch() {
+                try {
+                    const response = await fetch('/api/admin/regenerate-thumbnails', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
+
+                    const result = await response.json();
+                    thumbProcessed += result.processed + result.failed + result.skipped;
+                    progressEl.textContent = `${thumbProcessed} processed (${result.failed} failed, ${result.skipped} skipped)`;
+
+                    if (result.hasMore) {
+                        // Continue processing
+                        setTimeout(processBatch, 100);
+                    } else {
+                        // Done
+                        btn.disabled = false;
+                        btn.textContent = 'Generate Missing Thumbnails';
+                        statusEl.textContent = 'Complete';
+                        progressEl.textContent = `${thumbProcessed} total processed`;
+                        // Refresh stats
+                        loadThumbnailStats();
+                    }
+                } catch (err) {
+                    console.error('Thumbnail regeneration failed:', err);
+                    statusEl.textContent = 'Error: ' + err.message;
+                    btn.disabled = false;
+                    btn.textContent = 'Generate Missing Thumbnails';
+                }
+            }
+
+            processBatch();
         }
 
         // Settings functions

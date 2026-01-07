@@ -1,7 +1,7 @@
 FROM golang:1.21-alpine AS builder
 
-# Install build dependencies including libvips for image processing
-RUN apk add --no-cache gcc musl-dev git vips-dev
+# Install build dependencies including libvips for image processing and HEIC support
+RUN apk add --no-cache gcc g++ musl-dev git vips-dev pkgconfig
 
 # Install swag for swagger doc generation
 RUN go install github.com/swaggo/swag/cmd/swag@latest

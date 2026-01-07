@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -107,6 +108,10 @@ func main() {
 	// EXIF and thumbnail services
 	exifService := services.NewEXIFService()
 	thumbnailService := services.NewThumbnailService(cfg.PhotoStorage.BasePath)
+
+	// Maintenance service for background tasks
+	maintenanceService := services.NewMaintenanceService(photoRepo, thumbnailService, cfg.PhotoStorage.BasePath)
+	maintenanceService.Start()
 
 	// Config directory for Firebase credentials etc
 	configDir := filepath.Join(cfg.PhotoStorage.BasePath, ".config")
@@ -383,6 +388,121 @@ func main() {
 			r.Put("/config/smtp", configHandler.UpdateSMTPConfig)
 			r.Post("/config/smtp/test", configHandler.TestSMTP)
 			r.Get("/config/restart-status", configHandler.GetRestartStatus)
+
+			// Maintenance service control
+			r.Get("/maintenance/status", func(w http.ResponseWriter, r *http.Request) {
+				status := maintenanceService.GetStatus()
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(status)
+			})
+
+			r.Post("/maintenance/start", func(w http.ResponseWriter, r *http.Request) {
+				maintenanceService.Start()
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(map[string]string{"status": "started"})
+			})
+
+			r.Post("/maintenance/stop", func(w http.ResponseWriter, r *http.Request) {
+				maintenanceService.Stop()
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(map[string]string{"status": "stopped"})
+			})
+
+			r.Post("/maintenance/run", func(w http.ResponseWriter, r *http.Request) {
+				maintenanceService.RunNow()
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(map[string]string{"status": "triggered"})
+			})
+
+			// Thumbnail stats
+			r.Get("/thumbnail-stats", func(w http.ResponseWriter, r *http.Request) {
+				ctx := r.Context()
+
+				// Get total photo count
+				totalCount, err := photoRepo.GetCount(ctx)
+				if err != nil {
+					http.Error(w, "Failed to get photo count: "+err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Get photos without thumbnails (just count by getting a large batch)
+				photosWithout, err := photoRepo.GetPhotosWithoutThumbnails(ctx, 10000)
+				if err != nil {
+					http.Error(w, "Failed to get photos without thumbnails: "+err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				missingCount := len(photosWithout)
+				withThumbs := totalCount - missingCount
+				percentage := 0.0
+				if totalCount > 0 {
+					percentage = float64(withThumbs) / float64(totalCount) * 100
+				}
+
+				response := map[string]interface{}{
+					"total":      totalCount,
+					"withThumbs": withThumbs,
+					"missing":    missingCount,
+					"percentage": percentage,
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+			})
+
+			// Thumbnail regeneration
+			r.Post("/regenerate-thumbnails", func(w http.ResponseWriter, r *http.Request) {
+				ctx := r.Context()
+				batchSize := 50 // Process 50 at a time
+
+				photos, err := photoRepo.GetPhotosWithoutThumbnails(ctx, batchSize)
+				if err != nil {
+					http.Error(w, "Failed to get photos: "+err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				processed := 0
+				failed := 0
+				skipped := 0
+
+				for _, photo := range photos {
+					// Skip unsupported formats
+					if !services.IsSupportedFormat(photo.StoredPath) || services.IsHEIC(photo.StoredPath) {
+						skipped++
+						continue
+					}
+
+					result, err := thumbnailService.RegenerateThumbnailsFromFile(photo.ID, photo.StoredPath)
+					if err != nil {
+						log.Printf("Failed to regenerate thumbnails for %s: %v", photo.ID, err)
+						failed++
+						continue
+					}
+
+					// Update database
+					if err := photoRepo.UpdateThumbnails(ctx, photo.ID, result.SmallPath, result.MediumPath, result.LargePath); err != nil {
+						log.Printf("Failed to update thumbnails in DB for %s: %v", photo.ID, err)
+						failed++
+						continue
+					}
+
+					processed++
+				}
+
+				// Get remaining count
+				remaining, _ := photoRepo.GetPhotosWithoutThumbnails(ctx, 1)
+				hasMore := len(remaining) > 0
+
+				response := map[string]interface{}{
+					"processed": processed,
+					"failed":    failed,
+					"skipped":   skipped,
+					"hasMore":   hasMore,
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+			})
 		})
 	})
 

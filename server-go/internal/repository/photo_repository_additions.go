@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"strings"
+
+	"github.com/photosync/server/internal/models"
 )
 
 // DeleteAll deletes all photos from the database
@@ -60,4 +62,24 @@ func (r *PhotoRepository) VerifyExistence(ctx context.Context, ids []string) (ma
 	}
 
 	return result, rows.Err()
+}
+
+// GetPhotosWithoutThumbnails returns photos that don't have thumbnails generated
+// Note: SQLite version may not have thumbnail columns, returns empty slice
+func (r *PhotoRepository) GetPhotosWithoutThumbnails(ctx context.Context, limit int) ([]*models.Photo, error) {
+	// SQLite schema may not have thumbnail columns, so return empty
+	return []*models.Photo{}, nil
+}
+
+// UpdateThumbnails updates the thumbnail paths for a photo
+// Note: SQLite version may not have thumbnail columns, this is a no-op
+func (r *PhotoRepository) UpdateThumbnails(ctx context.Context, photoID, smallPath, mediumPath, largePath string) error {
+	// SQLite schema may not have thumbnail columns, so no-op
+	return nil
+}
+
+// GetOrphanedPhotos returns photos that don't have an owner
+// Note: SQLite version returns empty slice
+func (r *PhotoRepository) GetOrphanedPhotos(ctx context.Context, limit int) ([]*models.Photo, error) {
+	return []*models.Photo{}, nil
 }

@@ -373,3 +373,62 @@ func (r *PhotoRepositoryPostgres) GetLocationCountForUser(ctx context.Context, u
 	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM photos WHERE user_id = $1 AND latitude IS NOT NULL AND longitude IS NOT NULL", userID).Scan(&count)
 	return count, err
 }
+
+// GetPhotosWithoutThumbnails returns photos that don't have thumbnails generated
+func (r *PhotoRepositoryPostgres) GetPhotosWithoutThumbnails(ctx context.Context, limit int) ([]*models.Photo, error) {
+	query := `SELECT ` + photoSelectColumns + ` FROM photos
+		WHERE thumb_small IS NULL
+		LIMIT $1`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var photos []*models.Photo
+	for rows.Next() {
+		photo, err := scanPhoto(rows)
+		if err != nil {
+			return nil, err
+		}
+		photos = append(photos, photo)
+	}
+
+	if photos == nil {
+		photos = []*models.Photo{}
+	}
+	return photos, rows.Err()
+}
+
+// UpdateThumbnails updates the thumbnail paths for a photo
+func (r *PhotoRepositoryPostgres) UpdateThumbnails(ctx context.Context, photoID, smallPath, mediumPath, largePath string) error {
+	query := `UPDATE photos SET thumb_small = $1, thumb_medium = $2, thumb_large = $3 WHERE id = $4`
+	_, err := r.db.ExecContext(ctx, query, smallPath, mediumPath, largePath, photoID)
+	return err
+}
+
+// GetOrphanedPhotos returns photos that don't have an owner (user_id IS NULL)
+func (r *PhotoRepositoryPostgres) GetOrphanedPhotos(ctx context.Context, limit int) ([]*models.Photo, error) {
+	query := `SELECT ` + photoSelectColumns + ` FROM photos WHERE user_id IS NULL LIMIT $1`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var photos []*models.Photo
+	for rows.Next() {
+		photo, err := scanPhoto(rows)
+		if err != nil {
+			return nil, err
+		}
+		photos = append(photos, photo)
+	}
+
+	if photos == nil {
+		photos = []*models.Photo{}
+	}
+	return photos, rows.Err()
+}

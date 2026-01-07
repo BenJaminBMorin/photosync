@@ -181,6 +181,11 @@
             overflow: hidden;
             cursor: pointer;
             position: relative;
+            contain: layout style;
+        }
+
+        .photo-grid {
+            contain: layout style;
         }
 
         .photo-item img {
@@ -201,12 +206,271 @@
             left: 0;
             right: 0;
             bottom: 0;
+            background: #334155;
+        }
+
+        .photo-item .skeleton-placeholder.loading {
             animation: skeleton-pulse 1.5s ease-in-out infinite;
         }
 
         .photo-item:hover {
             transform: scale(1.02);
             z-index: 1;
+        }
+
+        /* Selection Mode - use visibility for instant toggle */
+        .photo-item .select-checkbox {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid white;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            z-index: 5;
+            visibility: hidden;
+            opacity: 0;
+            display: flex;
+            contain: strict;
+        }
+
+        .select-mode .photo-item .select-checkbox {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .select-mode .photo-item:hover {
+            transform: none;
+        }
+
+        .photo-item.selected .select-checkbox {
+            background: #667eea;
+            border-color: #667eea;
+        }
+
+        .photo-item.selected .select-checkbox::after {
+            content: '✓';
+        }
+
+        /* Selection overlay as a child element instead of pseudo-element */
+        .photo-item .selection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.3);
+            pointer-events: none;
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        .photo-item.selected .selection-overlay {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Selection Action Bar */
+        .selection-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e293b;
+            padding: 16px 24px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            z-index: 200;
+        }
+
+        .selection-bar.active {
+            display: flex;
+        }
+
+        .selection-info {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .selection-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .selection-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .selection-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .selection-btn.primary:hover {
+            background: #5a67d8;
+        }
+
+        .selection-btn.secondary {
+            background: #334155;
+            color: white;
+        }
+
+        .selection-btn.secondary:hover {
+            background: #475569;
+        }
+
+        .selection-btn.danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .selection-btn.danger:hover {
+            background: #dc2626;
+        }
+
+        .selection-btn.danger:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Bulk Delete Modal */
+        .bulk-delete-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .bulk-delete-modal.active {
+            display: flex;
+        }
+
+        .bulk-delete-modal-content {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .bulk-delete-stage h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .bulk-delete-warning {
+            color: #f87171;
+            margin-bottom: 24px;
+        }
+
+        .bulk-delete-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .bulk-delete-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .bulk-delete-btn.cancel {
+            background: #334155;
+            color: white;
+        }
+
+        .bulk-delete-btn.cancel:hover {
+            background: #475569;
+        }
+
+        .bulk-delete-btn.confirm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .bulk-delete-btn.confirm:hover {
+            background: #dc2626;
+        }
+
+        .bulk-delete-pending-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .bulk-delete-timer {
+            color: #94a3b8;
+            margin: 16px 0;
+        }
+
+        .bulk-delete-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        .bulk-delete-success-icon {
+            font-size: 48px;
+            color: #10b981;
+            margin-bottom: 16px;
+        }
+
+        .bulk-delete-denied-icon {
+            font-size: 48px;
+            color: #ef4444;
+            margin-bottom: 16px;
+        }
+
+        .bulk-delete-error-icon {
+            font-size: 48px;
+            color: #f59e0b;
+            margin-bottom: 16px;
+        }
+
+        /* Select Mode Toggle */
+        .select-mode-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .select-mode-btn:hover {
+            background: #475569;
+        }
+
+        .select-mode-btn.active {
+            background: #667eea;
         }
 
         .photo-item .photo-overlay {
@@ -979,6 +1243,7 @@
             </div>
             <div class="navbar-user">
                 <span class="user-name" id="user-name"></span>
+                <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()" title="Select photos">Select</button>
                 <a href="/collections" class="nav-link-btn" title="Collections">&#128194;</a>
                 <a href="/admin" class="admin-btn" id="admin-btn" title="Admin Settings">&#9881;</a>
                 <button class="logout-btn" onclick="logout()">Logout</button>
@@ -1102,7 +1367,62 @@
             </div>
             <div class="collection-modal-actions">
                 <button class="collection-modal-btn cancel" onclick="closeCollectionModal()">Cancel</button>
-                <button class="collection-modal-btn confirm" id="add-to-collection-btn" onclick="addPhotoToSelectedCollection()" disabled>Add</button>
+                <button class="collection-modal-btn confirm" id="add-to-collection-btn" onclick="addPhotosToSelectedCollection()" disabled>Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selection Action Bar -->
+    <div class="selection-bar" id="selection-bar">
+        <div class="selection-info">
+            <span id="selection-count">0</span> photos selected
+        </div>
+        <div class="selection-actions">
+            <button class="selection-btn secondary" onclick="clearSelection()">Clear</button>
+            <button class="selection-btn secondary" onclick="selectAllPhotos()">Select All</button>
+            <button class="selection-btn primary" onclick="showBulkAddToCollection()">Add to Collection</button>
+            <button class="selection-btn danger" id="bulk-delete-btn" onclick="showBulkDelete()">Delete</button>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Modal -->
+    <div class="bulk-delete-modal" id="bulk-delete-modal">
+        <div class="bulk-delete-modal-content">
+            <div id="bulk-delete-confirm" class="bulk-delete-stage">
+                <h3>Delete <span id="bulk-delete-count">0</span> Photos?</h3>
+                <p class="bulk-delete-warning">This action cannot be undone. A notification will be sent to your phone for approval.</p>
+                <div class="bulk-delete-actions">
+                    <button class="bulk-delete-btn cancel" onclick="closeBulkDeleteModal()">Cancel</button>
+                    <button class="bulk-delete-btn confirm" onclick="initiateBulkDelete()">Request Deletion</button>
+                </div>
+            </div>
+            <div id="bulk-delete-pending" class="bulk-delete-stage" style="display: none;">
+                <div class="bulk-delete-pending-icon">&#128241;</div>
+                <h3>Waiting for Phone Approval</h3>
+                <p>Please approve or deny this request on your phone.</p>
+                <div class="bulk-delete-timer">
+                    Expires in <span id="bulk-delete-timer">60</span>s
+                </div>
+                <div class="bulk-delete-spinner"></div>
+                <button class="bulk-delete-btn cancel" onclick="cancelBulkDelete()">Cancel</button>
+            </div>
+            <div id="bulk-delete-success" class="bulk-delete-stage" style="display: none;">
+                <div class="bulk-delete-success-icon">&#10003;</div>
+                <h3>Photos Deleted</h3>
+                <p><span id="bulk-delete-deleted-count">0</span> photos have been deleted.</p>
+                <button class="bulk-delete-btn confirm" onclick="closeBulkDeleteModal()">Done</button>
+            </div>
+            <div id="bulk-delete-denied" class="bulk-delete-stage" style="display: none;">
+                <div class="bulk-delete-denied-icon">&#10007;</div>
+                <h3>Deletion Denied</h3>
+                <p>The delete request was denied from your phone.</p>
+                <button class="bulk-delete-btn cancel" onclick="closeBulkDeleteModal()">Close</button>
+            </div>
+            <div id="bulk-delete-error" class="bulk-delete-stage" style="display: none;">
+                <div class="bulk-delete-error-icon">&#9888;</div>
+                <h3>Error</h3>
+                <p id="bulk-delete-error-msg">Something went wrong.</p>
+                <button class="bulk-delete-btn cancel" onclick="closeBulkDeleteModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1191,16 +1511,29 @@
 
         function renderPhotos(newPhotos, startIndex) {
             const container = document.getElementById('photo-container');
+            const fragment = document.createDocumentFragment();
 
             newPhotos.forEach((photo, i) => {
                 const index = startIndex + i;
                 const div = document.createElement('div');
                 div.className = 'photo-item';
-                div.onclick = () => openLightbox(index);
+                div.dataset.photoId = photo.id;
+                div.dataset.index = index;
+                div.onclick = (e) => handlePhotoClick(e, index, photo.id);
 
-                // Skeleton placeholder
+                // Selection checkbox
+                const checkbox = document.createElement('div');
+                checkbox.className = 'select-checkbox';
+                div.appendChild(checkbox);
+
+                // Selection overlay (for selected state)
+                const selectionOverlay = document.createElement('div');
+                selectionOverlay.className = 'selection-overlay';
+                div.appendChild(selectionOverlay);
+
+                // Skeleton placeholder - starts with loading animation
                 const skeleton = document.createElement('div');
-                skeleton.className = 'skeleton-placeholder';
+                skeleton.className = 'skeleton-placeholder loading';
                 div.appendChild(skeleton);
 
                 // Lazy loaded image with appropriate size
@@ -1210,7 +1543,7 @@
                 img.alt = photo.originalFilename;
                 img.onload = function() {
                     this.classList.add('loaded');
-                    skeleton.style.display = 'none';
+                    skeleton.remove(); // Remove skeleton entirely once loaded
                 };
                 div.appendChild(img);
 
@@ -1226,11 +1559,13 @@
                 info.innerHTML = buildPhotoInfoHTML(photo);
                 div.appendChild(info);
 
-                container.appendChild(div);
+                fragment.appendChild(div);
 
                 // Observe for lazy loading
                 lazyLoadObserver.observe(img);
             });
+
+            container.appendChild(fragment);
         }
 
         function buildPhotoInfoHTML(photo) {
@@ -1817,6 +2152,101 @@
             }
         });
 
+        // Selection Mode
+        let selectMode = false;
+        let selectedPhotoIds = new Set();
+
+        function toggleSelectMode() {
+            selectMode = !selectMode;
+            const container = document.getElementById('photo-container');
+            const btn = document.getElementById('select-mode-btn');
+            const selectionBar = document.getElementById('selection-bar');
+
+            if (selectMode) {
+                container.classList.add('select-mode');
+                btn.classList.add('active');
+                btn.textContent = 'Done';
+            } else {
+                container.classList.remove('select-mode');
+                btn.classList.remove('active');
+                btn.textContent = 'Select';
+                clearSelection();
+            }
+
+            updateSelectionBar();
+        }
+
+        function handlePhotoClick(e, index, photoId) {
+            if (selectMode) {
+                e.preventDefault();
+                e.stopPropagation();
+                togglePhotoSelection(photoId);
+            } else {
+                openLightbox(index);
+            }
+        }
+
+        function togglePhotoSelection(photoId) {
+            const photoEl = document.querySelector(`.photo-item[data-photo-id="${photoId}"]`);
+
+            if (selectedPhotoIds.has(photoId)) {
+                selectedPhotoIds.delete(photoId);
+                if (photoEl) photoEl.classList.remove('selected');
+            } else {
+                selectedPhotoIds.add(photoId);
+                if (photoEl) photoEl.classList.add('selected');
+            }
+
+            updateSelectionBar();
+        }
+
+        function clearSelection() {
+            selectedPhotoIds.clear();
+            document.querySelectorAll('.photo-item.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            updateSelectionBar();
+        }
+
+        function selectAllPhotos() {
+            document.querySelectorAll('.photo-item').forEach(el => {
+                const photoId = el.dataset.photoId;
+                if (photoId) {
+                    selectedPhotoIds.add(photoId);
+                    el.classList.add('selected');
+                }
+            });
+            updateSelectionBar();
+        }
+
+        function updateSelectionBar() {
+            const selectionBar = document.getElementById('selection-bar');
+            const countEl = document.getElementById('selection-count');
+            const deleteBtn = document.getElementById('bulk-delete-btn');
+            const count = selectedPhotoIds.size;
+
+            countEl.textContent = count;
+
+            // Disable delete button if ALL photos are selected (safety measure)
+            const allSelected = count > 0 && count >= photos.length;
+            deleteBtn.disabled = allSelected;
+            deleteBtn.title = allSelected ? 'Cannot delete all photos at once' : 'Delete selected photos';
+
+            if (selectMode && count > 0) {
+                selectionBar.classList.add('active');
+            } else {
+                selectionBar.classList.remove('active');
+            }
+        }
+
+        function showBulkAddToCollection() {
+            if (selectedPhotoIds.size === 0) return;
+            document.getElementById('collection-modal').classList.add('active');
+            selectedCollectionId = null;
+            document.getElementById('add-to-collection-btn').disabled = true;
+            loadUserCollections();
+        }
+
         // Collection Modal Functions
         let userCollections = [];
         let selectedCollectionId = null;
@@ -1873,10 +2303,19 @@
             document.getElementById('add-to-collection-btn').disabled = false;
         }
 
-        async function addPhotoToSelectedCollection() {
-            if (!selectedCollectionId || currentPhotoIndex < 0 || currentPhotoIndex >= photos.length) return;
+        async function addPhotosToSelectedCollection() {
+            if (!selectedCollectionId) return;
 
-            const photoId = photos[currentPhotoIndex].id;
+            // Determine which photos to add: bulk selection or current lightbox photo
+            let photoIds = [];
+            if (selectMode && selectedPhotoIds.size > 0) {
+                photoIds = Array.from(selectedPhotoIds);
+            } else if (currentPhotoIndex >= 0 && currentPhotoIndex < photos.length) {
+                photoIds = [photos[currentPhotoIndex].id];
+            }
+
+            if (photoIds.length === 0) return;
+
             const btn = document.getElementById('add-to-collection-btn');
             const originalText = btn.textContent;
             btn.textContent = 'Adding...';
@@ -1886,19 +2325,26 @@
                 const response = await fetch(`/api/web/collections/${selectedCollectionId}/photos`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ photoIds: [photoId] })
+                    body: JSON.stringify({ photoIds: photoIds })
                 });
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(errorText || 'Failed to add photo');
+                    throw new Error(errorText || 'Failed to add photos');
                 }
 
                 closeCollectionModal();
-                showToast('Photo added to collection');
+                const count = photoIds.length;
+                showToast(`${count} photo${count > 1 ? 's' : ''} added to collection`);
+
+                // If in select mode, clear selection and exit
+                if (selectMode && selectedPhotoIds.size > 0) {
+                    clearSelection();
+                    toggleSelectMode();
+                }
             } catch (error) {
-                console.error('Failed to add photo:', error);
-                showToast(error.message || 'Failed to add photo', true);
+                console.error('Failed to add photos:', error);
+                showToast(error.message || 'Failed to add photos', true);
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
@@ -1938,6 +2384,173 @@
                 toast.style.opacity = '0';
                 setTimeout(() => { toast.style.display = 'none'; }, 300);
             }, 3000);
+        }
+
+        // Bulk Delete Functions
+        let bulkDeleteRequestId = null;
+        let bulkDeletePollInterval = null;
+        let bulkDeleteTimerInterval = null;
+        let bulkDeletePhotoIds = [];
+
+        function showBulkDelete() {
+            if (selectedPhotoIds.size === 0) return;
+
+            // Don't allow deleting all photos
+            if (selectedPhotoIds.size >= photos.length) {
+                showToast('Cannot delete all photos at once', true);
+                return;
+            }
+
+            bulkDeletePhotoIds = Array.from(selectedPhotoIds);
+            document.getElementById('bulk-delete-count').textContent = bulkDeletePhotoIds.length;
+
+            // Reset modal state
+            showBulkDeleteStage('confirm');
+            document.getElementById('bulk-delete-modal').classList.add('active');
+        }
+
+        function closeBulkDeleteModal() {
+            document.getElementById('bulk-delete-modal').classList.remove('active');
+            cancelBulkDeletePolling();
+            bulkDeleteRequestId = null;
+            bulkDeletePhotoIds = [];
+        }
+
+        function showBulkDeleteStage(stage) {
+            const stages = ['confirm', 'pending', 'success', 'denied', 'error'];
+            stages.forEach(s => {
+                document.getElementById(`bulk-delete-${s}`).style.display = s === stage ? 'block' : 'none';
+            });
+        }
+
+        async function initiateBulkDelete() {
+            if (bulkDeletePhotoIds.length === 0) return;
+
+            try {
+                const response = await fetch('/api/web/delete/initiate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photoIds: bulkDeletePhotoIds })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Failed to initiate delete request');
+                }
+
+                const result = await response.json();
+                bulkDeleteRequestId = result.requestId;
+
+                // Show pending stage
+                showBulkDeleteStage('pending');
+
+                // Start countdown timer
+                const expiresAt = new Date(result.expiresAt);
+                startBulkDeleteTimer(expiresAt);
+
+                // Start polling for status
+                startBulkDeletePolling();
+            } catch (error) {
+                console.error('Failed to initiate delete:', error);
+                document.getElementById('bulk-delete-error-msg').textContent = error.message;
+                showBulkDeleteStage('error');
+            }
+        }
+
+        function startBulkDeleteTimer(expiresAt) {
+            const updateTimer = () => {
+                const now = new Date();
+                const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+                document.getElementById('bulk-delete-timer').textContent = remaining;
+
+                if (remaining <= 0) {
+                    clearInterval(bulkDeleteTimerInterval);
+                }
+            };
+
+            updateTimer();
+            bulkDeleteTimerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function startBulkDeletePolling() {
+            bulkDeletePollInterval = setInterval(async () => {
+                if (!bulkDeleteRequestId) {
+                    cancelBulkDeletePolling();
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/web/delete/status/${bulkDeleteRequestId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to check status');
+                    }
+
+                    const status = await response.json();
+
+                    if (status.status === 'approved') {
+                        cancelBulkDeletePolling();
+                        handleBulkDeleteApproved();
+                    } else if (status.status === 'denied') {
+                        cancelBulkDeletePolling();
+                        showBulkDeleteStage('denied');
+                    } else if (status.status === 'expired') {
+                        cancelBulkDeletePolling();
+                        document.getElementById('bulk-delete-error-msg').textContent = 'Request expired. Please try again.';
+                        showBulkDeleteStage('error');
+                    }
+                    // If still pending, keep polling
+                } catch (error) {
+                    console.error('Failed to poll status:', error);
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+
+        function cancelBulkDeletePolling() {
+            if (bulkDeletePollInterval) {
+                clearInterval(bulkDeletePollInterval);
+                bulkDeletePollInterval = null;
+            }
+            if (bulkDeleteTimerInterval) {
+                clearInterval(bulkDeleteTimerInterval);
+                bulkDeleteTimerInterval = null;
+            }
+        }
+
+        function cancelBulkDelete() {
+            cancelBulkDeletePolling();
+            closeBulkDeleteModal();
+        }
+
+        function handleBulkDeleteApproved() {
+            // Update count
+            document.getElementById('bulk-delete-deleted-count').textContent = bulkDeletePhotoIds.length;
+
+            // Remove deleted photos from local arrays
+            bulkDeletePhotoIds.forEach(photoId => {
+                const index = photos.findIndex(p => p.id === photoId);
+                if (index !== -1) {
+                    photos.splice(index, 1);
+                }
+
+                // Remove from DOM
+                const photoEl = document.querySelector(`.photo-item[data-photo-id="${photoId}"]`);
+                if (photoEl) {
+                    photoEl.remove();
+                }
+
+                // Remove from selection
+                selectedPhotoIds.delete(photoId);
+            });
+
+            // Update counts
+            totalCount -= bulkDeletePhotoIds.length;
+            document.getElementById('gallery-stats').textContent = `${totalCount.toLocaleString()} photos`;
+
+            // Show success
+            showBulkDeleteStage('success');
+
+            // Clear selection and exit select mode after closing
+            clearSelection();
         }
     </script>
 </body>

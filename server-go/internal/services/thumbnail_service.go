@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+	"github.com/jdeng/goheif"
 )
 
 // ThumbnailSize represents a thumbnail size configuration
@@ -49,10 +50,23 @@ func NewThumbnailService(basePath string) *ThumbnailService {
 
 // GenerateThumbnails creates thumbnails for an image and returns their paths
 func (s *ThumbnailService) GenerateThumbnails(imageData []byte, photoID string, storedPath string, orientation int) (*ThumbnailResult, error) {
-	// Decode the image
-	img, format, err := image.Decode(bytes.NewReader(imageData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode image: %w", err)
+	var img image.Image
+	var format string
+	var err error
+
+	// Check if this is a HEIC/HEIF file
+	if IsHEIC(storedPath) {
+		img, err = decodeHEIC(imageData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode HEIC image: %w", err)
+		}
+		format = "heic"
+	} else {
+		// Standard image decode
+		img, format, err = image.Decode(bytes.NewReader(imageData))
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode image: %w", err)
+		}
 	}
 
 	// Apply EXIF orientation correction
@@ -212,6 +226,8 @@ func IsSupportedFormat(filename string) bool {
 		".bmp":  true,
 		".tiff": true,
 		".tif":  true,
+		".heic": true,
+		".heif": true,
 	}
 	return supported[ext]
 }
@@ -220,4 +236,37 @@ func IsSupportedFormat(filename string) bool {
 func IsHEIC(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	return ext == ".heic" || ext == ".heif"
+}
+
+// RegenerateThumbnailsFromFile generates thumbnails from an existing file on disk
+func (s *ThumbnailService) RegenerateThumbnailsFromFile(photoID string, storedPath string) (*ThumbnailResult, error) {
+	fullPath := filepath.Join(s.basePath, storedPath)
+
+	// Check if file exists
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("file not found: %s", storedPath)
+	}
+
+	// Skip unsupported formats
+	if !IsSupportedFormat(storedPath) {
+		return nil, fmt.Errorf("unsupported format: %s", storedPath)
+	}
+
+	// Read file
+	imageData, err := os.ReadFile(fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	// Generate thumbnails (orientation=1 means no rotation, can be enhanced later)
+	return s.GenerateThumbnails(imageData, photoID, storedPath, 1)
+}
+
+// decodeHEIC decodes a HEIC/HEIF image using goheif (pure Go)
+func decodeHEIC(data []byte) (image.Image, error) {
+	img, err := goheif.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode HEIC image: %w", err)
+	}
+	return img, nil
 }
