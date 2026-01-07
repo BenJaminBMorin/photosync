@@ -130,6 +130,74 @@ func createTables(db *sql.DB) error {
 		value TEXT NOT NULL,
 		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);
+
+	-- Bootstrap keys (emergency admin access)
+	CREATE TABLE IF NOT EXISTS bootstrap_keys (
+		id TEXT PRIMARY KEY,
+		key_hash TEXT NOT NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		expires_at DATETIME NOT NULL,
+		used INTEGER NOT NULL DEFAULT 0,
+		used_at DATETIME,
+		used_by TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_bootstrap_expires ON bootstrap_keys(expires_at);
+
+	-- Recovery tokens (email-based account recovery)
+	CREATE TABLE IF NOT EXISTS recovery_tokens (
+		id TEXT PRIMARY KEY,
+		token_hash TEXT NOT NULL,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		email TEXT NOT NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		expires_at DATETIME NOT NULL,
+		used INTEGER NOT NULL DEFAULT 0,
+		used_at DATETIME,
+		ip_address TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_recovery_expires ON recovery_tokens(expires_at);
+	CREATE INDEX IF NOT EXISTS idx_recovery_user ON recovery_tokens(user_id);
+
+	-- Config overrides (runtime-editable configuration)
+	CREATE TABLE IF NOT EXISTS config_overrides (
+		key TEXT PRIMARY KEY,
+		value TEXT NOT NULL,
+		value_type TEXT NOT NULL,
+		category TEXT NOT NULL,
+		requires_restart INTEGER NOT NULL DEFAULT 0,
+		is_sensitive INTEGER NOT NULL DEFAULT 0,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_by TEXT NOT NULL REFERENCES users(id)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_config_category ON config_overrides(category);
+
+	-- SMTP configuration
+	CREATE TABLE IF NOT EXISTS smtp_config (
+		id INTEGER PRIMARY KEY DEFAULT 1,
+		host TEXT NOT NULL,
+		port INTEGER NOT NULL DEFAULT 587,
+		username TEXT NOT NULL,
+		password_encrypted TEXT NOT NULL,
+		from_address TEXT NOT NULL,
+		from_name TEXT NOT NULL DEFAULT 'PhotoSync',
+		use_tls INTEGER NOT NULL DEFAULT 1,
+		skip_verify INTEGER NOT NULL DEFAULT 0,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_by TEXT NOT NULL REFERENCES users(id),
+		CHECK (id = 1)
+	);
+
+	-- Recovery rate limits
+	CREATE TABLE IF NOT EXISTS recovery_rate_limits (
+		email TEXT PRIMARY KEY,
+		last_request_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		request_count INTEGER NOT NULL DEFAULT 1
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_rate_limit_time ON recovery_rate_limits(last_request_at);
 	`
 
 	_, err := db.Exec(schema)

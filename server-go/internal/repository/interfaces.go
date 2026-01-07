@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/photosync/server/internal/models"
 )
@@ -76,4 +77,42 @@ type SetupConfigRepo interface {
 	Set(ctx context.Context, key, value string) error
 	GetAll(ctx context.Context) (map[string]string, error)
 	IsSetupComplete(ctx context.Context) (bool, error)
+}
+
+// BootstrapKeyRepo defines the interface for bootstrap key persistence
+type BootstrapKeyRepo interface {
+	Add(ctx context.Context, key *models.BootstrapKey) error
+	GetByKeyHash(ctx context.Context, hash string) (*models.BootstrapKey, error)
+	GetActiveKey(ctx context.Context) (*models.BootstrapKey, error)
+	MarkUsed(ctx context.Context, id, usedBy string) error
+	ExpireOld(ctx context.Context) (int, error)
+	HasActiveKey(ctx context.Context) (bool, error)
+}
+
+// RecoveryTokenRepo defines the interface for recovery token persistence
+type RecoveryTokenRepo interface {
+	Add(ctx context.Context, token *models.RecoveryToken) error
+	GetByTokenHash(ctx context.Context, hash string) (*models.RecoveryToken, error)
+	MarkUsed(ctx context.Context, id, ipAddress string) error
+	GetRecentCountForEmail(ctx context.Context, email string, since time.Time) (int, error)
+	RecordRateLimit(ctx context.Context, email string) error
+	CheckRateLimit(ctx context.Context, email string) (bool, error)
+	ExpireOld(ctx context.Context) (int, error)
+}
+
+// ConfigOverrideRepo defines the interface for config override persistence
+type ConfigOverrideRepo interface {
+	Get(ctx context.Context, key string) (*models.ConfigItem, error)
+	GetAll(ctx context.Context) ([]*models.ConfigItem, error)
+	GetByCategory(ctx context.Context, category models.ConfigCategory) ([]*models.ConfigItem, error)
+	Set(ctx context.Context, key, value, valueType string, category models.ConfigCategory, requiresRestart, isSensitive bool, updatedBy string) error
+	Delete(ctx context.Context, key string) error
+	HasRestartRequired(ctx context.Context) (bool, error)
+}
+
+// SMTPConfigRepo defines the interface for SMTP configuration persistence
+type SMTPConfigRepo interface {
+	Get(ctx context.Context) (*models.SMTPConfig, error)
+	Set(ctx context.Context, config *models.SMTPConfig, updatedBy string) error
+	IsConfigured(ctx context.Context) (bool, error)
 }
