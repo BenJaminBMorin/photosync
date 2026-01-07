@@ -41,8 +41,8 @@ func TestPhotoStorageService_Store(t *testing.T) {
 		)
 
 		require.NoError(t, err)
-		assert.True(t, filepath.HasPrefix(storedPath, "2024/03/"))
-		assert.True(t, filepath.HasSuffix(storedPath, ".jpg"))
+		assert.True(t, strings.HasPrefix(storedPath, "2024/03/"))
+		assert.True(t, strings.HasSuffix(storedPath, ".jpg"))
 
 		// Verify file exists
 		assert.True(t, svc.Exists(storedPath))
