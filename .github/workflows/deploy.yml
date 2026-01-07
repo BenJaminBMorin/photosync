@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, photosync]
 
     steps:
     - name: Checkout code
