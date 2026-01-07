@@ -71,15 +71,6 @@ jobs:
           - goos: linux
             goarch: arm64
             suffix: ''
-          - goos: windows
-            goarch: amd64
-            suffix: '.exe'
-          - goos: darwin
-            goarch: amd64
-            suffix: ''
-          - goos: darwin
-            goarch: arm64
-            suffix: ''
 
     steps:
     - uses: actions/checkout@v4
@@ -92,11 +83,16 @@ jobs:
     - name: Tidy dependencies
       run: go mod tidy
 
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvips-dev libheif-dev
+
     - name: Build
       env:
         GOOS: ${{ matrix.goos }}
         GOARCH: ${{ matrix.goarch }}
-        CGO_ENABLED: 0
+        CGO_ENABLED: 1
       run: |
         VERSION=$(git describe --tags --always --dirty)
         COMMIT=$(git rev-parse --short HEAD)
