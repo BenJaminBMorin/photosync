@@ -161,17 +161,31 @@
             padding: 4px;
         }
 
+        /* Month Headers */
+        .month-header {
+            grid-column: 1 / -1;
+            font-size: 24px;
+            font-weight: 600;
+            color: #f8fafc;
+            padding: 24px 8px 12px 8px;
+            margin-top: 16px;
+        }
+
+        .month-header:first-child {
+            margin-top: 0;
+        }
+
         /* Grid View */
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 4px;
+            gap: 28px 4px;
             padding: 4px;
         }
 
         .photo-grid.large {
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 8px;
+            gap: 32px 8px;
             padding: 8px;
         }
 
@@ -490,6 +504,20 @@
             opacity: 1;
         }
 
+        .photo-item .photo-date-label {
+            position: absolute;
+            bottom: -22px;
+            left: 0;
+            right: 0;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* List View */
         .photo-list {
             display: flex;
@@ -570,6 +598,14 @@
         }
 
         .photo-list .photo-overlay {
+            display: none;
+        }
+
+        .photo-list .photo-date-label {
+            display: none;
+        }
+
+        .photo-list .month-header {
             display: none;
         }
 
@@ -1440,6 +1476,7 @@
         let totalCount = 0;
         let loading = false;
         let hasMore = true;
+        let lastMonthHeader = null;
         let currentView = 'grid';
         let map = null;
         let markerCluster = null;
@@ -1515,6 +1552,18 @@
 
             newPhotos.forEach((photo, i) => {
                 const index = startIndex + i;
+
+                // Add year/month header if changed
+                const photoDate = new Date(photo.dateTaken);
+                const yearMonth = photoDate.getFullYear() + '-' + String(photoDate.getMonth() + 1).padStart(2, '0');
+                if (yearMonth !== lastMonthHeader) {
+                    const header = document.createElement('div');
+                    header.className = 'month-header';
+                    const monthName = photoDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+                    header.textContent = monthName;
+                    fragment.appendChild(header);
+                    lastMonthHeader = yearMonth;
+                }
                 const div = document.createElement('div');
                 div.className = 'photo-item';
                 div.dataset.photoId = photo.id;
@@ -1552,6 +1601,12 @@
                 overlay.className = 'photo-overlay';
                 overlay.textContent = formatDate(photo.dateTaken);
                 div.appendChild(overlay);
+
+                // Date/time label below photo (always visible in grid view)
+                const dateLabel = document.createElement('div');
+                dateLabel.className = 'photo-date-label';
+                dateLabel.textContent = formatDateTime(photo.dateTaken);
+                div.appendChild(dateLabel);
 
                 // For list view - detailed info
                 const info = document.createElement('div');

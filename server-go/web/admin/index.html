@@ -1054,7 +1054,10 @@
                         </div>
                         <div class="status-item">
                             <span class="status-item-label">Build Version</span>
-                            <span class="status-item-value" id="sys-build-version"><span class="skeleton skeleton-text"></span></span>
+                            <span class="status-item-value">
+                                <span id="sys-build-version"><span class="skeleton skeleton-text"></span></span>
+                                <button id="copy-build-version" class="copy-btn" style="display: none; margin-left: 8px; padding: 2px 8px; font-size: 11px; cursor: pointer;" title="Copy full version">📋</button>
+                            </span>
                         </div>
                         <div class="status-item">
                             <span class="status-item-label">Build Date</span>
@@ -1979,7 +1982,27 @@
                 .then(status => {
                     // Server
                     document.getElementById('sys-server-version').textContent = status.version;
-                    document.getElementById('sys-build-version').textContent = status.buildVersion || 'N/A';
+
+                    // Format build version with shortened display
+                    const buildVersion = status.buildVersion || 'N/A';
+                    if (buildVersion !== 'N/A' && buildVersion.length > 14) {
+                        const shortened = buildVersion.substring(0, 7) + '...' + buildVersion.substring(buildVersion.length - 4);
+                        document.getElementById('sys-build-version').textContent = shortened;
+
+                        // Show copy button and set up click handler
+                        const copyBtn = document.getElementById('copy-build-version');
+                        copyBtn.style.display = 'inline-block';
+                        copyBtn.onclick = function() {
+                            navigator.clipboard.writeText(buildVersion).then(() => {
+                                const originalText = copyBtn.textContent;
+                                copyBtn.textContent = '✓';
+                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+                            });
+                        };
+                    } else {
+                        document.getElementById('sys-build-version').textContent = buildVersion;
+                    }
+
                     document.getElementById('sys-build-date').textContent = status.buildDate || 'N/A';
                     document.getElementById('sys-server-start-time').textContent = status.serverStartTime ? new Date(status.serverStartTime).toLocaleString() : 'N/A';
                     document.getElementById('sys-container-build-date').textContent = status.containerBuildDate || 'N/A';
