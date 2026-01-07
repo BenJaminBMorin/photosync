@@ -168,9 +168,10 @@ func main() {
 		httpSwagger.URL("/swagger/doc.json"),
 	))
 
-	// Health check (no auth)
+	// Health check and version (no auth)
 	r.Get("/health", healthHandler.HealthCheck)
 	r.Get("/api/health", healthHandler.HealthCheck)
+	r.Get("/api/version", handlers.VersionHandler)
 
 	// Setup routes (no auth during setup)
 	r.Get("/setup", func(w http.ResponseWriter, r *http.Request) {

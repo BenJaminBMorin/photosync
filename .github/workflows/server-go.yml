@@ -38,7 +38,11 @@ jobs:
       run: go mod verify
 
     - name: Build
-      run: go build -v ./...
+      run: |
+        VERSION=$(git describe --tags --always --dirty)
+        COMMIT=$(git rev-parse --short HEAD)
+        BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        go build -v -ldflags="-X github.com/photosync/server/internal/handlers.Version=$VERSION -X github.com/photosync/server/internal/handlers.GitCommit=$COMMIT -X github.com/photosync/server/internal/handlers.BuildTime=$BUILD_TIME" ./...
 
     - name: Test
       run: go test -v -race -coverprofile=coverage.out ./...
@@ -91,8 +95,11 @@ jobs:
         GOARCH: ${{ matrix.goarch }}
         CGO_ENABLED: 0
       run: |
+        VERSION=$(git describe --tags --always --dirty)
+        COMMIT=$(git rev-parse --short HEAD)
+        BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         mkdir -p ./publish
-        go build -ldflags="-s -w" -o ./publish/photosync-server-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.suffix }} ./cmd/server
+        go build -ldflags="-s -w -X github.com/photosync/server/internal/handlers.Version=$VERSION -X github.com/photosync/server/internal/handlers.GitCommit=$COMMIT -X github.com/photosync/server/internal/handlers.BuildTime=$BUILD_TIME" -o ./publish/photosync-server-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.suffix }} ./cmd/server
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
