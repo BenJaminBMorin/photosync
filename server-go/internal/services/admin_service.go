@@ -15,13 +15,16 @@ import (
 
 // AdminService provides admin functionality
 type AdminService struct {
-	userRepo        repository.UserRepo
-	deviceRepo      repository.DeviceRepo
-	sessionRepo     repository.WebSessionRepo
-	photoRepo       repository.PhotoRepo
-	setupRepo       repository.SetupConfigRepo
-	storageBasePath string
-	startTime       time.Time
+	userRepo           repository.UserRepo
+	deviceRepo         repository.DeviceRepo
+	sessionRepo        repository.WebSessionRepo
+	photoRepo          repository.PhotoRepo
+	setupRepo          repository.SetupConfigRepo
+	storageBasePath    string
+	startTime          time.Time
+	buildVersion       string
+	buildDate          string
+	containerBuildDate string
 }
 
 // NewAdminService creates a new AdminService
@@ -32,15 +35,21 @@ func NewAdminService(
 	photoRepo repository.PhotoRepo,
 	setupRepo repository.SetupConfigRepo,
 	storageBasePath string,
+	buildVersion string,
+	buildDate string,
+	containerBuildDate string,
 ) *AdminService {
 	return &AdminService{
-		userRepo:        userRepo,
-		deviceRepo:      deviceRepo,
-		sessionRepo:     sessionRepo,
-		photoRepo:       photoRepo,
-		setupRepo:       setupRepo,
-		storageBasePath: storageBasePath,
-		startTime:       time.Now(),
+		userRepo:           userRepo,
+		deviceRepo:         deviceRepo,
+		sessionRepo:        sessionRepo,
+		photoRepo:          photoRepo,
+		setupRepo:          setupRepo,
+		storageBasePath:    storageBasePath,
+		startTime:          time.Now(),
+		buildVersion:       buildVersion,
+		buildDate:          buildDate,
+		containerBuildDate: containerBuildDate,
 	}
 }
 
@@ -273,8 +282,12 @@ func (s *AdminService) GetSystemStatus(ctx context.Context) (*models.SystemStatu
 	}
 
 	return &models.SystemStatusResponse{
-		Version: "2.0",
-		Uptime:  uptimeStr,
+		Version:            "2.0",
+		BuildVersion:       s.buildVersion,
+		BuildDate:          s.buildDate,
+		ServerStartTime:    s.startTime.Format(time.RFC3339),
+		ContainerBuildDate: s.containerBuildDate,
+		Uptime:             uptimeStr,
 		Database: models.DatabaseStatus{
 			Type:      dbType,
 			Connected: true,

@@ -28,7 +28,17 @@ jobs:
         git fetch origin
         git reset --hard origin/${{ github.ref_name }}
 
+    - name: Set build metadata
+      id: metadata
+      run: |
+        echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+        echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
+
     - name: Rebuild and start container
+      env:
+        VERSION: ${{ steps.metadata.outputs.version }}
+        BUILD_DATE: ${{ steps.metadata.outputs.build_date }}
+        CONTAINER_BUILD_DATE: ${{ steps.metadata.outputs.build_date }}
       run: |
         cd /home/benjamin/projects/photosync/photosync
         docker compose build --no-cache

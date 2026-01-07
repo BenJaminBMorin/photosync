@@ -3,6 +3,10 @@ services:
     build:
       context: ./server-go
       dockerfile: Dockerfile
+      args:
+        - VERSION=${VERSION:-dev}
+        - BUILD_DATE=${BUILD_DATE:-unknown}
+        - CONTAINER_BUILD_DATE=${CONTAINER_BUILD_DATE:-unknown}
     container_name: photosync
     restart: unless-stopped
     ports:

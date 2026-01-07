@@ -1,5 +1,10 @@
 FROM golang:1.21-alpine AS builder
 
+# Build-time arguments
+ARG VERSION=dev
+ARG BUILD_DATE=unknown
+ARG CONTAINER_BUILD_DATE=unknown
+
 # Install build dependencies including libvips for image processing and HEIC support
 RUN apk add --no-cache gcc g++ musl-dev git vips-dev pkgconfig
 
@@ -20,7 +25,10 @@ RUN swag init -g cmd/server/main.go -o docs
 # Now run go mod tidy (docs package exists now)
 RUN go mod tidy
 
-RUN CGO_ENABLED=1 GOOS=linux go build -o /photosync-server ./cmd/server
+# Build with ldflags to embed version and build date
+RUN CGO_ENABLED=1 GOOS=linux go build \
+    -ldflags="-X 'main.Version=${VERSION}' -X 'main.BuildDate=${BUILD_DATE}' -X 'main.ContainerBuildDate=${CONTAINER_BUILD_DATE}'" \
+    -o /photosync-server ./cmd/server
 
 FROM alpine:latest
 

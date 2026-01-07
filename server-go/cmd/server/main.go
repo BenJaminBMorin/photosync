@@ -47,6 +47,13 @@ import (
 // @in header
 // @name X-API-Key
 
+// Build-time variables set via ldflags
+var (
+	Version            = "dev"
+	BuildDate          = "unknown"
+	ContainerBuildDate = ""
+)
+
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
@@ -191,6 +198,7 @@ func main() {
 	adminService := services.NewAdminService(
 		userRepo, deviceRepo, sessionRepo, photoRepo, setupConfigRepo,
 		cfg.PhotoStorage.BasePath,
+		Version, BuildDate, ContainerBuildDate,
 	)
 
 	// Collection service

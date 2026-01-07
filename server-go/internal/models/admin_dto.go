@@ -65,12 +65,16 @@ type AdminSessionResponse struct {
 
 // SystemStatusResponse contains system health and statistics
 type SystemStatusResponse struct {
-	Version  string         `json:"version"`
-	Uptime   string         `json:"uptime"`
-	Database DatabaseStatus `json:"database"`
-	Storage  StorageStatus  `json:"storage"`
-	Firebase FirebaseStatus `json:"firebase"`
-	Stats    SystemStats    `json:"stats"`
+	Version            string         `json:"version"`
+	BuildVersion       string         `json:"buildVersion"`
+	BuildDate          string         `json:"buildDate"`
+	ServerStartTime    string         `json:"serverStartTime"`
+	ContainerBuildDate string         `json:"containerBuildDate,omitempty"`
+	Uptime             string         `json:"uptime"`
+	Database           DatabaseStatus `json:"database"`
+	Storage            StorageStatus  `json:"storage"`
+	Firebase           FirebaseStatus `json:"firebase"`
+	Stats              SystemStats    `json:"stats"`
 }
 
 // DatabaseStatus contains database connection info
