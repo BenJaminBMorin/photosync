@@ -87,7 +87,7 @@ func (s *ConfigService) GetAllConfig(ctx context.Context) (*models.ConfigRespons
 
 	items = append(items, models.ConfigItem{
 		Key:             "storage_max_file_size_mb",
-		Value:           strconv.Itoa(s.currentConfig.PhotoStorage.MaxFileSizeMB),
+		Value:           strconv.FormatInt(s.currentConfig.PhotoStorage.MaxFileSizeMB, 10),
 		ValueType:       "int",
 		Category:        models.CategoryStorage,
 		RequiresRestart: false,
