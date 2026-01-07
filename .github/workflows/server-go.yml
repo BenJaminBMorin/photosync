@@ -68,9 +68,6 @@ jobs:
           - goos: linux
             goarch: amd64
             suffix: ''
-          - goos: linux
-            goarch: arm64
-            suffix: ''
 
     steps:
     - uses: actions/checkout@v4
