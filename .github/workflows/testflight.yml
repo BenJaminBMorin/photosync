@@ -65,6 +65,10 @@ jobs:
 
     - name: Setup Keychain
       run: |
+        # Save original default keychain
+        ORIGINAL_KEYCHAIN=$(security default-keychain | xargs)
+        echo "ORIGINAL_KEYCHAIN=$ORIGINAL_KEYCHAIN" >> $GITHUB_ENV
+
         # Create a temporary keychain
         KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
         KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
@@ -156,8 +160,14 @@ jobs:
         git config --global --unset credential.helper || true
         git config --global --unset url."https://github.com/".insteadOf || true
 
-        # Clean up keychain
+        # Restore original keychain before deleting temporary one
+        if [ -n "$ORIGINAL_KEYCHAIN" ] && [ -f "$ORIGINAL_KEYCHAIN" ]; then
+          security default-keychain -s "$ORIGINAL_KEYCHAIN" || true
+        fi
+
+        # Remove temp keychain from search list
         if [ -n "$KEYCHAIN_PATH" ]; then
+          security list-keychains -d user -s $(security list-keychains -d user | sed s/\"//g | grep -v "app-signing.keychain") || true
           security delete-keychain "$KEYCHAIN_PATH" || true
         fi
 
