@@ -21,6 +21,8 @@
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
+            --bg-tertiary-hover: #475569;
+            --bg-secondary-alpha: rgba(30, 41, 59, 0.98);
             --accent-primary: #667eea;
             --accent-secondary: #764ba2;
             --text-primary: #ffffff;
@@ -29,6 +31,8 @@
             --border-color: rgba(100, 116, 139, 0.2);
             --border-color-hover: rgba(100, 116, 139, 0.4);
             --shadow-color: rgba(0, 0, 0, 0.4);
+            --shadow-light: rgba(0, 0, 0, 0.2);
+            --shadow-dark: rgba(0, 0, 0, 0.4);
             --overlay-bg: rgba(30, 41, 59, 0.98);
         }
 
@@ -161,11 +165,11 @@
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            background: var(--bg-secondary-alpha, rgba(30, 41, 59, 0.98));
-            border: 1px solid var(--border-color, rgba(100, 116, 139, 0.3));
+            background: var(--bg-secondary-alpha);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             min-width: 220px;
-            box-shadow: 0 8px 32px var(--shadow-dark, rgba(0, 0, 0, 0.4));
+            box-shadow: 0 8px 32px var(--shadow-dark);
             backdrop-filter: blur(20px);
             opacity: 0;
             visibility: hidden;
@@ -216,7 +220,7 @@
 
         .dropdown-divider {
             height: 1px;
-            background: var(--border-color, rgba(100, 116, 139, 0.3));
+            background: var(--border-color);
             margin: 4px 0;
         }
 
@@ -345,22 +349,25 @@
         }
 
         .select-mode-btn {
-            background: transparent;
-            border: 1px solid var(--border-color, rgba(100, 116, 139, 0.3));
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
             color: var(--text-muted);
-            padding: 10px 18px;
-            border-radius: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .select-mode-btn:hover {
             background: var(--bg-tertiary-hover);
-            border-color: rgba(100, 116, 139, 0.5);
+            border-color: var(--border-color-hover);
             color: var(--text-secondary);
-            transform: translateY(-1px);
         }
 
         .select-mode-btn.active {
@@ -1556,6 +1563,7 @@
     <nav class="navbar">
         <div class="navbar-brand">PhotoSync</div>
         <div class="navbar-controls">
+            <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()" title="Select photos">Select</button>
             <div class="view-toggle">
                 <button class="view-btn active" data-view="grid" title="Grid View">&#9638;</button>
                 <button class="view-btn" data-view="large" title="Large Grid">&#9635;</button>
@@ -1569,7 +1577,6 @@
                     </svg>
                 </button>
             </div>
-            <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()" title="Select photos">Select</button>
             <div class="navbar-user">
                 <div class="user-menu-btn" id="user-menu-btn" onclick="toggleUserMenu()">
                     <div class="user-avatar" id="user-avatar"></div>
@@ -1742,11 +1749,11 @@
     <!-- Selection Action Bar -->
     <div class="selection-bar" id="selection-bar">
         <div class="selection-info">
-            <span id="selection-count">0</span> photos selected
+            <span id="selection-count">0</span> of <span id="selection-total">0</span> photos selected
         </div>
         <div class="selection-actions">
             <button class="selection-btn secondary" onclick="clearSelection()">Clear</button>
-            <button class="selection-btn secondary" onclick="selectAllPhotos()">Select All</button>
+            <button class="selection-btn secondary" id="select-all-btn" onclick="selectAllPhotos()">Select All (<span id="select-all-count">0</span>)</button>
             <button class="selection-btn primary" onclick="showBulkAddToCollection()">Add to Collection</button>
             <button class="selection-btn danger" id="bulk-delete-btn" onclick="showBulkDelete()">Delete</button>
         </div>
@@ -2884,10 +2891,14 @@
         }
 
         function selectAllPhotos() {
+            // Select all loaded photos (from the photos array, not just visible DOM elements)
+            photos.forEach(photo => {
+                selectedPhotoIds.add(photo.id);
+            });
+            // Update DOM for visible items
             document.querySelectorAll('.photo-item').forEach(el => {
                 const photoId = el.dataset.photoId;
-                if (photoId) {
-                    selectedPhotoIds.add(photoId);
+                if (photoId && selectedPhotoIds.has(photoId)) {
                     el.classList.add('selected');
                 }
             });
@@ -2897,15 +2908,27 @@
         function updateSelectionBar() {
             const selectionBar = document.getElementById('selection-bar');
             const countEl = document.getElementById('selection-count');
+            const totalEl = document.getElementById('selection-total');
+            const selectAllCountEl = document.getElementById('select-all-count');
             const deleteBtn = document.getElementById('bulk-delete-btn');
             const count = selectedPhotoIds.size;
 
-            countEl.textContent = count;
+            countEl.textContent = count.toLocaleString();
+            totalEl.textContent = totalCount.toLocaleString();
+            selectAllCountEl.textContent = totalCount.toLocaleString();
 
             // Disable delete button if ALL photos are selected (safety measure)
-            const allSelected = count > 0 && count >= photos.length;
+            const allSelected = count > 0 && count >= totalCount;
             deleteBtn.disabled = allSelected;
             deleteBtn.title = allSelected ? 'Cannot delete all photos at once' : 'Delete selected photos';
+
+            // Update select all button text based on loaded vs total
+            const selectAllBtn = document.getElementById('select-all-btn');
+            if (photos.length < totalCount) {
+                selectAllBtn.innerHTML = `Select All Loaded (<span id="select-all-count">${photos.length.toLocaleString()}</span> of ${totalCount.toLocaleString()})`;
+            } else {
+                selectAllBtn.innerHTML = `Select All (<span id="select-all-count">${totalCount.toLocaleString()}</span>)`;
+            }
 
             if (selectMode && count > 0) {
                 selectionBar.classList.add('active');
