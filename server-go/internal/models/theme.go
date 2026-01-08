@@ -226,6 +226,20 @@ func (t *Theme) Validate() error {
 	return nil
 }
 
+// ToThemeInfo converts a Theme to a lightweight ThemeInfo for public listing
+func (t *Theme) ToThemeInfo() ThemeInfo {
+	description := ""
+	if t.Description != nil {
+		description = *t.Description
+	}
+	return ThemeInfo{
+		ID:          t.ID,
+		Name:        t.Name,
+		Description: description,
+		PreviewCSS:  fmt.Sprintf("--bg-primary: %s; --accent-primary: %s;", t.Properties.Colors.Backgrounds.Primary, t.Properties.Colors.Accents.Primary),
+	}
+}
+
 // Common theme-related errors
 var (
 	ErrInvalidThemeID   = fmt.Errorf("theme ID is required")

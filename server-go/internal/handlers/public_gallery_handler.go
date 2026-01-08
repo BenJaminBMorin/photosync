@@ -198,7 +198,10 @@ func (h *PublicGalleryHandler) renderGallery(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Get theme CSS
-	themeCSS := h.collectionService.GetThemeCSS(collection.Theme)
+	themeCSS, err := h.collectionService.GetThemeCSS(r.Context(), string(collection.Theme))
+	if err != nil {
+		themeCSS = "" // Fallback to empty CSS on error
+	}
 
 	// Custom CSS
 	customCSS := ""
