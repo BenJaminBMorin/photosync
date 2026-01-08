@@ -15,27 +15,19 @@ platform :ios do
       include_all_certificates: true
     )
 
-    # Get the specific certificate SHA-1 fingerprint that Match just installed
-    # Query only the temporary keychain to avoid old certificates
-    keychain_path = ENV["MATCH_KEYCHAIN_NAME"]
-    cert_output = sh("security find-identity -v -p codesigning #{keychain_path} | grep 'Apple Distribution' | head -1")
-    cert_identity = cert_output.match(/\d+\) ([A-F0-9]+) /)[1] rescue "Apple Distribution"
-
-    puts "Using certificate SHA-1: #{cert_identity}"
-
     # Build the app
     # Project is configured for manual code signing
     # Match provisioning profiles are synced before build
     build_app(
       scheme: "PhotoSync",
       export_method: "app-store",
-      codesigning_identity: cert_identity,
+      codesigning_identity: "Apple Distribution",
       export_options: {
         provisioningProfiles: {
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
         }
       },
-      xcargs: "CODE_SIGN_IDENTITY='#{cert_identity}'",
+      xcargs: "DEVELOPMENT_TEAM=DV94566H3R CODE_SIGN_STYLE=Manual",
       output_directory: "./build",
       buildlog_path: "./build/logs"
     )
