@@ -7,6 +7,14 @@ platform :ios do
   lane :beta do
     puts "🔨 Starting build process..."
 
+    # Sync certificates and provisioning profiles
+    match(
+      type: "appstore",
+      readonly: false,
+      force: true,
+      include_all_certificates: true
+    )
+
     # Build the app
     # Project is configured for manual code signing
     # Match provisioning profiles are synced before build

@@ -88,18 +88,6 @@ jobs:
         echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
         echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
 
-    - name: Sync Certificates with Match
-      working-directory: ios
-      env:
-        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        MATCH_KEYCHAIN_NAME: ${{ env.KEYCHAIN_PATH }}
-        MATCH_KEYCHAIN_PASSWORD: ${{ env.KEYCHAIN_PASSWORD }}
-        FASTLANE_USER: ${{ secrets.APPLE_ID }}
-        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-      run: |
-        # Force complete regeneration of provisioning profiles with all certificates
-        fastlane match appstore --force --include_all_certificates
-
     - name: Create GoogleService-Info.plist
       working-directory: ios/PhotoSync
       run: |
@@ -141,7 +129,10 @@ jobs:
       timeout-minutes: 45
       env:
         MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        MATCH_KEYCHAIN_NAME: ${{ env.KEYCHAIN_PATH }}
+        MATCH_KEYCHAIN_PASSWORD: ${{ env.KEYCHAIN_PASSWORD }}
         FASTLANE_USER: ${{ secrets.APPLE_ID }}
+        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         TEAM_ID: ${{ secrets.TEAM_ID }}
         APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
         APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
