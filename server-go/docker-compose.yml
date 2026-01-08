@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  photosync:
+    build: .
+    image: photosync-server:latest
+    container_name: photosync
+    ports:
+      - "5050:5000"
+    volumes:
+      # CRITICAL: Mount this volume to persist your database and photos
+      # Without this, all data will be lost when the container is recreated
+      - ./data:/app/data
+    environment:
+      # Database configuration
+      - DATABASE_PATH=/app/data/photosync.db
+      # Photo storage configuration
+      - PHOTO_STORAGE_PATH=/app/data/photos
+      # Optional: Use PostgreSQL instead of SQLite
+      # - DATABASE_URL=postgres://user:password@postgres:5432/photosync
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: PostgreSQL database for production use
+  # Uncomment this section if you want to use PostgreSQL instead of SQLite
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: photosync-db
+  #   environment:
+  #     - POSTGRES_DB=photosync
+  #     - POSTGRES_USER=photosync
+  #     - POSTGRES_PASSWORD=changeme
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+volumes:
+  # Persistent volume for photos and database
+  # This volume will persist across container restarts and deployments
+  data:
+    driver: local
+  # postgres-data:
+  #   driver: local

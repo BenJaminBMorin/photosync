@@ -44,6 +44,17 @@ WORKDIR /app
 COPY --from=builder /photosync-server /app/photosync-server
 COPY --from=builder /app/web /app/web
 
+# Create data directory for persistent storage
+RUN mkdir -p /app/data
+
+# Declare volumes for persistent data
+# Users MUST mount this volume to persist data across container restarts/deployments
+VOLUME ["/app/data"]
+
+# Set environment variables to use the data directory
+ENV DATABASE_PATH=/app/data/photosync.db
+ENV PHOTO_STORAGE_PATH=/app/data/photos
+
 EXPOSE 5000
 
 CMD ["/app/photosync-server"]
