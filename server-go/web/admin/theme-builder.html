@@ -402,6 +402,26 @@
                                 <input type="text" id="color-bg-secondary-text" onchange="updatePropertyFromText('colors.backgrounds.secondary', this.value, 'color-bg-secondary')">
                             </div>
                         </div>
+                        <div class="property-row">
+                            <label class="property-label">Tertiary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-bg-tertiary" onchange="updateProperty('colors.backgrounds.tertiary', this.value)">
+                                <input type="text" id="color-bg-tertiary-text" onchange="updatePropertyFromText('colors.backgrounds.tertiary', this.value, 'color-bg-tertiary')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Elevated</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-bg-elevated" onchange="updateProperty('colors.backgrounds.elevated', this.value)">
+                                <input type="text" id="color-bg-elevated-text" onchange="updatePropertyFromText('colors.backgrounds.elevated', this.value, 'color-bg-elevated')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Overlay</label>
+                            <div class="property-input">
+                                <input type="text" id="color-bg-overlay" onchange="updateProperty('colors.backgrounds.overlay', this.value)" placeholder="rgba(15, 23, 42, 0.95)">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="property-group">
@@ -413,17 +433,286 @@
                                 <input type="text" id="color-text-primary-text" onchange="updatePropertyFromText('colors.text.primary', this.value, 'color-text-primary')">
                             </div>
                         </div>
+                        <div class="property-row">
+                            <label class="property-label">Secondary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-text-secondary" onchange="updateProperty('colors.text.secondary', this.value)">
+                                <input type="text" id="color-text-secondary-text" onchange="updatePropertyFromText('colors.text.secondary', this.value, 'color-text-secondary')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Muted</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-text-muted" onchange="updateProperty('colors.text.muted', this.value)">
+                                <input type="text" id="color-text-muted-text" onchange="updatePropertyFromText('colors.text.muted', this.value, 'color-text-muted')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Disabled</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-text-disabled" onchange="updateProperty('colors.text.disabled', this.value)">
+                                <input type="text" id="color-text-disabled-text" onchange="updatePropertyFromText('colors.text.disabled', this.value, 'color-text-disabled')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Inverse</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-text-inverse" onchange="updateProperty('colors.text.inverse', this.value)">
+                                <input type="text" id="color-text-inverse-text" onchange="updatePropertyFromText('colors.text.inverse', this.value, 'color-text-inverse')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Accent Colors</div>
+                        <div class="property-row">
+                            <label class="property-label">Primary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-accent-primary" onchange="updateProperty('colors.accents.primary', this.value)">
+                                <input type="text" id="color-accent-primary-text" onchange="updatePropertyFromText('colors.accents.primary', this.value, 'color-accent-primary')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Secondary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-accent-secondary" onchange="updateProperty('colors.accents.secondary', this.value)">
+                                <input type="text" id="color-accent-secondary-text" onchange="updatePropertyFromText('colors.accents.secondary', this.value, 'color-accent-secondary')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Hover</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-accent-hover" onchange="updateProperty('colors.accents.hover', this.value)">
+                                <input type="text" id="color-accent-hover-text" onchange="updatePropertyFromText('colors.accents.hover', this.value, 'color-accent-hover')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Active</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-accent-active" onchange="updateProperty('colors.accents.active', this.value)">
+                                <input type="text" id="color-accent-active-text" onchange="updatePropertyFromText('colors.accents.active', this.value, 'color-accent-active')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Semantic Colors</div>
+                        <div class="property-row">
+                            <label class="property-label">Success</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-semantic-success" onchange="updateProperty('colors.semantic.success', this.value)">
+                                <input type="text" id="color-semantic-success-text" onchange="updatePropertyFromText('colors.semantic.success', this.value, 'color-semantic-success')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Warning</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-semantic-warning" onchange="updateProperty('colors.semantic.warning', this.value)">
+                                <input type="text" id="color-semantic-warning-text" onchange="updatePropertyFromText('colors.semantic.warning', this.value, 'color-semantic-warning')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Error</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-semantic-error" onchange="updateProperty('colors.semantic.error', this.value)">
+                                <input type="text" id="color-semantic-error-text" onchange="updatePropertyFromText('colors.semantic.error', this.value, 'color-semantic-error')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Info</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-semantic-info" onchange="updateProperty('colors.semantic.info', this.value)">
+                                <input type="text" id="color-semantic-info-text" onchange="updatePropertyFromText('colors.semantic.info', this.value, 'color-semantic-info')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Border Colors</div>
+                        <div class="property-row">
+                            <label class="property-label">Default</label>
+                            <div class="property-input">
+                                <input type="text" id="color-border-default" onchange="updateProperty('colors.borders.default', this.value)" placeholder="rgba(100, 116, 139, 0.2)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Hover</label>
+                            <div class="property-input">
+                                <input type="text" id="color-border-hover" onchange="updateProperty('colors.borders.hover', this.value)" placeholder="rgba(100, 116, 139, 0.4)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Focus</label>
+                            <div class="property-input">
+                                <input type="text" id="color-border-focus" onchange="updateProperty('colors.borders.focus', this.value)" placeholder="rgba(102, 126, 234, 0.5)">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="editor-section" id="section-typography">
                     <h2 class="section-title">Typography</h2>
+
                     <div class="property-group">
                         <div class="group-title">Font Families</div>
                         <div class="property-row">
                             <label class="property-label">Base</label>
                             <div class="property-input">
-                                <input type="text" id="font-family-base" onchange="updateProperty('typography.fontFamilies.base', this.value)">
+                                <input type="text" id="font-family-base" onchange="updateProperty('typography.fontFamilies.base', this.value)" placeholder="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Heading</label>
+                            <div class="property-input">
+                                <input type="text" id="font-family-heading" onchange="updateProperty('typography.fontFamilies.heading', this.value)" placeholder="inherit">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Accent</label>
+                            <div class="property-input">
+                                <input type="text" id="font-family-accent" onchange="updateProperty('typography.fontFamilies.accent', this.value)" placeholder="inherit">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Mono</label>
+                            <div class="property-input">
+                                <input type="text" id="font-family-mono" onchange="updateProperty('typography.fontFamilies.mono', this.value)" placeholder="monospace">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Font Sizes</div>
+                        <div class="property-row">
+                            <label class="property-label">XS</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-xs" onchange="updateProperty('typography.fontSizes.xs', this.value)" placeholder="12px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">SM</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-sm" onchange="updateProperty('typography.fontSizes.sm', this.value)" placeholder="14px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Base</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-base" onchange="updateProperty('typography.fontSizes.base', this.value)" placeholder="16px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">LG</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-lg" onchange="updateProperty('typography.fontSizes.lg', this.value)" placeholder="18px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">XL</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-xl" onchange="updateProperty('typography.fontSizes.xl', this.value)" placeholder="20px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">2XL</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-2xl" onchange="updateProperty('typography.fontSizes.2xl', this.value)" placeholder="24px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">3XL</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-3xl" onchange="updateProperty('typography.fontSizes.3xl', this.value)" placeholder="28px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">4XL</label>
+                            <div class="property-input">
+                                <input type="text" id="font-size-4xl" onchange="updateProperty('typography.fontSizes.4xl', this.value)" placeholder="32px">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Font Weights</div>
+                        <div class="property-row">
+                            <label class="property-label">Light</label>
+                            <div class="property-input">
+                                <input type="text" id="font-weight-light" onchange="updateProperty('typography.fontWeights.light', this.value)" placeholder="300">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Normal</label>
+                            <div class="property-input">
+                                <input type="text" id="font-weight-normal" onchange="updateProperty('typography.fontWeights.normal', this.value)" placeholder="400">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Medium</label>
+                            <div class="property-input">
+                                <input type="text" id="font-weight-medium" onchange="updateProperty('typography.fontWeights.medium', this.value)" placeholder="500">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Semibold</label>
+                            <div class="property-input">
+                                <input type="text" id="font-weight-semibold" onchange="updateProperty('typography.fontWeights.semibold', this.value)" placeholder="600">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Bold</label>
+                            <div class="property-input">
+                                <input type="text" id="font-weight-bold" onchange="updateProperty('typography.fontWeights.bold', this.value)" placeholder="700">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Line Heights</div>
+                        <div class="property-row">
+                            <label class="property-label">Tight</label>
+                            <div class="property-input">
+                                <input type="text" id="line-height-tight" onchange="updateProperty('typography.lineHeights.tight', this.value)" placeholder="1.2">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Normal</label>
+                            <div class="property-input">
+                                <input type="text" id="line-height-normal" onchange="updateProperty('typography.lineHeights.normal', this.value)" placeholder="1.5">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Relaxed</label>
+                            <div class="property-input">
+                                <input type="text" id="line-height-relaxed" onchange="updateProperty('typography.lineHeights.relaxed', this.value)" placeholder="1.75">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Loose</label>
+                            <div class="property-input">
+                                <input type="text" id="line-height-loose" onchange="updateProperty('typography.lineHeights.loose', this.value)" placeholder="2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Letter Spacing</div>
+                        <div class="property-row">
+                            <label class="property-label">Tight</label>
+                            <div class="property-input">
+                                <input type="text" id="letter-spacing-tight" onchange="updateProperty('typography.letterSpacing.tight', this.value)" placeholder="-0.02em">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Normal</label>
+                            <div class="property-input">
+                                <input type="text" id="letter-spacing-normal" onchange="updateProperty('typography.letterSpacing.normal', this.value)" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Wide</label>
+                            <div class="property-input">
+                                <input type="text" id="letter-spacing-wide" onchange="updateProperty('typography.letterSpacing.wide', this.value)" placeholder="0.02em">
                             </div>
                         </div>
                     </div>
@@ -431,12 +720,222 @@
 
                 <div class="editor-section" id="section-layout">
                     <h2 class="section-title">Layout</h2>
-                    <p style="color: #94a3b8;">Layout controls coming soon...</p>
+
+                    <div class="property-group">
+                        <div class="group-title">Spacing</div>
+                        <div class="property-row">
+                            <label class="property-label">XS</label>
+                            <div class="property-input">
+                                <input type="text" id="spacing-xs" onchange="updateProperty('layout.spacing.xs', this.value)" placeholder="4px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">SM</label>
+                            <div class="property-input">
+                                <input type="text" id="spacing-sm" onchange="updateProperty('layout.spacing.sm', this.value)" placeholder="8px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">MD</label>
+                            <div class="property-input">
+                                <input type="text" id="spacing-md" onchange="updateProperty('layout.spacing.md', this.value)" placeholder="16px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">LG</label>
+                            <div class="property-input">
+                                <input type="text" id="spacing-lg" onchange="updateProperty('layout.spacing.lg', this.value)" placeholder="24px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">XL</label>
+                            <div class="property-input">
+                                <input type="text" id="spacing-xl" onchange="updateProperty('layout.spacing.xl', this.value)" placeholder="32px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">2XL</label>
+                            <div class="property-input">
+                                <input type="text" id="spacing-2xl" onchange="updateProperty('layout.spacing.2xl', this.value)" placeholder="48px">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Border Radius</div>
+                        <div class="property-row">
+                            <label class="property-label">SM</label>
+                            <div class="property-input">
+                                <input type="text" id="border-radius-sm" onchange="updateProperty('layout.borderRadius.sm', this.value)" placeholder="2px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">MD</label>
+                            <div class="property-input">
+                                <input type="text" id="border-radius-md" onchange="updateProperty('layout.borderRadius.md', this.value)" placeholder="4px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">LG</label>
+                            <div class="property-input">
+                                <input type="text" id="border-radius-lg" onchange="updateProperty('layout.borderRadius.lg', this.value)" placeholder="8px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">XL</label>
+                            <div class="property-input">
+                                <input type="text" id="border-radius-xl" onchange="updateProperty('layout.borderRadius.xl', this.value)" placeholder="12px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">2XL</label>
+                            <div class="property-input">
+                                <input type="text" id="border-radius-2xl" onchange="updateProperty('layout.borderRadius.2xl', this.value)" placeholder="16px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Full</label>
+                            <div class="property-input">
+                                <input type="text" id="border-radius-full" onchange="updateProperty('layout.borderRadius.full', this.value)" placeholder="9999px">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Grid</div>
+                        <div class="property-row">
+                            <label class="property-label">Columns Min</label>
+                            <div class="property-input">
+                                <input type="text" id="grid-cols-min" onchange="updateProperty('layout.grid.colsMin', this.value)" placeholder="200px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Gap</label>
+                            <div class="property-input">
+                                <input type="text" id="grid-gap" onchange="updateProperty('layout.grid.gap', this.value)" placeholder="16px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Card Padding</label>
+                            <div class="property-input">
+                                <input type="text" id="grid-card-padding" onchange="updateProperty('layout.grid.cardPadding', this.value)" placeholder="16px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Card Aspect Ratio</label>
+                            <div class="property-input">
+                                <input type="text" id="grid-card-aspect-ratio" onchange="updateProperty('layout.grid.cardAspectRatio', this.value)" placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Max Widths</div>
+                        <div class="property-row">
+                            <label class="property-label">Container</label>
+                            <div class="property-input">
+                                <input type="text" id="max-width-container" onchange="updateProperty('layout.maxWidths.container', this.value)" placeholder="1400px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Modal</label>
+                            <div class="property-input">
+                                <input type="text" id="max-width-modal" onchange="updateProperty('layout.maxWidths.modal', this.value)" placeholder="600px">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="editor-section" id="section-effects">
                     <h2 class="section-title">Effects</h2>
-                    <p style="color: #94a3b8;">Effect controls coming soon...</p>
+
+                    <div class="property-group">
+                        <div class="group-title">Shadows</div>
+                        <div class="property-row">
+                            <label class="property-label">SM</label>
+                            <div class="property-input">
+                                <input type="text" id="shadow-sm" onchange="updateProperty('effects.shadows.sm', this.value)" placeholder="0 1px 2px rgba(0, 0, 0, 0.05)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">MD</label>
+                            <div class="property-input">
+                                <input type="text" id="shadow-md" onchange="updateProperty('effects.shadows.md', this.value)" placeholder="0 4px 6px rgba(0, 0, 0, 0.1)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">LG</label>
+                            <div class="property-input">
+                                <input type="text" id="shadow-lg" onchange="updateProperty('effects.shadows.lg', this.value)" placeholder="0 10px 20px rgba(0, 0, 0, 0.15)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">XL</label>
+                            <div class="property-input">
+                                <input type="text" id="shadow-xl" onchange="updateProperty('effects.shadows.xl', this.value)" placeholder="0 20px 40px rgba(0, 0, 0, 0.2)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Transitions</div>
+                        <div class="property-row">
+                            <label class="property-label">Fast</label>
+                            <div class="property-input">
+                                <input type="text" id="transition-fast" onchange="updateProperty('effects.transitions.fast', this.value)" placeholder="0.1s cubic-bezier(0.4, 0, 0.2, 1)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Normal</label>
+                            <div class="property-input">
+                                <input type="text" id="transition-normal" onchange="updateProperty('effects.transitions.normal', this.value)" placeholder="0.3s cubic-bezier(0.4, 0, 0.2, 1)">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Slow</label>
+                            <div class="property-input">
+                                <input type="text" id="transition-slow" onchange="updateProperty('effects.transitions.slow', this.value)" placeholder="0.5s cubic-bezier(0.4, 0, 0.2, 1)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Blur</div>
+                        <div class="property-row">
+                            <label class="property-label">SM</label>
+                            <div class="property-input">
+                                <input type="text" id="blur-sm" onchange="updateProperty('effects.blur.sm', this.value)" placeholder="4px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">MD</label>
+                            <div class="property-input">
+                                <input type="text" id="blur-md" onchange="updateProperty('effects.blur.md', this.value)" placeholder="8px">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">LG</label>
+                            <div class="property-input">
+                                <input type="text" id="blur-lg" onchange="updateProperty('effects.blur.lg', this.value)" placeholder="16px">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Opacity</div>
+                        <div class="property-row">
+                            <label class="property-label">Disabled</label>
+                            <div class="property-input">
+                                <input type="text" id="opacity-disabled" onchange="updateProperty('effects.opacity.disabled', this.value)" placeholder="0.5">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Muted</label>
+                            <div class="property-input">
+                                <input type="text" id="opacity-muted" onchange="updateProperty('effects.opacity.muted', this.value)" placeholder="0.7">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="editor-section" id="section-preview">
@@ -561,12 +1060,121 @@
             if (!currentTheme) return;
             const props = currentTheme.properties;
 
+            // Colors - Backgrounds
             setColorInput('color-bg-primary', props.colors.backgrounds.primary);
             setColorInput('color-bg-secondary', props.colors.backgrounds.secondary);
-            setColorInput('color-text-primary', props.colors.text.primary);
+            setColorInput('color-bg-tertiary', props.colors.backgrounds.tertiary);
+            setColorInput('color-bg-elevated', props.colors.backgrounds.elevated);
+            setValue('color-bg-overlay', props.colors.backgrounds.overlay);
 
-            const fontBase = document.getElementById('font-family-base');
-            if (fontBase) fontBase.value = props.typography.fontFamilies.base;
+            // Colors - Text
+            setColorInput('color-text-primary', props.colors.text.primary);
+            setColorInput('color-text-secondary', props.colors.text.secondary);
+            setColorInput('color-text-muted', props.colors.text.muted);
+            setColorInput('color-text-disabled', props.colors.text.disabled);
+            setColorInput('color-text-inverse', props.colors.text.inverse);
+
+            // Colors - Accents
+            setColorInput('color-accent-primary', props.colors.accents.primary);
+            setColorInput('color-accent-secondary', props.colors.accents.secondary);
+            setColorInput('color-accent-hover', props.colors.accents.hover);
+            setColorInput('color-accent-active', props.colors.accents.active);
+
+            // Colors - Semantic
+            setColorInput('color-semantic-success', props.colors.semantic.success);
+            setColorInput('color-semantic-warning', props.colors.semantic.warning);
+            setColorInput('color-semantic-error', props.colors.semantic.error);
+            setColorInput('color-semantic-info', props.colors.semantic.info);
+
+            // Colors - Borders
+            setValue('color-border-default', props.colors.borders.default);
+            setValue('color-border-hover', props.colors.borders.hover);
+            setValue('color-border-focus', props.colors.borders.focus);
+
+            // Typography - Font Families
+            setValue('font-family-base', props.typography.fontFamilies.base);
+            setValue('font-family-heading', props.typography.fontFamilies.heading);
+            setValue('font-family-accent', props.typography.fontFamilies.accent);
+            setValue('font-family-mono', props.typography.fontFamilies.mono);
+
+            // Typography - Font Sizes
+            setValue('font-size-xs', props.typography.fontSizes.xs);
+            setValue('font-size-sm', props.typography.fontSizes.sm);
+            setValue('font-size-base', props.typography.fontSizes.base);
+            setValue('font-size-lg', props.typography.fontSizes.lg);
+            setValue('font-size-xl', props.typography.fontSizes.xl);
+            setValue('font-size-2xl', props.typography.fontSizes['2xl']);
+            setValue('font-size-3xl', props.typography.fontSizes['3xl']);
+            setValue('font-size-4xl', props.typography.fontSizes['4xl']);
+
+            // Typography - Font Weights
+            setValue('font-weight-light', props.typography.fontWeights.light);
+            setValue('font-weight-normal', props.typography.fontWeights.normal);
+            setValue('font-weight-medium', props.typography.fontWeights.medium);
+            setValue('font-weight-semibold', props.typography.fontWeights.semibold);
+            setValue('font-weight-bold', props.typography.fontWeights.bold);
+
+            // Typography - Line Heights
+            setValue('line-height-tight', props.typography.lineHeights.tight);
+            setValue('line-height-normal', props.typography.lineHeights.normal);
+            setValue('line-height-relaxed', props.typography.lineHeights.relaxed);
+            setValue('line-height-loose', props.typography.lineHeights.loose);
+
+            // Typography - Letter Spacing
+            setValue('letter-spacing-tight', props.typography.letterSpacing.tight);
+            setValue('letter-spacing-normal', props.typography.letterSpacing.normal);
+            setValue('letter-spacing-wide', props.typography.letterSpacing.wide);
+
+            // Layout - Spacing
+            setValue('spacing-xs', props.layout.spacing.xs);
+            setValue('spacing-sm', props.layout.spacing.sm);
+            setValue('spacing-md', props.layout.spacing.md);
+            setValue('spacing-lg', props.layout.spacing.lg);
+            setValue('spacing-xl', props.layout.spacing.xl);
+            setValue('spacing-2xl', props.layout.spacing['2xl']);
+
+            // Layout - Border Radius
+            setValue('border-radius-sm', props.layout.borderRadius.sm);
+            setValue('border-radius-md', props.layout.borderRadius.md);
+            setValue('border-radius-lg', props.layout.borderRadius.lg);
+            setValue('border-radius-xl', props.layout.borderRadius.xl);
+            setValue('border-radius-2xl', props.layout.borderRadius['2xl']);
+            setValue('border-radius-full', props.layout.borderRadius.full);
+
+            // Layout - Grid
+            setValue('grid-cols-min', props.layout.grid.colsMin);
+            setValue('grid-gap', props.layout.grid.gap);
+            setValue('grid-card-padding', props.layout.grid.cardPadding);
+            setValue('grid-card-aspect-ratio', props.layout.grid.cardAspectRatio);
+
+            // Layout - Max Widths
+            setValue('max-width-container', props.layout.maxWidths.container);
+            setValue('max-width-modal', props.layout.maxWidths.modal);
+
+            // Effects - Shadows
+            setValue('shadow-sm', props.effects.shadows.sm);
+            setValue('shadow-md', props.effects.shadows.md);
+            setValue('shadow-lg', props.effects.shadows.lg);
+            setValue('shadow-xl', props.effects.shadows.xl);
+
+            // Effects - Transitions
+            setValue('transition-fast', props.effects.transitions.fast);
+            setValue('transition-normal', props.effects.transitions.normal);
+            setValue('transition-slow', props.effects.transitions.slow);
+
+            // Effects - Blur
+            setValue('blur-sm', props.effects.blur.sm);
+            setValue('blur-md', props.effects.blur.md);
+            setValue('blur-lg', props.effects.blur.lg);
+
+            // Effects - Opacity
+            setValue('opacity-disabled', props.effects.opacity.disabled);
+            setValue('opacity-muted', props.effects.opacity.muted);
+        }
+
+        function setValue(id, value) {
+            const elem = document.getElementById(id);
+            if (elem) elem.value = value || '';
         }
 
         function setColorInput(id, value) {
@@ -604,11 +1212,117 @@
             const props = currentTheme.properties;
             const root = document.documentElement;
 
+            // Apply all CSS variables to preview
+            // Colors - Backgrounds
             root.style.setProperty('--bg-primary', props.colors.backgrounds.primary);
             root.style.setProperty('--bg-secondary', props.colors.backgrounds.secondary);
+            root.style.setProperty('--bg-tertiary', props.colors.backgrounds.tertiary);
+            root.style.setProperty('--bg-elevated', props.colors.backgrounds.elevated);
+            root.style.setProperty('--bg-overlay', props.colors.backgrounds.overlay);
+
+            // Colors - Text
             root.style.setProperty('--text-primary', props.colors.text.primary);
             root.style.setProperty('--text-secondary', props.colors.text.secondary);
+            root.style.setProperty('--text-muted', props.colors.text.muted);
+            root.style.setProperty('--text-disabled', props.colors.text.disabled);
+            root.style.setProperty('--text-inverse', props.colors.text.inverse);
+
+            // Colors - Accents
             root.style.setProperty('--accent-primary', props.colors.accents.primary);
+            root.style.setProperty('--accent-secondary', props.colors.accents.secondary);
+            root.style.setProperty('--accent-hover', props.colors.accents.hover);
+            root.style.setProperty('--accent-active', props.colors.accents.active);
+
+            // Colors - Semantic
+            root.style.setProperty('--semantic-success', props.colors.semantic.success);
+            root.style.setProperty('--semantic-warning', props.colors.semantic.warning);
+            root.style.setProperty('--semantic-error', props.colors.semantic.error);
+            root.style.setProperty('--semantic-info', props.colors.semantic.info);
+
+            // Colors - Borders
+            root.style.setProperty('--border-default', props.colors.borders.default);
+            root.style.setProperty('--border-hover', props.colors.borders.hover);
+            root.style.setProperty('--border-focus', props.colors.borders.focus);
+
+            // Typography - Font Families
+            root.style.setProperty('--font-family-base', props.typography.fontFamilies.base);
+            root.style.setProperty('--font-family-heading', props.typography.fontFamilies.heading);
+            root.style.setProperty('--font-family-accent', props.typography.fontFamilies.accent);
+            root.style.setProperty('--font-family-mono', props.typography.fontFamilies.mono);
+
+            // Typography - Font Sizes
+            root.style.setProperty('--font-size-xs', props.typography.fontSizes.xs);
+            root.style.setProperty('--font-size-sm', props.typography.fontSizes.sm);
+            root.style.setProperty('--font-size-base', props.typography.fontSizes.base);
+            root.style.setProperty('--font-size-lg', props.typography.fontSizes.lg);
+            root.style.setProperty('--font-size-xl', props.typography.fontSizes.xl);
+            root.style.setProperty('--font-size-2xl', props.typography.fontSizes['2xl']);
+            root.style.setProperty('--font-size-3xl', props.typography.fontSizes['3xl']);
+            root.style.setProperty('--font-size-4xl', props.typography.fontSizes['4xl']);
+
+            // Typography - Font Weights
+            root.style.setProperty('--font-weight-light', props.typography.fontWeights.light);
+            root.style.setProperty('--font-weight-normal', props.typography.fontWeights.normal);
+            root.style.setProperty('--font-weight-medium', props.typography.fontWeights.medium);
+            root.style.setProperty('--font-weight-semibold', props.typography.fontWeights.semibold);
+            root.style.setProperty('--font-weight-bold', props.typography.fontWeights.bold);
+
+            // Typography - Line Heights
+            root.style.setProperty('--line-height-tight', props.typography.lineHeights.tight);
+            root.style.setProperty('--line-height-normal', props.typography.lineHeights.normal);
+            root.style.setProperty('--line-height-relaxed', props.typography.lineHeights.relaxed);
+            root.style.setProperty('--line-height-loose', props.typography.lineHeights.loose);
+
+            // Typography - Letter Spacing
+            root.style.setProperty('--letter-spacing-tight', props.typography.letterSpacing.tight);
+            root.style.setProperty('--letter-spacing-normal', props.typography.letterSpacing.normal);
+            root.style.setProperty('--letter-spacing-wide', props.typography.letterSpacing.wide);
+
+            // Layout - Spacing
+            root.style.setProperty('--spacing-xs', props.layout.spacing.xs);
+            root.style.setProperty('--spacing-sm', props.layout.spacing.sm);
+            root.style.setProperty('--spacing-md', props.layout.spacing.md);
+            root.style.setProperty('--spacing-lg', props.layout.spacing.lg);
+            root.style.setProperty('--spacing-xl', props.layout.spacing.xl);
+            root.style.setProperty('--spacing-2xl', props.layout.spacing['2xl']);
+
+            // Layout - Border Radius
+            root.style.setProperty('--border-radius-sm', props.layout.borderRadius.sm);
+            root.style.setProperty('--border-radius-md', props.layout.borderRadius.md);
+            root.style.setProperty('--border-radius-lg', props.layout.borderRadius.lg);
+            root.style.setProperty('--border-radius-xl', props.layout.borderRadius.xl);
+            root.style.setProperty('--border-radius-2xl', props.layout.borderRadius['2xl']);
+            root.style.setProperty('--border-radius-full', props.layout.borderRadius.full);
+
+            // Layout - Grid
+            root.style.setProperty('--grid-cols-min', props.layout.grid.colsMin);
+            root.style.setProperty('--grid-gap', props.layout.grid.gap);
+            root.style.setProperty('--grid-card-padding', props.layout.grid.cardPadding);
+            root.style.setProperty('--grid-card-aspect-ratio', props.layout.grid.cardAspectRatio);
+
+            // Layout - Max Widths
+            root.style.setProperty('--max-width-container', props.layout.maxWidths.container);
+            root.style.setProperty('--max-width-modal', props.layout.maxWidths.modal);
+
+            // Effects - Shadows
+            root.style.setProperty('--shadow-sm', props.effects.shadows.sm);
+            root.style.setProperty('--shadow-md', props.effects.shadows.md);
+            root.style.setProperty('--shadow-lg', props.effects.shadows.lg);
+            root.style.setProperty('--shadow-xl', props.effects.shadows.xl);
+
+            // Effects - Transitions
+            root.style.setProperty('--transition-fast', props.effects.transitions.fast);
+            root.style.setProperty('--transition-normal', props.effects.transitions.normal);
+            root.style.setProperty('--transition-slow', props.effects.transitions.slow);
+
+            // Effects - Blur
+            root.style.setProperty('--blur-sm', props.effects.blur.sm);
+            root.style.setProperty('--blur-md', props.effects.blur.md);
+            root.style.setProperty('--blur-lg', props.effects.blur.lg);
+
+            // Effects - Opacity
+            root.style.setProperty('--opacity-disabled', props.effects.opacity.disabled);
+            root.style.setProperty('--opacity-muted', props.effects.opacity.muted);
         }
 
         function setupNavigation() {
