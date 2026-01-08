@@ -149,7 +149,7 @@ func createPostgresTables(db *sql.DB) error {
 		height INTEGER
 	);
 
-	CREATE INDEX IF NOT EXISTS idx_photos_hash ON photos(file_hash);
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_photos_hash ON photos(file_hash);
 	CREATE INDEX IF NOT EXISTS idx_photos_date ON photos(date_taken);
 	CREATE INDEX IF NOT EXISTS idx_photos_user_id ON photos(user_id);
 

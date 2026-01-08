@@ -188,6 +188,23 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		if photo.ThumbSmall != nil {
 			h.thumbnailService.DeleteThumbnails(*photo.ThumbSmall, *photo.ThumbMedium, *photo.ThumbLarge)
 		}
+
+		// Check if this is a unique constraint violation (race condition with concurrent upload)
+		errStr := err.Error()
+		if strings.Contains(errStr, "duplicate key") || strings.Contains(errStr, "UNIQUE constraint") {
+			log.Printf("Duplicate detected via constraint for hash: %s", fileHash)
+			// Look up the existing record
+			existing, lookupErr := h.repo.GetByHash(r.Context(), fileHash)
+			if lookupErr == nil && existing != nil {
+				h.respondJSON(w, http.StatusOK, models.DuplicateUploadResult(
+					existing.ID,
+					existing.StoredPath,
+					existing.UploadedAt,
+				))
+				return
+			}
+		}
+
 		log.Printf("Error saving to database: %v", err)
 		h.respondError(w, http.StatusInternalServerError, "Failed to save photo record.")
 		return
