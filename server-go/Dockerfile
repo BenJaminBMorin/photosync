@@ -37,7 +37,8 @@ FROM alpine:latest
 # - tzdata: timezone support
 # - vips: image processing (thumbnails, format conversion)
 # - libheif: HEIC/HEIF image support
-RUN apk add --no-cache ca-certificates tzdata vips libheif
+# - exiftool: metadata embedding for photo IDs
+RUN apk add --no-cache ca-certificates tzdata vips libheif exiftool
 
 WORKDIR /app
 

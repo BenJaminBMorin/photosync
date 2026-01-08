@@ -23,6 +23,7 @@ type PhotoHandler struct {
 	hashService      *services.HashService
 	exifService      *services.EXIFService
 	thumbnailService *services.ThumbnailService
+	metadataService  *services.MetadataService
 }
 
 // NewPhotoHandler creates a new PhotoHandler
@@ -32,6 +33,7 @@ func NewPhotoHandler(
 	hashService *services.HashService,
 	exifService *services.EXIFService,
 	thumbnailService *services.ThumbnailService,
+	metadataService *services.MetadataService,
 ) *PhotoHandler {
 	return &PhotoHandler{
 		repo:             repo,
@@ -39,6 +41,7 @@ func NewPhotoHandler(
 		hashService:      hashService,
 		exifService:      exifService,
 		thumbnailService: thumbnailService,
+		metadataService:  metadataService,
 	}
 }
 
@@ -208,6 +211,15 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error saving to database: %v", err)
 		h.respondError(w, http.StatusInternalServerError, "Failed to save photo record.")
 		return
+	}
+
+	// Embed photo ID in file metadata for cross-referencing (non-blocking)
+	if h.metadataService != nil {
+		go func() {
+			if err := h.metadataService.EmbedPhotoID(storedPath, photo.ID); err != nil {
+				log.Printf("Warning: failed to embed metadata for %s: %v", photo.ID, err)
+			}
+		}()
 	}
 
 	log.Printf("Photo uploaded: %s -> %s (GPS: %v)", photo.ID, storedPath, photo.Latitude != nil)

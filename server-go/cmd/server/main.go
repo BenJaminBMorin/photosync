@@ -117,9 +117,10 @@ func main() {
 		log.Fatalf("Failed to initialize storage service: %v", err)
 	}
 
-	// EXIF and thumbnail services
+	// EXIF, thumbnail, and metadata services
 	exifService := services.NewEXIFService()
 	thumbnailService := services.NewThumbnailService(cfg.PhotoStorage.BasePath)
+	metadataService := services.NewMetadataService(cfg.PhotoStorage.BasePath)
 
 	// Maintenance service for background tasks
 	maintenanceService := services.NewMaintenanceService(photoRepo, thumbnailService, cfg.PhotoStorage.BasePath)
@@ -230,7 +231,7 @@ func main() {
 	}
 
 	// Initialize handlers
-	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService)
+	photoHandler := handlers.NewPhotoHandler(photoRepo, storageService, hashService, exifService, thumbnailService, metadataService)
 	healthHandler := handlers.NewHealthHandler(setupConfigRepo)
 	setupHandler := handlers.NewSetupHandler(setupService, configService, smtpService)
 	deviceHandler := handlers.NewDeviceHandler(deviceRepo)
