@@ -93,6 +93,7 @@ func main() {
 	setupConfigRepo := repository.NewSetupConfigRepository(db)
 	bootstrapKeyRepo := repository.NewBootstrapKeyRepository(db)
 	recoveryTokenRepo := repository.NewRecoveryTokenRepository(db)
+	inviteTokenRepo := repository.NewInviteTokenRepository(db)
 	configOverrideRepo := repository.NewConfigOverrideRepository(db)
 	smtpConfigRepo := repository.NewSMTPConfigRepository(db)
 
@@ -252,6 +253,9 @@ func main() {
 	// User handler
 	userHandler := handlers.NewUserHandler(userPrefsRepo)
 
+	// Invite handler
+	inviteHandler := handlers.NewInviteHandler(inviteTokenRepo, userRepo, smtpService, serverURL)
+
 	// Public gallery handler
 	publicGalleryHandler := handlers.NewPublicGalleryHandler(
 		collectionService, collectionRepo, collectionPhotoRepo,
@@ -291,6 +295,9 @@ func main() {
 	r.Get("/api/themes", themeHandler.ListThemes)
 	r.Get("/api/themes/{id}", themeHandler.GetTheme)
 	r.Get("/api/themes/{id}/css", themeHandler.GetThemeCSS)
+
+	// Public invite redemption (no auth required)
+	r.Post("/api/invite/redeem", inviteHandler.HandleRedeemInvite)
 
 	// Setup routes (no auth during setup)
 	r.Get("/setup", func(w http.ResponseWriter, r *http.Request) {
@@ -407,6 +414,7 @@ func main() {
 			r.Put("/users/{id}", adminHandler.UpdateUser)
 			r.Delete("/users/{id}", adminHandler.DeleteUser)
 			r.Post("/users/{id}/reset-api-key", adminHandler.ResetAPIKey)
+			r.Post("/users/{id}/invite", inviteHandler.HandleGenerateInvite)
 
 			// User's devices
 			r.Get("/users/{id}/devices", adminHandler.GetUserDevices)

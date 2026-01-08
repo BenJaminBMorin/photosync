@@ -160,6 +160,25 @@ func createTables(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_recovery_expires ON recovery_tokens(expires_at);
 	CREATE INDEX IF NOT EXISTS idx_recovery_user ON recovery_tokens(user_id);
 
+	-- Invite tokens (one-time user invitation links)
+	CREATE TABLE IF NOT EXISTS invite_tokens (
+		id TEXT PRIMARY KEY,
+		token TEXT UNIQUE NOT NULL,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		email TEXT NOT NULL,
+		created_by TEXT NOT NULL REFERENCES users(id),
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		expires_at DATETIME NOT NULL,
+		used INTEGER NOT NULL DEFAULT 0,
+		used_at DATETIME,
+		used_from_ip TEXT,
+		used_from_device TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_invite_tokens_token ON invite_tokens(token);
+	CREATE INDEX IF NOT EXISTS idx_invite_tokens_user_id ON invite_tokens(user_id);
+	CREATE INDEX IF NOT EXISTS idx_invite_tokens_expires ON invite_tokens(expires_at);
+
 	-- Config overrides (runtime-editable configuration)
 	CREATE TABLE IF NOT EXISTS config_overrides (
 		key TEXT PRIMARY KEY,

@@ -74,6 +74,30 @@ func (s *SMTPService) SendTestEmail(ctx context.Context, toEmail string) error {
 	return s.sendEmail(ctx, toEmail, subject, body.String())
 }
 
+// SendInviteEmail sends an invitation email with a deep link to set up the app
+func (s *SMTPService) SendInviteEmail(ctx context.Context, toEmail, toName, inviteToken, inviteLink string) error {
+	data := InviteEmailData{
+		Name:       toName,
+		InviteLink: inviteLink,
+		InviteCode: inviteToken,
+	}
+
+	// Parse template
+	tmpl, err := template.New("invite").Parse(inviteEmailTemplate)
+	if err != nil {
+		return fmt.Errorf("failed to parse invite email template: %w", err)
+	}
+
+	// Execute template
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute invite email template: %w", err)
+	}
+
+	subject := "📸 You're invited to PhotoSync!"
+	return s.sendEmail(ctx, toEmail, subject, body.String())
+}
+
 // sendEmail is the internal helper that performs the actual SMTP sending
 func (s *SMTPService) sendEmail(ctx context.Context, to, subject, htmlBody string) error {
 	// Get SMTP config
