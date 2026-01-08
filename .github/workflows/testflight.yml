@@ -70,8 +70,8 @@ jobs:
         FASTLANE_USER: ${{ secrets.APPLE_ID }}
         FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
       run: |
-        # Force regeneration of provisioning profiles to match current certificates
-        fastlane match appstore --force_for_new_certificates
+        # Force complete regeneration of provisioning profiles
+        fastlane match appstore --force
 
     - name: Create GoogleService-Info.plist
       working-directory: ios/PhotoSync
