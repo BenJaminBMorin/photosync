@@ -242,6 +242,7 @@ actor APIService {
     // MARK: - Sync Endpoints
 
     func getSyncStatus(deviceId: String?) async throws -> SyncStatusResponse {
+        print("[API] getSyncStatus called with deviceId: \(deviceId ?? "nil")")
         let url = try buildURL(path: "/api/sync/status")
         var request = URLRequest(url: url)
         addAPIKeyHeader(to: &request)
@@ -250,7 +251,18 @@ actor APIService {
             request.setValue(deviceId, forHTTPHeaderField: "X-Device-ID")
         }
 
+        print("[API] Making request to: \(url.absoluteString)")
         let (data, response) = try await session.data(for: request)
+
+        // Log response for debugging
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[API] Response status: \(httpResponse.statusCode)")
+            if httpResponse.statusCode != 200 {
+                let responseBody = String(data: data, encoding: .utf8) ?? "Unable to decode response"
+                print("[API] Error response body: \(responseBody)")
+            }
+        }
+
         try validateResponse(response)
 
         let decoder = JSONDecoder()
@@ -315,6 +327,13 @@ actor APIService {
         let apiKey = AppSettings.apiKey
         if !apiKey.isEmpty {
             request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+            // Debug logging (mask most of the key for security)
+            let maskedKey = apiKey.count > 8
+                ? "\(apiKey.prefix(4))...\(apiKey.suffix(4))"
+                : "****"
+            print("[API] Adding API key header: X-API-Key = \(maskedKey)")
+        } else {
+            print("[API] WARNING: API key is empty, header not added")
         }
     }
 
