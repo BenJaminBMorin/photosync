@@ -115,12 +115,12 @@ actor InviteService {
             AppSettings.serverURL = normalizedURL
 
             // Save API key to Keychain
-            KeychainService.saveAPIKey(response.apiKey)
-
-            await Logger.shared.info("Credentials saved successfully")
-            await Logger.shared.info("Server URL: \(normalizedURL)")
-            await Logger.shared.info("User ID: \(response.userId)")
+            try? KeychainService.setAPIKey(response.apiKey)
         }
+
+        await Logger.shared.info("Credentials saved successfully")
+        await Logger.shared.info("Server URL: \(response.serverUrl)")
+        await Logger.shared.info("User ID: \(response.userId)")
     }
 
     /// Get device info for tracking
