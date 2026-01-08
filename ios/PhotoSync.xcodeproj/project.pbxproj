@@ -29,6 +29,7 @@
 		019 /* HashService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* HashService.swift */; };
 		05A1EC897CB38A41FA691785 /* ServerPhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */; };
 		0CECD8DD7FC44C78BCDCACE1 /* AutoSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D1000C7B144AF94BD1C2C3 /* AutoSyncManager.swift */; };
+		10DB9E11EDA4EE39CFD977EE /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00FE87AE68EF9E7EBA883E9 /* InviteService.swift */; };
 		251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DCDC25052A126FAC4725B5 /* Logger.swift */; };
 		30BF3715543B02E330296D8F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 401C2F0F51DB6ED8498ADD65 /* FirebaseCore */; };
 		41FD3E0C9D4BA2BBE9388B13 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477008FDF921B346D977CBC1 /* AppDelegate.swift */; };
@@ -96,6 +97,7 @@
 		82A9CEC6D42B4F5EEE0D2122 /* PhotoSync.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = PhotoSync.entitlements; sourceTree = "<group>"; };
 		94B7393A715D37AF94FA60FC /* CollectionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
 		9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthRequestView.swift; sourceTree = "<group>"; };
+		B00FE87AE68EF9E7EBA883E9 /* InviteService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InviteService.swift; sourceTree = "<group>"; };
 		B352E8572DACCBD36304D418 /* DeleteRequestView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeleteRequestView.swift; sourceTree = "<group>"; };
 		B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotosView.swift; sourceTree = "<group>"; };
 		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = CrashReportView.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				45DA4BF7D6A1C201229B5824 /* NotificationService.swift */,
 				33D1000C7B144AF94BD1C2C3 /* AutoSyncManager.swift */,
 				6F47765F44238D87D40854AB /* ServerPhotoService.swift */,
+				B00FE87AE68EF9E7EBA883E9 /* InviteService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -386,6 +389,7 @@
 				B7A4E45BF8FC4937F81CCB45 /* ServerPhotosViewModel.swift in Sources */,
 				05A1EC897CB38A41FA691785 /* ServerPhotosView.swift in Sources */,
 				85D61A71F2394C327A3ED180 /* FilterOptionsView.swift in Sources */,
+				10DB9E11EDA4EE39CFD977EE /* InviteService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

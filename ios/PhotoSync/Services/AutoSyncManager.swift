@@ -172,6 +172,11 @@ class AutoSyncManager: ObservableObject {
             isAutoSyncing = false
             autoSyncProgress = nil
 
+            // Run auto-cleanup if enabled
+            if AppSettings.autoCleanupSyncedPhotos {
+                await performAutoCleanup()
+            }
+
             // Notify that photos were synced
             NotificationCenter.default.post(name: .collectionDidChange, object: nil)
         }
@@ -265,6 +270,72 @@ class AutoSyncManager: ObservableObject {
             NotificationCenter.default.post(name: .collectionDidChange, object: nil)
         } else {
             await Logger.shared.info("No new photos to mark as synced")
+        }
+    }
+
+    // MARK: - Auto-Cleanup
+
+    /// Automatically cleanup synced photos that are older than the configured days
+    private func performAutoCleanup() async {
+        await Logger.shared.info("Starting auto-cleanup of synced photos...")
+
+        let cleanupAfterDays = AppSettings.autoCleanupAfterDays
+        await Logger.shared.info("Cleanup threshold: \(cleanupAfterDays) days")
+
+        // Calculate the cutoff date
+        guard let cutoffDate = Calendar.current.date(byAdding: .day, value: -cleanupAfterDays, to: Date()) else {
+            await Logger.shared.error("Failed to calculate cutoff date")
+            return
+        }
+
+        await Logger.shared.info("Photos older than \(cutoffDate) will be considered for cleanup")
+
+        // Get all synced photo identifiers
+        let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
+        await Logger.shared.info("Found \(syncedIds.count) synced photos in database")
+
+        // Fetch all local photos
+        let assets = await photoLibrary.fetchAllPhotos()
+
+        // Filter for synced photos older than cutoff date
+        let photosToCleanup = assets.filter { asset in
+            // Must be synced
+            guard syncedIds.contains(asset.localIdentifier) else { return false }
+
+            // Must be older than cutoff date
+            guard let creationDate = asset.creationDate else { return false }
+            return creationDate < cutoffDate
+        }
+
+        guard !photosToCleanup.isEmpty else {
+            await Logger.shared.info("No photos eligible for auto-cleanup")
+            return
+        }
+
+        await Logger.shared.info("Found \(photosToCleanup.count) photos eligible for cleanup")
+
+        // Delete photos one by one
+        var deletedCount = 0
+        var failedCount = 0
+
+        for asset in photosToCleanup {
+            do {
+                try await PHPhotoLibrary.shared().performChanges {
+                    PHAssetChangeRequest.deleteAssets([asset] as NSArray)
+                }
+                deletedCount += 1
+                await Logger.shared.info("Auto-deleted photo: \(asset.localIdentifier)")
+            } catch {
+                failedCount += 1
+                await Logger.shared.error("Failed to auto-delete photo \(asset.localIdentifier): \(error)")
+            }
+        }
+
+        await Logger.shared.info("Auto-cleanup complete: \(deletedCount) deleted, \(failedCount) failed")
+
+        // Notify UI to refresh
+        if deletedCount > 0 {
+            NotificationCenter.default.post(name: .collectionDidChange, object: nil)
         }
     }
 }

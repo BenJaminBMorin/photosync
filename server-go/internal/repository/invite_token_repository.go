@@ -21,12 +21,14 @@ func NewInviteTokenRepository(db *sql.DB) *InviteTokenRepository {
 // Add adds a new invite token
 func (r *InviteTokenRepository) Add(ctx context.Context, token *models.InviteToken) error {
 	query := `
-		INSERT INTO invite_tokens (id, token, user_id, email, created_by, created_at, expires_at, used, used_at, used_from_ip, used_from_device)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO invite_tokens (id, token, token_hash, server_url, user_id, email, created_by, created_at, expires_at, used, used_at, used_from_ip, used_from_device)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		token.ID,
 		token.Token,
+		token.TokenHash,
+		token.ServerURL,
 		token.UserID,
 		token.Email,
 		token.CreatedBy,
@@ -40,12 +42,12 @@ func (r *InviteTokenRepository) Add(ctx context.Context, token *models.InviteTok
 	return err
 }
 
-// GetByToken retrieves an invite token by its token string
-func (r *InviteTokenRepository) GetByToken(ctx context.Context, token string) (*models.InviteToken, error) {
+// GetByTokenHash retrieves an invite token by its hash
+func (r *InviteTokenRepository) GetByTokenHash(ctx context.Context, tokenHash string) (*models.InviteToken, error) {
 	query := `
-		SELECT id, token, user_id, email, created_by, created_at, expires_at, used, used_at, used_from_ip, used_from_device
+		SELECT id, token, token_hash, server_url, user_id, email, created_by, created_at, expires_at, used, used_at, used_from_ip, used_from_device
 		FROM invite_tokens
-		WHERE token = ?
+		WHERE token_hash = ?
 	`
 
 	it := &models.InviteToken{}
@@ -53,9 +55,11 @@ func (r *InviteTokenRepository) GetByToken(ctx context.Context, token string) (*
 	var usedFromIP sql.NullString
 	var usedFromDevice sql.NullString
 
-	err := r.db.QueryRowContext(ctx, query, token).Scan(
+	err := r.db.QueryRowContext(ctx, query, tokenHash).Scan(
 		&it.ID,
 		&it.Token,
+		&it.TokenHash,
+		&it.ServerURL,
 		&it.UserID,
 		&it.Email,
 		&it.CreatedBy,
@@ -91,7 +95,7 @@ func (r *InviteTokenRepository) GetByToken(ctx context.Context, token string) (*
 // GetByUserID retrieves all invite tokens for a user
 func (r *InviteTokenRepository) GetByUserID(ctx context.Context, userID string) ([]*models.InviteToken, error) {
 	query := `
-		SELECT id, token, user_id, email, created_by, created_at, expires_at, used, used_at, used_from_ip, used_from_device
+		SELECT id, token, token_hash, server_url, user_id, email, created_by, created_at, expires_at, used, used_at, used_from_ip, used_from_device
 		FROM invite_tokens
 		WHERE user_id = ?
 		ORDER BY created_at DESC
@@ -113,6 +117,8 @@ func (r *InviteTokenRepository) GetByUserID(ctx context.Context, userID string) 
 		err := rows.Scan(
 			&it.ID,
 			&it.Token,
+			&it.TokenHash,
+			&it.ServerURL,
 			&it.UserID,
 			&it.Email,
 			&it.CreatedBy,

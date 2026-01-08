@@ -8,6 +8,8 @@ struct AppSettings {
     private static let keychainMigratedKey = "keychainMigrated"
     private static let autoSyncKey = "autoSync"
     private static let showServerOnlyPhotosKey = "showServerOnlyPhotos"
+    private static let autoCleanupSyncedPhotosKey = "autoCleanupSyncedPhotos"
+    private static let autoCleanupAfterDaysKey = "autoCleanupAfterDays"
 
     static var serverURL: String {
         get { UserDefaults.standard.string(forKey: serverURLKey) ?? "" }
@@ -45,6 +47,21 @@ struct AppSettings {
     static var showServerOnlyPhotos: Bool {
         get { UserDefaults.standard.bool(forKey: showServerOnlyPhotosKey) }
         set { UserDefaults.standard.set(newValue, forKey: showServerOnlyPhotosKey) }
+    }
+
+    /// Automatically cleanup synced photos from device
+    static var autoCleanupSyncedPhotos: Bool {
+        get { UserDefaults.standard.bool(forKey: autoCleanupSyncedPhotosKey) }
+        set { UserDefaults.standard.set(newValue, forKey: autoCleanupSyncedPhotosKey) }
+    }
+
+    /// Days to wait before auto-cleanup (default: 30)
+    static var autoCleanupAfterDays: Int {
+        get {
+            let days = UserDefaults.standard.integer(forKey: autoCleanupAfterDaysKey)
+            return days > 0 ? days : 30 // Default to 30 days
+        }
+        set { UserDefaults.standard.set(newValue, forKey: autoCleanupAfterDaysKey) }
     }
 
     static var deviceId: String? {

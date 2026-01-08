@@ -97,6 +97,36 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    Toggle(isOn: $viewModel.autoCleanupSyncedPhotos) {
+                        VStack(alignment: .leading) {
+                            Text("Auto-Cleanup Synced Photos")
+                            Text("Automatically remove photos from device after they're synced")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    if viewModel.autoCleanupSyncedPhotos {
+                        Stepper(value: $viewModel.autoCleanupAfterDays, in: 1...365, step: 1) {
+                            VStack(alignment: .leading) {
+                                Text("Keep Photos For")
+                                Text("\(viewModel.autoCleanupAfterDays) days after sync")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Photo Cleanup")
+                } footer: {
+                    if viewModel.autoCleanupSyncedPhotos {
+                        Text("Photos older than \(viewModel.autoCleanupAfterDays) days that are synced to the server will be automatically removed from your device. They'll be moved to Recently Deleted where they'll be permanently deleted after 30 days.")
+                    } else {
+                        Text("Enable to automatically free up space by removing synced photos from your device")
+                    }
+                }
+
                 Section("Display Settings") {
                     Toggle(isOn: $viewModel.showServerOnlyPhotos) {
                         VStack(alignment: .leading) {

@@ -13,7 +13,6 @@ class GalleryViewModel: ObservableObject {
     @Published var error: String?
     @Published var showUnsyncedOnly = true  // Default to showing unsynced photos first
     @Published var showIgnoredPhotos = false
-    @Published var showHiddenPhotos = false
     @Published var showServerOnlyPhotos = false
     @Published var enableDateFilter = false
     @Published var dateFilterStart = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
@@ -53,11 +52,6 @@ class GalleryViewModel: ObservableObject {
         // Filter unsynced only
         if showUnsyncedOnly {
             filtered = filtered.filter { $0.syncState != .synced }
-        }
-
-        // Filter hidden photos
-        if !showHiddenPhotos {
-            filtered = filtered.filter { !$0.photo.asset.isHidden }
         }
 
         // Filter by date range
@@ -404,7 +398,6 @@ class GalleryViewModel: ObservableObject {
     func resetFilters() {
         showUnsyncedOnly = true
         showIgnoredPhotos = false
-        showHiddenPhotos = false
         showServerOnlyPhotos = false
         enableDateFilter = false
         dateFilterStart = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()

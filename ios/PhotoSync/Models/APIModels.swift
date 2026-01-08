@@ -87,6 +87,22 @@ struct DeleteResponseRequest: Codable {
     let deviceId: String?
 }
 
+// MARK: - Invite Redemption
+
+/// Request to redeem an invite token
+struct RedeemInviteRequest: Codable {
+    let token: String
+    let deviceInfo: String?
+}
+
+/// Response from redeeming an invite token
+struct RedeemInviteResponse: Codable {
+    let serverUrl: String
+    let apiKey: String
+    let email: String
+    let userId: String
+}
+
 /// Sync progress tracking
 struct SyncProgress {
     let total: Int

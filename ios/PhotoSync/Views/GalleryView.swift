@@ -98,7 +98,16 @@ struct GalleryView: View {
                     photoToDelete = nil
                 }
             } message: {
-                Text("This photo will be moved to your Recently Deleted album where it will be permanently deleted after 30 days.")
+                if let photoId = photoToDelete,
+                   let photo = viewModel.photos.first(where: { $0.id == photoId }) {
+                    if photo.syncState == .synced {
+                        Text("This photo is safely backed up on your server. It will be moved to Recently Deleted and permanently removed after 30 days.")
+                    } else {
+                        Text("⚠️ WARNING: This photo has NOT been synced to your server yet. If you delete it now, it will be lost forever after 30 days in Recently Deleted. Consider syncing it first!")
+                    }
+                } else {
+                    Text("This photo will be moved to your Recently Deleted album where it will be permanently deleted after 30 days.")
+                }
             }
         }
         .task {

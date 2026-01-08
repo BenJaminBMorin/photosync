@@ -7,6 +7,11 @@ struct PhotoSyncApp: App {
 
     @State private var authRequestToShow: AuthRequest?
     @State private var deleteRequestToShow: DeleteRequest?
+    @State private var showInviteError: Bool = false
+    @State private var inviteErrorMessage: String = ""
+    @State private var isProcessingInvite: Bool = false
+    @State private var showInviteSuccess: Bool = false
+    @State private var inviteSuccessEmail: String = ""
 
     init() {
         // Perform one-time migrations (API key to Keychain)
@@ -121,6 +126,110 @@ struct PhotoSyncApp: App {
                         }
                     )
                 }
+                .onOpenURL { url in
+                    Task {
+                        await handleDeepLink(url)
+                    }
+                }
+                .alert("Invite Error", isPresented: $showInviteError) {
+                    Button("OK", role: .cancel) {
+                        showInviteError = false
+                        inviteErrorMessage = ""
+                    }
+                } message: {
+                    Text(inviteErrorMessage)
+                }
+                .alert("Welcome to PhotoSync!", isPresented: $showInviteSuccess) {
+                    Button("Get Started", role: .none) {
+                        showInviteSuccess = false
+                        inviteSuccessEmail = ""
+                    }
+                } message: {
+                    Text("Your account (\(inviteSuccessEmail)) has been configured. You can now start syncing photos to your server.")
+                }
+                .overlay {
+                    if isProcessingInvite {
+                        ZStack {
+                            Color.black.opacity(0.4)
+                                .ignoresSafeArea()
+
+                            VStack(spacing: 16) {
+                                ProgressView()
+                                    .scaleEffect(1.5)
+                                    .tint(.white)
+
+                                Text("Setting up your account...")
+                                    .foregroundColor(.white)
+                                    .font(.headline)
+                            }
+                            .padding(32)
+                            .background(Color.black.opacity(0.8))
+                            .cornerRadius(16)
+                        }
+                    }
+                }
+        }
+    }
+
+    /// Handle deep link URLs (photosync://invite?token=...)
+    private func handleDeepLink(_ url: URL) async {
+        await Logger.shared.info("Received deep link: \(url.absoluteString)")
+
+        // Check if this is an invite link
+        guard url.scheme == "photosync",
+              url.host == "invite" else {
+            await Logger.shared.warning("Unknown deep link scheme/host: \(url.absoluteString)")
+            return
+        }
+
+        // Extract token parameter
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems,
+              let tokenItem = queryItems.first(where: { $0.name == "token" }),
+              let token = tokenItem.value else {
+            await Logger.shared.error("Invite link missing token parameter")
+            await MainActor.run {
+                inviteErrorMessage = "Invalid invite link - missing token"
+                showInviteError = true
+            }
+            return
+        }
+
+        await Logger.shared.info("Extracted invite token (length: \(token.count))")
+
+        // Set processing flag
+        await MainActor.run {
+            isProcessingInvite = true
+        }
+
+        do {
+            // Redeem the invite token
+            let response = try await InviteService.shared.redeemInvite(token: token)
+
+            await Logger.shared.info("Invite redeemed successfully for: \(response.email)")
+
+            // Success - credentials are already saved by InviteService
+            // Show success message
+            await MainActor.run {
+                isProcessingInvite = false
+                inviteSuccessEmail = response.email
+                showInviteSuccess = true
+            }
+
+        } catch let error as InviteError {
+            await Logger.shared.error("Invite redemption failed: \(error.localizedDescription)")
+            await MainActor.run {
+                isProcessingInvite = false
+                inviteErrorMessage = error.localizedDescription ?? "Failed to redeem invite"
+                showInviteError = true
+            }
+        } catch {
+            await Logger.shared.error("Unexpected error redeeming invite: \(error)")
+            await MainActor.run {
+                isProcessingInvite = false
+                inviteErrorMessage = "An unexpected error occurred"
+                showInviteError = true
+            }
         }
     }
 }

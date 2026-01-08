@@ -2,7 +2,10 @@ package models
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,7 +14,9 @@ import (
 // InviteToken represents a one-time user invitation token
 type InviteToken struct {
 	ID             string     `json:"id"`
-	Token          string     `json:"token"` // Plaintext token for URL (secure random)
+	Token          string     `json:"token"`          // Base64-encoded token with embedded server URL
+	TokenHash      string     `json:"-"`              // Hash of the random part (never exposed)
+	ServerURL      string     `json:"serverUrl"`      // Server URL decoded from token
 	UserID         string     `json:"userId"`
 	Email          string     `json:"email"`
 	CreatedBy      string     `json:"createdBy"`
@@ -23,22 +28,32 @@ type InviteToken struct {
 	UsedFromDevice string     `json:"usedFromDevice,omitempty"`
 }
 
-// NewInviteToken creates a 48-hour invitation token
-// Returns the token object with embedded plaintext token
-func NewInviteToken(userID, email, createdBy string) (*InviteToken, error) {
-	// Generate 32 random bytes for the token
+// NewInviteToken creates a 48-hour invitation token with embedded server URL
+// Token format: base64(random_hex + "|" + server_url)
+// Returns the token object with the encoded token
+func NewInviteToken(userID, email, createdBy, serverURL string) (*InviteToken, error) {
+	// Generate 32 random bytes for the random part
 	tokenBytes := make([]byte, 32)
 	if _, err := rand.Read(tokenBytes); err != nil {
 		return nil, err
 	}
 
-	// Create URL-safe token
-	plainToken := hex.EncodeToString(tokenBytes)
+	// Create random hex token
+	randomToken := hex.EncodeToString(tokenBytes)
+
+	// Encode: random_token|server_url
+	payload := fmt.Sprintf("%s|%s", randomToken, serverURL)
+	encodedToken := base64.URLEncoding.EncodeToString([]byte(payload))
+
+	// Hash the random part for database lookup
+	tokenHash := HashAPIKey(randomToken)
 
 	now := time.Now().UTC()
 	return &InviteToken{
 		ID:        uuid.New().String(),
-		Token:     plainToken,
+		Token:     encodedToken,
+		TokenHash: tokenHash,
+		ServerURL: serverURL,
 		UserID:    userID,
 		Email:     email,
 		CreatedBy: createdBy,
@@ -46,6 +61,23 @@ func NewInviteToken(userID, email, createdBy string) (*InviteToken, error) {
 		ExpiresAt: now.Add(48 * time.Hour),
 		Used:      false,
 	}, nil
+}
+
+// DecodeInviteToken decodes a base64 invite token and returns the random token and server URL
+func DecodeInviteToken(encodedToken string) (randomToken, serverURL string, err error) {
+	// Decode base64
+	decoded, err := base64.URLEncoding.DecodeString(encodedToken)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid token format: %w", err)
+	}
+
+	// Split on "|"
+	parts := strings.SplitN(string(decoded), "|", 2)
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid token structure")
+	}
+
+	return parts[0], parts[1], nil
 }
 
 // IsExpired checks if the invite token has expired

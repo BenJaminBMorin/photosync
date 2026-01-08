@@ -17,6 +17,12 @@ class SettingsViewModel: ObservableObject {
     @Published var showServerOnlyPhotos: Bool {
         didSet { AppSettings.showServerOnlyPhotos = showServerOnlyPhotos }
     }
+    @Published var autoCleanupSyncedPhotos: Bool {
+        didSet { AppSettings.autoCleanupSyncedPhotos = autoCleanupSyncedPhotos }
+    }
+    @Published var autoCleanupAfterDays: Int {
+        didSet { AppSettings.autoCleanupAfterDays = autoCleanupAfterDays }
+    }
     @Published var isTesting = false
     @Published var testResult: TestResult?
     @Published var isResyncing = false
@@ -41,6 +47,8 @@ class SettingsViewModel: ObservableObject {
         self.wifiOnly = AppSettings.wifiOnly
         self.autoSync = AppSettings.autoSync
         self.showServerOnlyPhotos = AppSettings.showServerOnlyPhotos
+        self.autoCleanupSyncedPhotos = AppSettings.autoCleanupSyncedPhotos
+        self.autoCleanupAfterDays = AppSettings.autoCleanupAfterDays
     }
 
     var isConfigured: Bool {

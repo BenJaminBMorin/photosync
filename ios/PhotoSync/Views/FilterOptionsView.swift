@@ -16,10 +16,6 @@ struct FilterOptionsView: View {
                         Label("Show Ignored", systemImage: "eye.slash")
                     }
 
-                    Toggle(isOn: $viewModel.showHiddenPhotos) {
-                        Label("Show Hidden", systemImage: "eye.trianglebadge.exclamationmark")
-                    }
-
                     Toggle(isOn: $viewModel.showServerOnlyPhotos) {
                         Label("Show From Server", systemImage: "cloud")
                     }

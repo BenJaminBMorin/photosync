@@ -88,8 +88,8 @@ func (h *InviteHandler) HandleGenerateInvite(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Create invite token
-	invite, err := models.NewInviteToken(user.ID, user.Email, adminUser.ID)
+	// Create invite token with embedded server URL
+	invite, err := models.NewInviteToken(user.ID, user.Email, adminUser.ID, h.serverBaseURL)
 	if err != nil {
 		http.Error(w, "Failed to generate invite token", http.StatusInternalServerError)
 		return
@@ -101,8 +101,8 @@ func (h *InviteHandler) HandleGenerateInvite(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Generate deep link URL with both token and server
-	inviteURL := fmt.Sprintf("photosync://invite?token=%s&server=%s", invite.Token, h.serverBaseURL)
+	// Generate clean deep link URL (server URL is embedded in base64 token)
+	inviteURL := fmt.Sprintf("photosync://invite?token=%s", invite.Token)
 
 	// Send email with invite link (using SMTP service if configured)
 	if h.smtpService != nil {
@@ -136,8 +136,18 @@ func (h *InviteHandler) HandleRedeemInvite(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Get invite token
-	invite, err := h.inviteRepo.GetByToken(r.Context(), req.Token)
+	// Decode the base64 token to extract random token and server URL
+	randomToken, serverURL, err := models.DecodeInviteToken(req.Token)
+	if err != nil {
+		http.Error(w, "Invalid token format", http.StatusBadRequest)
+		return
+	}
+
+	// Hash the random part for database lookup
+	tokenHash := models.HashAPIKey(randomToken)
+
+	// Get invite token by hash
+	invite, err := h.inviteRepo.GetByTokenHash(r.Context(), tokenHash)
 	if err != nil {
 		http.Error(w, "Failed to retrieve invite", http.StatusInternalServerError)
 		return
@@ -178,9 +188,9 @@ func (h *InviteHandler) HandleRedeemInvite(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Return user credentials
+	// Return user credentials with decoded server URL
 	response := RedeemInviteResponse{
-		ServerURL: h.serverBaseURL,
+		ServerURL: serverURL, // From decoded token
 		APIKey:    user.APIKey,
 		Email:     user.Email,
 		UserID:    user.ID,
