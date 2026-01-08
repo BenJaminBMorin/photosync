@@ -29,7 +29,7 @@ platform :ios do
     build_app(
       scheme: "PhotoSync",
       export_method: "app-store",
-      codesign_identity: cert_identity,
+      codesigning_identity: cert_identity,
       export_options: {
         provisioningProfiles: {
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
