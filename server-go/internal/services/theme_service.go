@@ -135,8 +135,10 @@ func generateCSSFromTheme(theme *models.Theme) string {
 	css.WriteString(fmt.Sprintf("  --bg-tertiary: %s;\n", p.Colors.Backgrounds.Tertiary))
 	css.WriteString(fmt.Sprintf("  --bg-elevated: %s;\n", p.Colors.Backgrounds.Elevated))
 	css.WriteString(fmt.Sprintf("  --bg-overlay: %s;\n", p.Colors.Backgrounds.Overlay))
-	// Add hover variant for tertiary
-	css.WriteString("  --bg-tertiary-hover: rgba(71, 85, 105, 0.8);\n")
+	// Use elevated as hover variant for tertiary (works for both light and dark themes)
+	css.WriteString(fmt.Sprintf("  --bg-tertiary-hover: %s;\n", p.Colors.Backgrounds.Elevated))
+	// Add semi-transparent secondary for dropdowns/overlays
+	css.WriteString(fmt.Sprintf("  --bg-secondary-alpha: %s;\n", p.Colors.Backgrounds.Overlay))
 
 	// Text colors
 	css.WriteString(fmt.Sprintf("  --text-primary: %s;\n", p.Colors.Text.Primary))

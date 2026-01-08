@@ -575,39 +575,44 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .selection-btn.primary {
-            background: var(--accent-primary);
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .selection-btn.primary:hover {
-            background: var(--accent-hover, #5a67d8);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .selection-btn.secondary {
             background: var(--bg-tertiary);
-            color: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
         }
 
         .selection-btn.secondary:hover {
-            background: var(--bg-tertiary-hover, #475569);
+            background: var(--bg-tertiary-hover);
+            border-color: var(--border-color-hover);
         }
 
         .selection-btn.danger {
-            background: var(--semantic-error, #ef4444);
+            background: var(--color-error, var(--semantic-error, #ef4444));
             color: white;
         }
 
         .selection-btn.danger:hover {
-            background: var(--semantic-error-dark, #dc2626);
+            background: var(--color-error-dark, #dc2626);
         }
 
         .selection-btn.danger:disabled {
-            background: var(--bg-muted, #6b7280);
+            background: var(--text-muted);
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         /* Bulk Delete Modal */
