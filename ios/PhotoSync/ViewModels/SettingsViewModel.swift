@@ -27,6 +27,8 @@ class SettingsViewModel: ObservableObject {
     @Published var testResult: TestResult?
     @Published var isResyncing = false
     @Published var resyncResult: ResyncResult?
+    @Published var syncStatus: SyncStatusResponse?
+    @Published var isClaiming = false
 
     enum TestResult {
         case success
@@ -80,9 +82,18 @@ class SettingsViewModel: ObservableObject {
         resyncResult = nil
 
         do {
+            // Fetch sync status first
+            if let deviceId = AppSettings.deviceId {
+                syncStatus = try? await APIService.shared.getSyncStatus(deviceId: deviceId)
+            }
+
             try await autoSyncManager.resyncFromServer()
-            // Count how many photos are now marked as synced
-            // This is a rough estimate since we don't track the count from resync
+
+            // Refresh sync status after resync
+            if let deviceId = AppSettings.deviceId {
+                syncStatus = try? await APIService.shared.getSyncStatus(deviceId: deviceId)
+            }
+
             resyncResult = .success(0)
         } catch {
             resyncResult = .failure(error.localizedDescription)
@@ -93,5 +104,25 @@ class SettingsViewModel: ObservableObject {
 
     func clearResyncResult() {
         resyncResult = nil
+    }
+
+    func claimLegacyPhotos() async {
+        guard let deviceId = AppSettings.deviceId else { return }
+
+        isClaiming = true
+
+        do {
+            let result = try await APIService.shared.claimLegacyPhotos(deviceId: deviceId, claimAll: true)
+
+            // Refresh sync status
+            syncStatus = try? await APIService.shared.getSyncStatus(deviceId: deviceId)
+
+            // Trigger a resync to update local state
+            try? await autoSyncManager.resyncFromServer()
+        } catch {
+            // Handle error silently or show alert
+        }
+
+        isClaiming = false
     }
 }

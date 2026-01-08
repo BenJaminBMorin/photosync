@@ -195,81 +195,107 @@ class AutoSyncManager: ObservableObject {
 
     /// Resync the local database from the server
     /// This fetches all photos on the server and marks matching local photos as synced
+    /// Re-sync from server using cursor-based pagination
     func resyncFromServer() async throws {
-        await Logger.shared.info("Starting database resync from server")
+        await Logger.shared.info("Starting resync from server with cursor-based pagination...")
 
         guard AppSettings.isConfigured else {
             throw AutoSyncError.notConfigured
         }
 
-        // Fetch all local photos
-        let assets = await photoLibrary.fetchAllPhotos()
-        await Logger.shared.info("Found \(assets.count) local photos")
-
-        // Compute hashes for all local photos
-        var localHashes: [String: String] = [:] // hash -> localIdentifier
-        for asset in assets {
-            do {
-                let imageData = try await photoLibrary.getImageData(for: asset)
-                let hash = HashService.sha256(imageData)
-                localHashes[hash] = asset.localIdentifier
-            } catch {
-                await Logger.shared.warning("Failed to compute hash for asset: \(error)")
-            }
+        guard let deviceId = AppSettings.deviceId else {
+            await Logger.shared.error("Cannot resync: device not registered")
+            throw AutoSyncError.notConfigured
         }
 
-        await Logger.shared.info("Computed \(localHashes.count) hashes")
+        // Step 1: Check if there are legacy photos to claim
+        let status = try await APIService.shared.getSyncStatus(deviceId: deviceId)
+        await Logger.shared.info("Sync status: \(status.totalPhotos) total, \(status.devicePhotos) from this device, \(status.legacyPhotos) legacy")
 
-        // Fetch all photos from server in batches
+        if status.needsLegacyClaim && status.legacyPhotos > 0 {
+            await Logger.shared.info("Found \(status.legacyPhotos) legacy photos - claiming for this device...")
+            let claimResult = try await APIService.shared.claimLegacyPhotos(deviceId: deviceId, claimAll: true)
+            await Logger.shared.info("Claimed \(claimResult.claimed) legacy photos")
+        }
+
+        // Step 2: Fetch all server photos using cursor pagination
         var allServerHashes: Set<String> = []
-        var skip = 0
-        let take = 100
-        var hasMore = true
+        var cursor: String? = nil
+        var pageCount = 0
 
-        while hasMore {
-            let response = try await APIService.shared.listPhotos(skip: skip, take: take)
+        repeat {
+            let request = SyncPhotosRequest(
+                deviceId: deviceId,
+                cursor: cursor,
+                limit: 100,
+                includeThumbnailUrls: false,
+                sinceTimestamp: nil
+            )
+
+            let response = try await APIService.shared.syncPhotos(request: request)
 
             for photo in response.photos {
-                if let hash = photo.hash {
-                    allServerHashes.insert(hash)
-                }
+                allServerHashes.insert(photo.fileHash)
             }
 
-            hasMore = response.photos.count == take
-            skip += take
+            pageCount += 1
+            cursor = response.pagination.cursor
 
-            await Logger.shared.info("Fetched \(response.photos.count) photos from server (total: \(allServerHashes.count))")
-        }
+            await Logger.shared.info("Fetched page \(pageCount): \(response.photos.count) photos (total: \(allServerHashes.count))")
 
-        await Logger.shared.info("Found \(allServerHashes.count) photos on server")
+        } while cursor != nil
 
-        // Mark matching photos as synced
-        var markedCount = 0
-        for (hash, localIdentifier) in localHashes {
-            if allServerHashes.contains(hash) {
-                // Check if already marked as synced
-                if !SyncedPhotoEntity.isSynced(localIdentifier: localIdentifier, context: context) {
-                    _ = SyncedPhotoEntity.create(
-                        context: context,
-                        localIdentifier: localIdentifier,
-                        serverPhotoId: hash, // Use hash as placeholder ID
-                        displayName: "",
-                        dateTaken: Date()
-                    )
-                    markedCount += 1
+        await Logger.shared.info("Fetched \(allServerHashes.count) photo hashes from server")
+
+        // Step 3: Compare with local Core Data sync state
+        let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
+        await Logger.shared.info("Found \(syncedIds.count) synced photos in local database")
+
+        // Step 4: Fetch all local photos and build hash map
+        let assets = await photoLibrary.fetchAllPhotos()
+        await Logger.shared.info("Found \(assets.count) photos in local library")
+
+        var localHashMap: [String: PHAsset] = [:]
+        for asset in assets {
+            // Only compute hash for photos not yet synced
+            let localId = asset.localIdentifier
+            if !syncedIds.contains(localId) {
+                if let imageData = try? await photoLibrary.getImageData(for: asset) {
+                    let hash = HashService.sha256(imageData)
+                    localHashMap[hash] = asset
                 }
             }
         }
 
-        // Save changes
-        if markedCount > 0 {
+        await Logger.shared.info("Computed hashes for \(localHashMap.count) unsynced local photos")
+
+        // Step 5: Find photos on server that exist locally but aren't marked as synced
+        var addedCount = 0
+        for serverHash in allServerHashes {
+            if let asset = localHashMap[serverHash] {
+                // Photo exists locally and on server, but not in sync state - add it
+                let localId = asset.localIdentifier
+                let displayName = asset.fileName ?? "Unknown"
+                let dateTaken = asset.creationDate ?? Date()
+
+                _ = SyncedPhotoEntity.create(
+                    context: context,
+                    localIdentifier: localId,
+                    serverPhotoId: serverHash,  // Use hash as temporary ID
+                    displayName: displayName,
+                    dateTaken: dateTaken
+                )
+
+                addedCount += 1
+            }
+        }
+
+        await Logger.shared.info("Resync complete: Added \(addedCount) photos to sync state")
+
+        // Save changes and notify UI
+        if addedCount > 0 {
             try context.save()
-            await Logger.shared.info("Marked \(markedCount) photos as synced")
-
-            // Notify UI to refresh
             NotificationCenter.default.post(name: .collectionDidChange, object: nil)
-        } else {
-            await Logger.shared.info("No new photos to mark as synced")
         }
     }
 

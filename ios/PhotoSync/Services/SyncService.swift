@@ -36,10 +36,15 @@ actor SyncService {
 
             do {
                 let imageData = try await photoLibrary.getImageData(for: photo.asset)
+
+                // Get device ID from settings
+                let deviceId = AppSettings.deviceId
+
                 let response = try await api.uploadPhoto(
                     imageData: imageData,
                     filename: filename,
-                    dateTaken: photo.creationDate
+                    dateTaken: photo.creationDate,
+                    deviceId: deviceId
                 )
 
                 // Save to Core Data

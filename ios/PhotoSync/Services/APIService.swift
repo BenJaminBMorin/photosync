@@ -34,7 +34,8 @@ actor APIService {
     func uploadPhoto(
         imageData: Data,
         filename: String,
-        dateTaken: Date
+        dateTaken: Date,
+        deviceId: String? = nil
     ) async throws -> UploadResponse {
         let url = try buildURL(path: "/api/photos/upload")
         var request = URLRequest(url: url)
@@ -64,6 +65,13 @@ actor APIService {
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"dateTaken\"\r\n\r\n".data(using: .utf8)!)
         body.append("\(dateString)\r\n".data(using: .utf8)!)
+
+        // Add deviceId if provided
+        if let deviceId = deviceId {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"deviceId\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(deviceId)\r\n".data(using: .utf8)!)
+        }
 
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
@@ -230,6 +238,74 @@ actor APIService {
         }
         return url
     }
+
+    // MARK: - Sync Endpoints
+
+    func getSyncStatus(deviceId: String?) async throws -> SyncStatusResponse {
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/sync/status"))
+        addAPIKeyHeader(to: &request)
+
+        if let deviceId = deviceId {
+            request.setValue(deviceId, forHTTPHeaderField: "X-Device-ID")
+        }
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SyncStatusResponse.self, from: data)
+    }
+
+    func syncPhotos(request: SyncPhotosRequest) async throws -> SyncPhotosResponse {
+        var urlRequest = URLRequest(url: baseURL.appendingPathComponent("api/sync/photos"))
+        urlRequest.httpMethod = "POST"
+        addAPIKeyHeader(to: &urlRequest)
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        urlRequest.httpBody = try encoder.encode(request)
+
+        let (data, response) = try await session.data(for: urlRequest)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SyncPhotosResponse.self, from: data)
+    }
+
+    func getLegacyPhotos(limit: Int = 100) async throws -> LegacyPhotosResponse {
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/sync/legacy-photos"), resolvingAgainstBaseURL: false)!
+        components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
+
+        var request = URLRequest(url: components.url!)
+        addAPIKeyHeader(to: &request)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(LegacyPhotosResponse.self, from: data)
+    }
+
+    func claimLegacyPhotos(deviceId: String, claimAll: Bool = true, photoIds: [String]? = nil) async throws -> ClaimLegacyResponse {
+        var urlRequest = URLRequest(url: baseURL.appendingPathComponent("api/sync/claim-legacy"))
+        urlRequest.httpMethod = "POST"
+        addAPIKeyHeader(to: &urlRequest)
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let request = ClaimLegacyRequest(deviceId: deviceId, claimAll: claimAll, photoIds: photoIds)
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let (data, response) = try await session.data(for: urlRequest)
+        try validateResponse(response)
+
+        return try JSONDecoder().decode(ClaimLegacyResponse.self, from: data)
+    }
+
+    // MARK: - Helper Methods
 
     private func addAPIKeyHeader(to request: inout URLRequest) {
         let apiKey = AppSettings.apiKey

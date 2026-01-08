@@ -95,6 +95,51 @@ struct SettingsView: View {
                     if let result = viewModel.resyncResult {
                         resyncResultView(result)
                     }
+
+                    // Show sync status if available
+                    if let syncStatus = viewModel.syncStatus {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.blue)
+                                Text("Sync Status")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Text("\(syncStatus.totalPhotos) photos on server")
+                                .font(.caption2)
+                            Text("\(syncStatus.devicePhotos) from this device")
+                                .font(.caption2)
+
+                            if syncStatus.legacyPhotos > 0 {
+                                Text("\(syncStatus.legacyPhotos) legacy photos")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    // Legacy photo claiming UI
+                    if let syncStatus = viewModel.syncStatus, syncStatus.needsLegacyClaim {
+                        Button {
+                            Task {
+                                await viewModel.claimLegacyPhotos()
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down.on.square")
+                                Text("Claim \(syncStatus.legacyPhotos) Legacy Photos")
+                                Spacer()
+                                if viewModel.isClaiming {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                }
+                            }
+                        }
+                        .disabled(viewModel.isClaiming)
+                    }
                 }
 
                 Section {

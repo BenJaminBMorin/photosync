@@ -120,3 +120,78 @@ struct SyncProgress {
         completed + failed >= total
     }
 }
+
+// MARK: - Sync Models
+
+struct SyncStatusResponse: Codable {
+    let totalPhotos: Int
+    let devicePhotos: Int
+    let otherDevicePhotos: Int
+    let legacyPhotos: Int
+    let lastSyncAt: Date?
+    let serverVersion: Int
+    let needsLegacyClaim: Bool
+}
+
+struct SyncPhotosRequest: Codable {
+    let deviceId: String
+    let cursor: String?
+    let limit: Int
+    let includeThumbnailUrls: Bool
+    let sinceTimestamp: Date?
+}
+
+struct SyncPhotosResponse: Codable {
+    let photos: [SyncPhotoItem]
+    let pagination: PaginationInfo
+    let sync: SyncInfo
+}
+
+struct SyncPhotoItem: Codable {
+    let id: String
+    let fileHash: String
+    let originalFilename: String
+    let fileSize: Int64
+    let dateTaken: Date
+    let uploadedAt: Date
+    let originDevice: OriginDeviceInfo?
+    let thumbnailUrl: String?
+    let width: Int?
+    let height: Int?
+}
+
+struct OriginDeviceInfo: Codable {
+    let id: String
+    let name: String
+    let platform: String
+    let isCurrentDevice: Bool
+}
+
+struct PaginationInfo: Codable {
+    let cursor: String?
+    let hasMore: Bool
+}
+
+struct SyncInfo: Codable {
+    let totalCount: Int
+    let returnedCount: Int
+    let serverVersion: Int
+}
+
+struct LegacyPhotosResponse: Codable {
+    let photos: [SyncPhotoItem]
+    let totalCount: Int
+    let message: String
+}
+
+struct ClaimLegacyRequest: Codable {
+    let deviceId: String
+    let claimAll: Bool
+    let photoIds: [String]?
+}
+
+struct ClaimLegacyResponse: Codable {
+    let claimed: Int
+    let alreadyClaimed: Int
+    let failed: Int
+}
