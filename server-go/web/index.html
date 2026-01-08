@@ -2662,12 +2662,8 @@
             initTheme();
             loadAppInfo();
 
-            document.querySelectorAll('.theme-option').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    setTheme(this.dataset.theme);
-                });
-            });
+            // Theme buttons are dynamically created with onclick handlers
+            // No need to add event listeners here
         });
 
         function toggleSelectMode() {
