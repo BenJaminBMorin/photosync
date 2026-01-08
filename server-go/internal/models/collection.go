@@ -31,6 +31,14 @@ const (
 	ThemeMagazine CollectionTheme = "magazine"
 )
 
+// ThemeSource indicates how a collection gets its theme
+type ThemeSource string
+
+const (
+	ThemeSourceInherit  ThemeSource = "inherit"  // Inherit from user's global theme
+	ThemeSourceExplicit ThemeSource = "explicit" // Use collection's specific theme
+)
+
 // IsValidVisibility checks if a visibility value is valid
 func IsValidVisibility(v string) bool {
 	switch CollectionVisibility(v) {
@@ -57,6 +65,7 @@ type Collection struct {
 	Description  *string              `json:"description,omitempty"`
 	Slug         string               `json:"slug"`
 	Theme        CollectionTheme      `json:"theme"`
+	ThemeSource  ThemeSource          `json:"themeSource"`
 	CustomCSS    *string              `json:"customCss,omitempty"`
 	Visibility   CollectionVisibility `json:"visibility"`
 	SecretToken  *string              `json:"secretToken,omitempty"`
@@ -82,14 +91,15 @@ func NewCollection(userID, name string) (*Collection, error) {
 	slug := GenerateSlug(name)
 
 	return &Collection{
-		ID:         uuid.New().String(),
-		UserID:     userID,
-		Name:       strings.TrimSpace(name),
-		Slug:       slug,
-		Theme:      ThemeDark,
-		Visibility: VisibilityPrivate,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		ID:          uuid.New().String(),
+		UserID:      userID,
+		Name:        strings.TrimSpace(name),
+		Slug:        slug,
+		Theme:       ThemeDark,
+		ThemeSource: ThemeSourceExplicit,
+		Visibility:  VisibilityPrivate,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}, nil
 }
 

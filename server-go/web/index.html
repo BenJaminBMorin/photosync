@@ -15,7 +15,8 @@
             padding: 0;
         }
 
-        /* Theme Variables - Default: Purple Night */
+        /* Theme CSS loaded dynamically from API */
+        /* Default fallback styles (will be replaced by actual theme) */
         :root {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
@@ -29,86 +30,6 @@
             --border-color-hover: rgba(100, 116, 139, 0.4);
             --shadow-color: rgba(0, 0, 0, 0.4);
             --overlay-bg: rgba(30, 41, 59, 0.98);
-        }
-
-        /* Theme: Ocean Breeze */
-        [data-theme="ocean"] {
-            --bg-primary: #0a1628;
-            --bg-secondary: #1a2942;
-            --bg-tertiary: #2a3f5f;
-            --accent-primary: #06b6d4;
-            --accent-secondary: #0891b2;
-            --text-primary: #ffffff;
-            --text-secondary: #e0f2fe;
-            --text-muted: #7dd3fc;
-            --border-color: rgba(6, 182, 212, 0.2);
-            --border-color-hover: rgba(6, 182, 212, 0.4);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-            --overlay-bg: rgba(26, 41, 66, 0.98);
-        }
-
-        /* Theme: Forest Green */
-        [data-theme="forest"] {
-            --bg-primary: #0c1e14;
-            --bg-secondary: #1a2f23;
-            --bg-tertiary: #2d4a3a;
-            --accent-primary: #10b981;
-            --accent-secondary: #059669;
-            --text-primary: #ffffff;
-            --text-secondary: #d1fae5;
-            --text-muted: #6ee7b7;
-            --border-color: rgba(16, 185, 129, 0.2);
-            --border-color-hover: rgba(16, 185, 129, 0.4);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-            --overlay-bg: rgba(26, 47, 35, 0.98);
-        }
-
-        /* Theme: Sunset Orange */
-        [data-theme="sunset"] {
-            --bg-primary: #1c0f0a;
-            --bg-secondary: #2d1810;
-            --bg-tertiary: #4a2818;
-            --accent-primary: #f97316;
-            --accent-secondary: #ea580c;
-            --text-primary: #ffffff;
-            --text-secondary: #fed7aa;
-            --text-muted: #fdba74;
-            --border-color: rgba(249, 115, 22, 0.2);
-            --border-color-hover: rgba(249, 115, 22, 0.4);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-            --overlay-bg: rgba(45, 24, 16, 0.98);
-        }
-
-        /* Theme: Rose Pink */
-        [data-theme="rose"] {
-            --bg-primary: #1f0a1a;
-            --bg-secondary: #2f1629;
-            --bg-tertiary: #4a253f;
-            --accent-primary: #f43f5e;
-            --accent-secondary: #e11d48;
-            --text-primary: #ffffff;
-            --text-secondary: #fecdd3;
-            --text-muted: #fb7185;
-            --border-color: rgba(244, 63, 94, 0.2);
-            --border-color-hover: rgba(244, 63, 94, 0.4);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-            --overlay-bg: rgba(47, 22, 41, 0.98);
-        }
-
-        /* Theme: Midnight Blue */
-        [data-theme="midnight"] {
-            --bg-primary: #050a15;
-            --bg-secondary: #0f1729;
-            --bg-tertiary: #1a2540;
-            --accent-primary: #3b82f6;
-            --accent-secondary: #2563eb;
-            --text-primary: #ffffff;
-            --text-secondary: #dbeafe;
-            --text-muted: #93c5fd;
-            --border-color: rgba(59, 130, 246, 0.2);
-            --border-color-hover: rgba(59, 130, 246, 0.4);
-            --shadow-color: rgba(0, 0, 0, 0.6);
-            --overlay-bg: rgba(15, 23, 41, 0.98);
         }
 
         body {
@@ -1591,25 +1512,8 @@
                             <span class="dropdown-item-icon">&#127912;</span>
                             <span>Theme</span>
                         </div>
-                        <div class="theme-options">
-                            <button class="theme-option" data-theme="default" title="Purple Night">
-                                <div class="theme-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-                            </button>
-                            <button class="theme-option" data-theme="ocean" title="Ocean Breeze">
-                                <div class="theme-preview" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);"></div>
-                            </button>
-                            <button class="theme-option" data-theme="forest" title="Forest Green">
-                                <div class="theme-preview" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
-                            </button>
-                            <button class="theme-option" data-theme="sunset" title="Sunset Orange">
-                                <div class="theme-preview" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);"></div>
-                            </button>
-                            <button class="theme-option" data-theme="rose" title="Rose Pink">
-                                <div class="theme-preview" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);"></div>
-                            </button>
-                            <button class="theme-option" data-theme="midnight" title="Midnight Blue">
-                                <div class="theme-preview" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);"></div>
-                            </button>
+                        <div class="theme-options" id="themeOptions">
+                            <!-- Themes loaded dynamically from API -->
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
@@ -2593,26 +2497,146 @@
             }
         });
 
-        // Theme switching
-        function setTheme(themeName) {
-            const html = document.documentElement;
-            if (themeName === 'default') {
-                html.removeAttribute('data-theme');
-            } else {
-                html.setAttribute('data-theme', themeName);
-            }
-            localStorage.setItem('photosync-theme', themeName);
+        // Theme state
+        let currentThemeId = null;
+        let availableThemes = [];
 
-            // Update active state on theme buttons
+        // Load and apply theme CSS from API
+        async function loadThemeCSS(themeId) {
+            try {
+                const response = await fetch(`/api/themes/${themeId}/css`);
+                if (!response.ok) {
+                    console.error('Failed to load theme CSS');
+                    return;
+                }
+
+                const css = await response.text();
+
+                // Remove old theme style if exists
+                const oldStyle = document.getElementById('dynamic-theme');
+                if (oldStyle) {
+                    oldStyle.remove();
+                }
+
+                // Inject new theme CSS
+                const style = document.createElement('style');
+                style.id = 'dynamic-theme';
+                style.textContent = css;
+                document.head.appendChild(style);
+
+                currentThemeId = themeId;
+            } catch (error) {
+                console.error('Error loading theme:', error);
+            }
+        }
+
+        // Load available themes from API
+        async function loadAvailableThemes() {
+            try {
+                const response = await fetch('/api/themes');
+                if (!response.ok) return;
+
+                availableThemes = await response.json();
+
+                // Populate theme selector
+                const container = document.getElementById('themeOptions');
+                if (!container) return;
+
+                // Clear existing themes
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+
+                // Add theme buttons
+                availableThemes.forEach(theme => {
+                    const button = document.createElement('button');
+                    button.className = 'theme-option';
+                    button.dataset.themeId = theme.id;
+                    button.title = theme.name;
+                    button.onclick = () => setTheme(theme.id);
+
+                    // Create preview square (use accent color if available)
+                    const preview = document.createElement('div');
+                    preview.className = 'theme-preview';
+                    preview.style.background = getThemePreviewGradient(theme.id);
+
+                    button.appendChild(preview);
+                    container.appendChild(button);
+                });
+
+                // Update active states
+                updateThemeActiveStates();
+            } catch (error) {
+                console.error('Error loading themes:', error);
+            }
+        }
+
+        // Get preview gradient for theme
+        function getThemePreviewGradient(themeId) {
+            const gradients = {
+                'dark': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'light': 'linear-gradient(135deg, #667eea 0%, #4f46e5 100%)',
+                'minimal': 'linear-gradient(135deg, #424242 0%, #616161 100%)',
+                'gallery': 'linear-gradient(135deg, #d4af37 0%, #c9a227 100%)',
+                'magazine': 'linear-gradient(135deg, #e63946 0%, #d62828 100%)'
+            };
+            return gradients[themeId] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }
+
+        // Set theme and save preference
+        async function setTheme(themeId) {
+            await loadThemeCSS(themeId);
+
+            // Save to user preferences
+            try {
+                await fetch('/api/users/me/preferences', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ globalThemeId: themeId })
+                });
+            } catch (error) {
+                console.error('Failed to save theme preference:', error);
+            }
+
+            updateThemeActiveStates();
+        }
+
+        // Update active states on theme buttons
+        function updateThemeActiveStates() {
             document.querySelectorAll('.theme-option').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === themeName);
+                btn.classList.toggle('active', btn.dataset.themeId === currentThemeId);
             });
         }
 
         // Initialize theme on page load
-        function initTheme() {
-            const savedTheme = localStorage.getItem('photosync-theme') || 'default';
-            setTheme(savedTheme);
+        async function initTheme() {
+            try {
+                // Load available themes first
+                await loadAvailableThemes();
+
+                // Try to load user's preference
+                const response = await fetch('/api/users/me/preferences', {
+                    credentials: 'include'
+                });
+
+                let themeId = 'dark'; // Default fallback
+
+                if (response.ok) {
+                    const prefs = await response.json();
+                    if (prefs.globalThemeId) {
+                        themeId = prefs.globalThemeId;
+                    }
+                }
+
+                // Load and apply the theme
+                await loadThemeCSS(themeId);
+                updateThemeActiveStates();
+            } catch (error) {
+                console.error('Error initializing theme:', error);
+                // Fallback to dark theme
+                await loadThemeCSS('dark');
+            }
         }
 
         // Load app info (app name, etc.)

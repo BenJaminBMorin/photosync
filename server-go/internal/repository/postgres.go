@@ -272,6 +272,29 @@ func createPostgresTables(db *sql.DB) error {
 
 	CREATE INDEX IF NOT EXISTS idx_collection_shares_collection_id ON collection_shares(collection_id);
 	CREATE INDEX IF NOT EXISTS idx_collection_shares_user_id ON collection_shares(user_id);
+
+	-- Themes table (comprehensive theme definitions)
+	CREATE TABLE IF NOT EXISTS themes (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		description TEXT,
+		is_system BOOLEAN NOT NULL DEFAULT FALSE,
+		created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+		properties JSONB NOT NULL,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_themes_system ON themes(is_system);
+	CREATE INDEX IF NOT EXISTS idx_themes_created_by ON themes(created_by);
+
+	-- User preferences table
+	CREATE TABLE IF NOT EXISTS user_preferences (
+		user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+		global_theme_id TEXT REFERENCES themes(id) ON DELETE SET NULL,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	);
 	`
 
 	_, err := db.Exec(schema)
@@ -324,6 +347,12 @@ func runPostgresMigrations(db *sql.DB) error {
 	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS idx_photos_location ON photos(latitude, longitude) WHERE latitude IS NOT NULL`)
 	if err != nil {
 		// Index might already exist with different definition, ignore
+	}
+
+	// Add theme_source column to collections table (for theme inheritance)
+	_, err = db.Exec(`ALTER TABLE collections ADD COLUMN IF NOT EXISTS theme_source TEXT NOT NULL DEFAULT 'explicit'`)
+	if err != nil {
+		return err
 	}
 
 	return nil

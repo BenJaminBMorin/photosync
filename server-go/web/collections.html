@@ -102,58 +102,62 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
+            font-size: var(--font-size-base, 16px);
+            line-height: var(--line-height-normal, 1.5);
         }
 
         .navbar {
             background: var(--bg-secondary);
-            padding: 12px 24px;
+            padding: var(--spacing-md, 12px) var(--spacing-lg, 24px);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 8px var(--shadow-color);
+            box-shadow: var(--shadow-md, 0 2px 8px rgba(0, 0, 0, 0.4));
         }
 
         .navbar-brand {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: var(--spacing-md, 16px);
         }
 
         .navbar-brand h1 {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: var(--font-size-xl, 20px);
+            font-weight: var(--font-weight-semibold, 600);
         }
 
         .back-btn {
             background: var(--bg-tertiary);
             color: var(--text-primary);
             border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: var(--spacing-sm, 8px) var(--spacing-md, 12px);
+            border-radius: var(--border-radius-md, 6px);
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-sm, 14px);
             text-decoration: none;
+            transition: var(--transition-normal, all 0.3s ease);
         }
 
         .back-btn:hover {
-            background: rgba(71, 85, 105, 0.8);
+            background: var(--bg-tertiary-hover, rgba(71, 85, 105, 0.8));
+            transform: var(--hover-scale, translateY(-1px));
         }
 
         .navbar-user {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: var(--spacing-md, 12px);
         }
 
         .user-name {
-            font-size: 14px;
+            font-size: var(--font-size-sm, 14px);
             color: var(--text-muted);
         }
 
@@ -161,76 +165,77 @@
             background: var(--bg-tertiary);
             color: var(--text-primary);
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+            border-radius: var(--border-radius-md, 6px);
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-sm, 14px);
+            transition: var(--transition-normal, all 0.3s ease);
         }
 
         .logout-btn:hover {
-            background: rgba(71, 85, 105, 0.8);
+            background: var(--bg-tertiary-hover, rgba(71, 85, 105, 0.8));
         }
 
         .container {
-            max-width: 1400px;
+            max-width: var(--max-width-container, 1400px);
             margin: 0 auto;
-            padding: 24px;
+            padding: var(--spacing-lg, 24px);
         }
 
         .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: var(--spacing-lg, 24px);
         }
 
         .page-title {
-            font-size: 28px;
-            font-weight: 600;
+            font-size: var(--font-size-3xl, 28px);
+            font-weight: var(--font-weight-semibold, 600);
         }
 
         .create-btn {
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: var(--spacing-md, 12px) var(--spacing-lg, 24px);
+            border-radius: var(--border-radius-lg, 8px);
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s;
+            font-size: var(--font-size-base, 16px);
+            font-weight: var(--font-weight-medium, 500);
+            transition: var(--transition-normal, all 0.3s ease);
         }
 
         .create-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: var(--hover-scale, translateY(-2px));
+            box-shadow: var(--shadow-lg, 0 4px 12px rgba(102, 126, 234, 0.4));
         }
 
         .section-title {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 16px;
+            font-size: var(--font-size-lg, 18px);
+            font-weight: var(--font-weight-medium, 500);
+            margin-bottom: var(--spacing-md, 16px);
             color: var(--text-muted);
         }
 
         .collections-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(var(--grid-cols-min, 300px), 1fr));
+            gap: var(--grid-gap, 20px);
+            margin-bottom: var(--spacing-2xl, 40px);
         }
 
         .collection-card {
             background: var(--bg-secondary);
-            border-radius: 12px;
+            border-radius: var(--border-radius-xl, 12px);
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: var(--transition-normal, all 0.3s ease);
         }
 
         .collection-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 40px var(--shadow-color);
+            transform: var(--hover-scale, translateY(-4px));
+            box-shadow: var(--shadow-xl, 0 10px 40px rgba(0, 0, 0, 0.4));
         }
 
         .collection-cover {
@@ -255,30 +260,30 @@
         }
 
         .collection-info {
-            padding: 16px;
+            padding: var(--spacing-md, 16px);
         }
 
         .collection-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: var(--font-size-lg, 18px);
+            font-weight: var(--font-weight-semibold, 600);
+            margin-bottom: var(--spacing-sm, 8px);
         }
 
         .collection-meta {
             display: flex;
-            gap: 16px;
+            gap: var(--spacing-md, 16px);
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: var(--font-size-sm, 14px);
         }
 
         .collection-visibility {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
+            gap: var(--spacing-xs, 4px);
+            padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
             background: var(--bg-tertiary);
-            border-radius: 4px;
-            font-size: 12px;
+            border-radius: var(--border-radius-sm, 4px);
+            font-size: var(--font-size-xs, 12px);
             text-transform: uppercase;
         }
 
@@ -320,15 +325,15 @@
 
         .modal {
             background: var(--bg-secondary);
-            border-radius: 16px;
+            border-radius: var(--border-radius-2xl, 16px);
             width: 100%;
-            max-width: 600px;
+            max-width: var(--max-width-modal, 600px);
             max-height: 90vh;
             overflow-y: auto;
         }
 
         .modal-header {
-            padding: 20px 24px;
+            padding: var(--spacing-lg, 20px) var(--spacing-lg, 24px);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -336,99 +341,114 @@
         }
 
         .modal-title {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: var(--font-size-xl, 20px);
+            font-weight: var(--font-weight-semibold, 600);
         }
 
         .modal-close {
             background: none;
             border: none;
             color: var(--text-muted);
-            font-size: 24px;
+            font-size: var(--font-size-2xl, 24px);
             cursor: pointer;
+            transition: var(--transition-fast, all 0.15s ease);
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
         }
 
         .modal-body {
-            padding: 24px;
+            padding: var(--spacing-lg, 24px);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--spacing-lg, 20px);
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: var(--spacing-sm, 8px);
+            font-size: var(--font-size-sm, 14px);
             color: var(--text-muted);
+            font-weight: var(--font-weight-medium, 500);
         }
 
         .form-input, .form-select, .form-textarea {
             width: 100%;
-            padding: 12px;
+            padding: var(--spacing-md, 12px);
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--border-radius-lg, 8px);
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: var(--font-size-sm, 14px);
+            font-family: var(--font-family-base, inherit);
+            transition: var(--transition-fast, all 0.15s ease);
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
             border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--border-focus, rgba(102, 126, 234, 0.1));
         }
 
         .form-textarea {
             min-height: 100px;
             resize: vertical;
+            line-height: var(--line-height-relaxed, 1.75);
         }
 
         .theme-selector {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
+            gap: var(--spacing-sm, 8px);
         }
 
         .theme-option {
-            padding: 8px;
+            padding: var(--spacing-sm, 8px);
             border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--border-radius-lg, 8px);
             cursor: pointer;
             text-align: center;
-            transition: border-color 0.2s;
+            transition: var(--transition-fast, all 0.15s ease);
+        }
+
+        .theme-option:hover {
+            border-color: var(--border-color-hover, rgba(100, 116, 139, 0.4));
         }
 
         .theme-option.selected {
             border-color: var(--accent-primary);
+            box-shadow: 0 0 0 1px var(--accent-primary);
         }
 
         .theme-preview {
             height: 40px;
-            border-radius: 4px;
-            margin-bottom: 8px;
+            border-radius: var(--border-radius-sm, 4px);
+            margin-bottom: var(--spacing-sm, 8px);
         }
 
         .theme-name {
-            font-size: 12px;
+            font-size: var(--font-size-xs, 12px);
             color: var(--text-muted);
         }
 
         .modal-footer {
-            padding: 16px 24px;
+            padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
             border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: flex-end;
-            gap: 12px;
+            gap: var(--spacing-md, 12px);
         }
 
         .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: var(--spacing-sm, 10px) var(--spacing-lg, 20px);
+            border-radius: var(--border-radius-lg, 8px);
+            font-size: var(--font-size-sm, 14px);
             cursor: pointer;
             border: none;
-            font-weight: 500;
-            transition: all 0.3s;
+            font-weight: var(--font-weight-medium, 500);
+            transition: var(--transition-normal, all 0.3s ease);
         }
 
         .btn-secondary {
@@ -437,7 +457,7 @@
         }
 
         .btn-secondary:hover {
-            background: rgba(71, 85, 105, 0.8);
+            background: var(--bg-tertiary-hover, rgba(71, 85, 105, 0.8));
         }
 
         .btn-primary {
@@ -446,17 +466,17 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: var(--hover-scale, translateY(-1px));
+            box-shadow: var(--shadow-lg, 0 4px 12px rgba(102, 126, 234, 0.4));
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: var(--color-error, #ef4444);
             color: white;
         }
 
         .btn-danger:hover {
-            background: #dc2626;
+            background: var(--color-error-dark, #dc2626);
         }
 
         /* Collection Detail View */
@@ -478,19 +498,20 @@
         }
 
         .detail-title {
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: var(--font-size-4xl, 32px);
+            font-weight: var(--font-weight-semibold, 600);
+            margin-bottom: var(--spacing-sm, 8px);
         }
 
         .detail-description {
             color: var(--text-muted);
-            margin-bottom: 16px;
+            margin-bottom: var(--spacing-md, 16px);
+            line-height: var(--line-height-relaxed, 1.75);
         }
 
         .detail-actions {
             display: flex;
-            gap: 12px;
+            gap: var(--spacing-md, 12px);
         }
 
         .share-info {
@@ -538,17 +559,22 @@
 
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(var(--grid-cols-min, 180px), 1fr));
+            gap: var(--grid-gap, 8px);
         }
 
         .photo-item {
-            aspect-ratio: 1;
-            background: #1e293b;
-            border-radius: 8px;
+            aspect-ratio: var(--grid-card-aspect-ratio, 1);
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-lg, 8px);
             overflow: hidden;
             position: relative;
             cursor: pointer;
+            transition: var(--transition-normal, all 0.3s ease);
+        }
+
+        .photo-item:hover {
+            transform: var(--hover-scale, scale(1.02));
         }
 
         .photo-item img {
@@ -761,7 +787,11 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Theme</label>
-                    <div class="theme-selector" id="themeSelector"></div>
+                    <select id="themeSource" class="form-select" onchange="toggleThemeSelector()" style="margin-bottom: 12px;">
+                        <option value="inherit">Use my default theme (inherits from your global preference)</option>
+                        <option value="explicit">Custom theme for this collection</option>
+                    </select>
+                    <div class="theme-selector" id="themeSelector" style="display: none;"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Custom CSS (optional)</label>
@@ -817,14 +847,58 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Theme initialization
-        function initTheme() {
-            const savedTheme = localStorage.getItem('photosync-theme') || 'default';
-            const html = document.documentElement;
-            if (savedTheme === 'default') {
-                html.removeAttribute('data-theme');
-            } else {
-                html.setAttribute('data-theme', savedTheme);
+        // Theme initialization with dynamic loading
+        let currentThemeId = null;
+
+        async function loadThemeCSS(themeId) {
+            try {
+                const response = await fetch(`/api/themes/${themeId}/css`);
+                if (!response.ok) {
+                    console.error('Failed to load theme CSS');
+                    return;
+                }
+
+                const css = await response.text();
+
+                // Remove old dynamic theme
+                const oldStyle = document.getElementById('dynamic-theme');
+                if (oldStyle) {
+                    oldStyle.remove();
+                }
+
+                // Inject new theme CSS
+                const style = document.createElement('style');
+                style.id = 'dynamic-theme';
+                style.textContent = css;
+                document.head.appendChild(style);
+
+                currentThemeId = themeId;
+            } catch (error) {
+                console.error('Failed to load theme CSS:', error);
+            }
+        }
+
+        async function initTheme() {
+            try {
+                // Try to get user's global theme preference
+                const response = await fetch('/api/users/me/preferences', {
+                    credentials: 'include'
+                });
+
+                let themeId = 'dark'; // Default fallback
+
+                if (response.ok) {
+                    const prefs = await response.json();
+                    if (prefs.globalThemeId) {
+                        themeId = prefs.globalThemeId;
+                    }
+                }
+
+                await loadThemeCSS(themeId);
+            } catch (error) {
+                console.error('Failed to initialize theme:', error);
+                // Load default theme as fallback
+                await loadThemeCSS('dark');
             }
         }
 
@@ -876,9 +950,12 @@
 
         async function loadThemes() {
             try {
-                const response = await fetch('/api/web/collections/themes');
-                const data = await response.json();
-                themes = data.themes;
+                const response = await fetch('/api/themes');
+                if (!response.ok) {
+                    console.error('Failed to load themes');
+                    return;
+                }
+                themes = await response.json();
                 renderThemeSelector();
             } catch (error) {
                 console.error('Failed to load themes:', error);
@@ -887,13 +964,60 @@
 
         function renderThemeSelector() {
             const container = document.getElementById('themeSelector');
-            container.innerHTML = themes.map(theme => `
-                <div class="theme-option" data-theme="${theme.id}" onclick="selectTheme('${theme.id}')">
-                    <div class="theme-preview" style="${theme.previewCss.replace(/--/g, 'background: var(--bg-color); border: 1px solid ')}; background: ${theme.previewCss.match(/--bg-color:\s*([^;]+)/)?.[1] || '#0f172a'}"></div>
-                    <div class="theme-name">${theme.name}</div>
-                </div>
-            `).join('');
-            selectTheme('dark');
+
+            // Clear existing content safely
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            // Create theme options using safe DOM methods
+            themes.forEach(theme => {
+                const option = document.createElement('div');
+                option.className = 'theme-option';
+                option.setAttribute('data-theme', theme.id);
+                option.onclick = () => selectTheme(theme.id);
+
+                const preview = document.createElement('div');
+                preview.className = 'theme-preview';
+                preview.style.background = getThemePreviewColor(theme);
+
+                const name = document.createElement('div');
+                name.className = 'theme-name';
+                name.textContent = theme.name;
+
+                option.appendChild(preview);
+                option.appendChild(name);
+                container.appendChild(option);
+            });
+
+            // Select default theme
+            if (themes.length > 0) {
+                selectTheme('dark');
+            }
+        }
+
+        function getThemePreviewColor(theme) {
+            // Try to extract a preview color from theme properties
+            // For now, use a simple gradient based on theme ID
+            const colorMap = {
+                'dark': '#667eea',
+                'light': '#e2e8f0',
+                'minimal': '#94a3b8',
+                'gallery': '#06b6d4',
+                'magazine': '#f43f5e'
+            };
+            return colorMap[theme.id] || '#667eea';
+        }
+
+        function toggleThemeSelector() {
+            const themeSource = document.getElementById('themeSource').value;
+            const themeSelector = document.getElementById('themeSelector');
+
+            if (themeSource === 'explicit') {
+                themeSelector.style.display = 'grid';
+            } else {
+                themeSelector.style.display = 'none';
+            }
         }
 
         function selectTheme(themeId) {
@@ -1058,6 +1182,8 @@
             document.getElementById('collectionDescription').value = '';
             document.getElementById('collectionSlug').value = '';
             document.getElementById('collectionCSS').value = '';
+            document.getElementById('themeSource').value = 'inherit';
+            toggleThemeSelector();
             selectTheme('dark');
             document.getElementById('collectionModal').classList.add('active');
         }
@@ -1071,7 +1197,16 @@
             document.getElementById('collectionDescription').value = currentCollection.description || '';
             document.getElementById('collectionSlug').value = currentCollection.slug;
             document.getElementById('collectionCSS').value = currentCollection.customCss || '';
-            selectTheme(currentCollection.theme);
+
+            // Set theme source and theme
+            const themeSource = currentCollection.themeSource || 'explicit';
+            document.getElementById('themeSource').value = themeSource;
+            toggleThemeSelector();
+
+            if (themeSource === 'explicit') {
+                selectTheme(currentCollection.theme || 'dark');
+            }
+
             document.getElementById('collectionModal').classList.add('active');
         }
 
@@ -1087,11 +1222,14 @@
                 return;
             }
 
+            const themeSource = document.getElementById('themeSource').value;
+
             const data = {
                 name,
                 description: document.getElementById('collectionDescription').value.trim() || null,
                 slug: document.getElementById('collectionSlug').value.trim() || null,
-                theme: getSelectedTheme(),
+                themeSource: themeSource,
+                theme: themeSource === 'explicit' ? getSelectedTheme() : 'dark',
                 customCss: document.getElementById('collectionCSS').value.trim() || null
             };
 

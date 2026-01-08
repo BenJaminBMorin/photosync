@@ -18,6 +18,8 @@ type CollectionService struct {
 	collectionShareRepo repository.CollectionShareRepo
 	photoRepo           repository.PhotoRepo
 	userRepo            repository.UserRepo
+	themeService        *ThemeService
+	userPrefsRepo       repository.UserPreferencesRepository
 }
 
 // NewCollectionService creates a new CollectionService
@@ -27,6 +29,8 @@ func NewCollectionService(
 	collectionShareRepo repository.CollectionShareRepo,
 	photoRepo repository.PhotoRepo,
 	userRepo repository.UserRepo,
+	themeService *ThemeService,
+	userPrefsRepo repository.UserPreferencesRepository,
 ) *CollectionService {
 	return &CollectionService{
 		collectionRepo:      collectionRepo,
@@ -34,6 +38,8 @@ func NewCollectionService(
 		collectionShareRepo: collectionShareRepo,
 		photoRepo:           photoRepo,
 		userRepo:            userRepo,
+		themeService:        themeService,
+		userPrefsRepo:       userPrefsRepo,
 	}
 }
 
@@ -491,69 +497,36 @@ func (s *CollectionService) GetShares(ctx context.Context, collectionID, userID 
 	return shares, nil
 }
 
-// GetThemeCSS returns the CSS for a theme
-func (s *CollectionService) GetThemeCSS(theme models.CollectionTheme) string {
-	switch theme {
-	case models.ThemeDark:
-		return `
-			:root {
-				--bg-color: #0f172a;
-				--card-color: #1e293b;
-				--text-color: #f1f5f9;
-				--text-muted: #94a3b8;
-				--accent-color: #667eea;
-				--border-color: #334155;
-			}
-		`
-	case models.ThemeLight:
-		return `
-			:root {
-				--bg-color: #ffffff;
-				--card-color: #f3f4f6;
-				--text-color: #111827;
-				--text-muted: #6b7280;
-				--accent-color: #4f46e5;
-				--border-color: #e5e7eb;
-			}
-		`
-	case models.ThemeMinimal:
-		return `
-			:root {
-				--bg-color: #fafafa;
-				--card-color: transparent;
-				--text-color: #171717;
-				--text-muted: #737373;
-				--accent-color: #000000;
-				--border-color: transparent;
-			}
-		`
-	case models.ThemeGallery:
-		return `
-			:root {
-				--bg-color: #1c1c1c;
-				--card-color: #2a2a2a;
-				--text-color: #ffffff;
-				--text-muted: #a3a3a3;
-				--accent-color: #d4af37;
-				--border-color: #3a3a3a;
-				--frame-width: 8px;
-			}
-		`
-	case models.ThemeMagazine:
-		return `
-			:root {
-				--bg-color: #f5f5f4;
-				--card-color: #ffffff;
-				--text-color: #1c1917;
-				--text-muted: #78716c;
-				--accent-color: #dc2626;
-				--border-color: #e7e5e4;
-				--font-family: Georgia, serif;
-			}
-		`
-	default:
-		return s.GetThemeCSS(models.ThemeDark)
+// GetThemeCSS returns the CSS for a theme using the theme service
+func (s *CollectionService) GetThemeCSS(ctx context.Context, themeID string) (string, error) {
+	css, err := s.themeService.GenerateCSS(ctx, themeID)
+	if err != nil {
+		// Fallback to dark theme on error
+		css, err = s.themeService.GenerateCSS(ctx, "dark")
+		if err != nil {
+			// If even dark theme fails, return empty string
+			return "", err
+		}
 	}
+	return css, nil
+}
+
+// ResolveCollectionTheme resolves the effective theme ID for a collection
+// considering theme inheritance from user preferences
+func (s *CollectionService) ResolveCollectionTheme(ctx context.Context, collection *models.Collection, userID string) string {
+	// If collection uses explicit theme, return it
+	if collection.ThemeSource == models.ThemeSourceExplicit {
+		return string(collection.Theme)
+	}
+
+	// Collection inherits from user's global theme
+	prefs, err := s.userPrefsRepo.Get(ctx, userID)
+	if err != nil || prefs.GlobalThemeID == nil {
+		// Default to dark theme if no preference set
+		return "dark"
+	}
+
+	return *prefs.GlobalThemeID
 }
 
 // Helper methods

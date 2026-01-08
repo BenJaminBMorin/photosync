@@ -243,8 +243,57 @@ func createTables(db *sql.DB) error {
 
 	CREATE INDEX IF NOT EXISTS idx_collection_shares_collection_id ON collection_shares(collection_id);
 	CREATE INDEX IF NOT EXISTS idx_collection_shares_user_id ON collection_shares(user_id);
+
+	-- Themes table (comprehensive theme definitions)
+	CREATE TABLE IF NOT EXISTS themes (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		description TEXT,
+		is_system INTEGER NOT NULL DEFAULT 0,
+		created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+		properties TEXT NOT NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_themes_system ON themes(is_system);
+	CREATE INDEX IF NOT EXISTS idx_themes_created_by ON themes(created_by);
+
+	-- User preferences table
+	CREATE TABLE IF NOT EXISTS user_preferences (
+		user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+		global_theme_id TEXT REFERENCES themes(id) ON DELETE SET NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
+
+	-- Add theme_source column to collections (migration-compatible)
+	-- Note: SQLite doesn't support ALTER TABLE ADD COLUMN IF NOT EXISTS in older versions
+	-- This will be handled by checking the table schema first
 	`
 
-	_, err := db.Exec(schema)
-	return err
+	// Execute the schema
+	if _, err := db.Exec(schema); err != nil {
+		return err
+	}
+
+	// Add theme_source column to collections if it doesn't exist
+	var hasThemeSource bool
+	err := db.QueryRow(`
+		SELECT COUNT(*) > 0 FROM pragma_table_info('collections')
+		WHERE name = 'theme_source'
+	`).Scan(&hasThemeSource)
+
+	if err != nil {
+		return err
+	}
+
+	if !hasThemeSource {
+		_, err = db.Exec(`ALTER TABLE collections ADD COLUMN theme_source TEXT NOT NULL DEFAULT 'explicit'`)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

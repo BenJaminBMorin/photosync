@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Builder - PhotoSync Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #1e293b;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 20px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .theme-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-selector select {
+            background: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .nav-item:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .nav-item.active {
+            background: #334155;
+            border-left-color: #667eea;
+            color: white;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .preview-panel {
+            width: 400px;
+            background: #1e293b;
+            border-left: 1px solid #334155;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .editor-section {
+            display: none;
+        }
+
+        .editor-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .property-group {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .group-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .property-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .property-label {
+            flex: 0 0 150px;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .property-input {
+            flex: 1;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            background: #0f172a;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 36px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .color-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .color-input-group input[type="text"] {
+            flex: 1;
+        }
+
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .preview-card {
+            background: var(--bg-secondary, #1e293b);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-default, #334155);
+        }
+
+        .preview-text-primary {
+            color: var(--text-primary, #ffffff);
+            margin-bottom: 8px;
+        }
+
+        .preview-text-secondary {
+            color: var(--text-secondary, #e2e8f0);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .preview-text-muted {
+            color: var(--text-muted, #94a3b8);
+            font-size: 12px;
+        }
+
+        .preview-button {
+            background: var(--accent-primary, #667eea);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-md, 6px);
+            font-size: 14px;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--grid-cols-min, 120px), 1fr));
+            gap: var(--grid-gap, 12px);
+            margin-top: 16px;
+        }
+
+        .preview-grid-item {
+            background: var(--bg-elevated, #1e293b);
+            aspect-ratio: var(--grid-card-aspect-ratio, 1);
+            border-radius: var(--radius-lg, 8px);
+            padding: var(--grid-card-padding, 12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-muted, #94a3b8);
+        }
+
+        .actions-bar {
+            position: sticky;
+            bottom: 0;
+            background: #1e293b;
+            padding: 16px 24px;
+            border-top: 1px solid #334155;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/admin" class="back-btn">←</a>
+            <div class="title">Theme Builder</div>
+        </div>
+        <div class="theme-selector">
+            <select id="themeSelect" onchange="loadTheme()">
+                <option value="">Select a theme...</option>
+            </select>
+            <button class="btn" onclick="showNewThemeModal()">New Theme</button>
+            <button class="btn btn-secondary" onclick="duplicateTheme()">Duplicate</button>
+            <button class="btn btn-danger" onclick="deleteTheme()">Delete</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="nav-item active" data-section="colors">Colors</div>
+            <div class="nav-item" data-section="typography">Typography</div>
+            <div class="nav-item" data-section="layout">Layout</div>
+            <div class="nav-item" data-section="effects">Effects</div>
+            <div class="nav-item" data-section="preview">Live Preview</div>
+        </div>
+
+        <div class="content-area">
+            <div class="editor-panel">
+                <div class="editor-section active" id="section-colors">
+                    <h2 class="section-title">Colors</h2>
+
+                    <div class="property-group">
+                        <div class="group-title">Backgrounds</div>
+                        <div class="property-row">
+                            <label class="property-label">Primary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-bg-primary" onchange="updateProperty('colors.backgrounds.primary', this.value)">
+                                <input type="text" id="color-bg-primary-text" onchange="updatePropertyFromText('colors.backgrounds.primary', this.value, 'color-bg-primary')">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label class="property-label">Secondary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-bg-secondary" onchange="updateProperty('colors.backgrounds.secondary', this.value)">
+                                <input type="text" id="color-bg-secondary-text" onchange="updatePropertyFromText('colors.backgrounds.secondary', this.value, 'color-bg-secondary')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <div class="group-title">Text Colors</div>
+                        <div class="property-row">
+                            <label class="property-label">Primary</label>
+                            <div class="property-input color-input-group">
+                                <input type="color" id="color-text-primary" onchange="updateProperty('colors.text.primary', this.value)">
+                                <input type="text" id="color-text-primary-text" onchange="updatePropertyFromText('colors.text.primary', this.value, 'color-text-primary')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-section" id="section-typography">
+                    <h2 class="section-title">Typography</h2>
+                    <div class="property-group">
+                        <div class="group-title">Font Families</div>
+                        <div class="property-row">
+                            <label class="property-label">Base</label>
+                            <div class="property-input">
+                                <input type="text" id="font-family-base" onchange="updateProperty('typography.fontFamilies.base', this.value)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-section" id="section-layout">
+                    <h2 class="section-title">Layout</h2>
+                    <p style="color: #94a3b8;">Layout controls coming soon...</p>
+                </div>
+
+                <div class="editor-section" id="section-effects">
+                    <h2 class="section-title">Effects</h2>
+                    <p style="color: #94a3b8;">Effect controls coming soon...</p>
+                </div>
+
+                <div class="editor-section" id="section-preview">
+                    <h2 class="section-title">Full Page Preview</h2>
+                    <div class="preview-card">
+                        <h3 class="preview-text-primary">Sample Photo Card</h3>
+                        <p class="preview-text-secondary">This is secondary text</p>
+                        <button class="preview-button">View Photo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <h3 class="preview-title">Live Preview</h3>
+                <div class="preview-card">
+                    <h4 class="preview-text-primary">Card Title</h4>
+                    <p class="preview-text-secondary">Secondary text</p>
+                    <button class="preview-button">Button</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions-bar">
+        <button class="btn btn-secondary" onclick="resetTheme()">Reset</button>
+        <button class="btn" onclick="saveTheme()">Save Theme</button>
+    </div>
+
+    <div class="modal" id="newThemeModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Create New Theme</h3>
+            <div class="form-group">
+                <label>Theme ID</label>
+                <input type="text" id="newThemeId" placeholder="e.g., custom-ocean">
+            </div>
+            <div class="form-group">
+                <label>Theme Name</label>
+                <input type="text" id="newThemeName" placeholder="e.g., Ocean Blue">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeNewThemeModal()">Cancel</button>
+                <button class="btn" onclick="createNewTheme()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = null;
+        let themes = [];
+
+        async function init() {
+            await loadThemes();
+            setupNavigation();
+            checkAuth();
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/web/session');
+                if (!response.ok) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                const session = await response.json();
+                if (!session.user.isAdmin) {
+                    alert('Admin access required');
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+
+        async function loadThemes() {
+            try {
+                const response = await fetch('/api/admin/themes');
+                themes = await response.json();
+
+                const select = document.getElementById('themeSelect');
+                // Clear existing options safely
+                while (select.firstChild) {
+                    select.removeChild(select.firstChild);
+                }
+
+                // Add default option
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = 'Select a theme...';
+                select.appendChild(defaultOpt);
+
+                // Add theme options
+                themes.forEach(theme => {
+                    const option = document.createElement('option');
+                    option.value = theme.id;
+                    option.textContent = theme.name + (theme.isSystem ? ' (System)' : '');
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load themes:', error);
+            }
+        }
+
+        async function loadTheme() {
+            const themeId = document.getElementById('themeSelect').value;
+            if (!themeId) {
+                currentTheme = null;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/themes/${themeId}`);
+                currentTheme = await response.json();
+                populateForm();
+                applyThemeToPreview();
+            } catch (error) {
+                console.error('Failed to load theme:', error);
+                alert('Failed to load theme');
+            }
+        }
+
+        function populateForm() {
+            if (!currentTheme) return;
+            const props = currentTheme.properties;
+
+            setColorInput('color-bg-primary', props.colors.backgrounds.primary);
+            setColorInput('color-bg-secondary', props.colors.backgrounds.secondary);
+            setColorInput('color-text-primary', props.colors.text.primary);
+
+            const fontBase = document.getElementById('font-family-base');
+            if (fontBase) fontBase.value = props.typography.fontFamilies.base;
+        }
+
+        function setColorInput(id, value) {
+            const colorInput = document.getElementById(id);
+            const textInput = document.getElementById(id + '-text');
+            if (colorInput && value.startsWith('#')) {
+                colorInput.value = value;
+            }
+            if (textInput) {
+                textInput.value = value;
+            }
+        }
+
+        function updateProperty(path, value) {
+            if (!currentTheme) return;
+            const parts = path.split('.');
+            let obj = currentTheme.properties;
+            for (let i = 0; i < parts.length - 1; i++) {
+                obj = obj[parts[i]];
+            }
+            obj[parts[parts.length - 1]] = value;
+            applyThemeToPreview();
+        }
+
+        function updatePropertyFromText(path, value, colorInputId) {
+            updateProperty(path, value);
+            if (value.startsWith('#')) {
+                const elem = document.getElementById(colorInputId);
+                if (elem) elem.value = value;
+            }
+        }
+
+        function applyThemeToPreview() {
+            if (!currentTheme) return;
+            const props = currentTheme.properties;
+            const root = document.documentElement;
+
+            root.style.setProperty('--bg-primary', props.colors.backgrounds.primary);
+            root.style.setProperty('--bg-secondary', props.colors.backgrounds.secondary);
+            root.style.setProperty('--text-primary', props.colors.text.primary);
+            root.style.setProperty('--text-secondary', props.colors.text.secondary);
+            root.style.setProperty('--accent-primary', props.colors.accents.primary);
+        }
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const section = item.dataset.section;
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    document.querySelectorAll('.editor-section').forEach(s => s.classList.remove('active'));
+                    const sectionElem = document.getElementById(`section-${section}`);
+                    if (sectionElem) sectionElem.classList.add('active');
+                });
+            });
+        }
+
+        async function saveTheme() {
+            if (!currentTheme) {
+                alert('No theme loaded');
+                return;
+            }
+            if (currentTheme.isSystem) {
+                alert('Cannot modify system themes');
+                return;
+            }
+            try {
+                const response = await fetch(`/api/admin/themes/${currentTheme.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentTheme)
+                });
+                if (!response.ok) throw new Error('Failed to save');
+                alert('Theme saved!');
+            } catch (error) {
+                alert('Failed to save theme');
+            }
+        }
+
+        async function deleteTheme() {
+            if (!currentTheme || currentTheme.isSystem) {
+                alert('Cannot delete system themes');
+                return;
+            }
+            if (!confirm(`Delete theme "${currentTheme.name}"?`)) return;
+            try {
+                await fetch(`/api/admin/themes/${currentTheme.id}`, { method: 'DELETE' });
+                currentTheme = null;
+                document.getElementById('themeSelect').value = '';
+                await loadThemes();
+            } catch (error) {
+                alert('Failed to delete theme');
+            }
+        }
+
+        function showNewThemeModal() {
+            document.getElementById('newThemeModal').classList.add('active');
+        }
+
+        function closeNewThemeModal() {
+            document.getElementById('newThemeModal').classList.remove('active');
+        }
+
+        async function createNewTheme() {
+            const id = document.getElementById('newThemeId').value.trim();
+            const name = document.getElementById('newThemeName').value.trim();
+            if (!id || !name) {
+                alert('ID and Name required');
+                return;
+            }
+            try {
+                const baseTheme = await fetch('/api/admin/themes/dark').then(r => r.json());
+                const newTheme = {
+                    id: id,
+                    name: name,
+                    description: null,
+                    properties: baseTheme.properties
+                };
+                await fetch('/api/admin/themes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newTheme)
+                });
+                closeNewThemeModal();
+                await loadThemes();
+                document.getElementById('themeSelect').value = id;
+                await loadTheme();
+            } catch (error) {
+                alert('Failed to create theme');
+            }
+        }
+
+        async function duplicateTheme() {
+            if (!currentTheme) return;
+            const newId = prompt('New theme ID:', `${currentTheme.id}-copy`);
+            if (!newId) return;
+            try {
+                const newTheme = {
+                    id: newId,
+                    name: `${currentTheme.name} (Copy)`,
+                    description: currentTheme.description,
+                    properties: currentTheme.properties
+                };
+                await fetch('/api/admin/themes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newTheme)
+                });
+                await loadThemes();
+                document.getElementById('themeSelect').value = newId;
+                await loadTheme();
+            } catch (error) {
+                alert('Failed to duplicate');
+            }
+        }
+
+        function resetTheme() {
+            if (confirm('Reset changes?')) {
+                loadTheme();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -101,6 +101,10 @@ func main() {
 	collectionPhotoRepo := repository.NewCollectionPhotoRepository(db)
 	collectionShareRepo := repository.NewCollectionShareRepository(db)
 
+	// Theme and user preferences repositories
+	themeRepo := repository.NewThemeRepository(db)
+	userPrefsRepo := repository.NewUserPreferencesRepository(db)
+
 	// Initialize services
 	hashService := services.NewHashService()
 	storageService, err := services.NewPhotoStorageService(
@@ -201,10 +205,20 @@ func main() {
 		Version, BuildDate, ContainerBuildDate,
 	)
 
+	// Theme service
+	themeService := services.NewThemeService(themeRepo)
+
+	// Seed system themes on startup
+	if err := repository.SeedSystemThemes(context.Background(), themeRepo); err != nil {
+		log.Printf("Warning: Failed to seed system themes: %v", err)
+	} else {
+		log.Println("System themes initialized")
+	}
+
 	// Collection service
 	collectionService := services.NewCollectionService(
 		collectionRepo, collectionPhotoRepo, collectionShareRepo,
-		photoRepo, userRepo,
+		photoRepo, userRepo, themeService, userPrefsRepo,
 	)
 
 	// Determine web directory for static files and templates
@@ -231,6 +245,12 @@ func main() {
 
 	// Collection handler
 	collectionHandler := handlers.NewCollectionHandler(collectionService)
+
+	// Theme handler
+	themeHandler := handlers.NewThemeHandler(themeService)
+
+	// User handler
+	userHandler := handlers.NewUserHandler(userPrefsRepo)
 
 	// Public gallery handler
 	publicGalleryHandler := handlers.NewPublicGalleryHandler(
@@ -266,6 +286,11 @@ func main() {
 	r.Get("/api/health", healthHandler.HealthCheck)
 	r.Get("/api/info", healthHandler.GetAppInfo)
 	r.Get("/api/version", handlers.VersionHandler)
+
+	// Public theme routes (no auth required)
+	r.Get("/api/themes", themeHandler.ListThemes)
+	r.Get("/api/themes/{id}", themeHandler.GetTheme)
+	r.Get("/api/themes/{id}/css", themeHandler.GetThemeCSS)
 
 	// Setup routes (no auth during setup)
 	r.Get("/setup", func(w http.ResponseWriter, r *http.Request) {
@@ -335,6 +360,10 @@ func main() {
 		r.Get("/api/web/session", webAuthHandler.GetSession)
 		r.Post("/api/web/auth/logout", webAuthHandler.Logout)
 
+		// User preferences routes
+		r.Get("/api/users/me/preferences", userHandler.GetPreferences)
+		r.Put("/api/users/me/preferences", userHandler.UpdatePreferences)
+
 		// Delete request routes
 		r.Post("/api/web/delete/initiate", webDeleteHandler.InitiateDelete)
 		r.Get("/api/web/delete/status/{id}", webDeleteHandler.CheckStatus)
@@ -394,6 +423,14 @@ func main() {
 			// App settings
 			r.Get("/settings/app", adminHandler.GetAppSettings)
 			r.Put("/settings/app", adminHandler.UpdateAppSettings)
+
+			// Theme management
+			r.Get("/themes", themeHandler.ListAllThemes)
+			r.Get("/themes/{id}", themeHandler.GetThemeAdmin)
+			r.Post("/themes", themeHandler.CreateTheme)
+			r.Put("/themes/{id}", themeHandler.UpdateTheme)
+			r.Delete("/themes/{id}", themeHandler.DeleteTheme)
+			r.Get("/themes/{id}/preview", themeHandler.GetThemePreview)
 
 			// Configuration management
 			r.Get("/config", configHandler.GetConfig)
