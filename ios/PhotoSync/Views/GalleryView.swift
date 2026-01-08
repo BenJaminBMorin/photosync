@@ -264,12 +264,6 @@ struct GalleryView: View {
                         }
                     }
 
-                    if viewModel.showHiddenPhotos {
-                        filterChip(text: "Hidden", icon: "eye.trianglebadge.exclamationmark") {
-                            viewModel.showHiddenPhotos = false
-                        }
-                    }
-
                     if viewModel.enableDateFilter {
                         filterChip(text: "Date", icon: "calendar") {
                             viewModel.enableDateFilter = false
@@ -322,7 +316,6 @@ struct GalleryView: View {
     private var hasActiveFilters: Bool {
         !viewModel.showUnsyncedOnly ||
         viewModel.showIgnoredPhotos ||
-        viewModel.showHiddenPhotos ||
         viewModel.showServerOnlyPhotos ||
         viewModel.enableDateFilter
     }
@@ -331,7 +324,6 @@ struct GalleryView: View {
         var count = 0
         if !viewModel.showUnsyncedOnly { count += 1 } // Showing all is a filter
         if viewModel.showIgnoredPhotos { count += 1 }
-        if viewModel.showHiddenPhotos { count += 1 }
         if viewModel.showServerOnlyPhotos { count += 1 }
         if viewModel.enableDateFilter { count += 1 }
         return count
