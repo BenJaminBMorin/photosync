@@ -198,62 +198,69 @@ struct GalleryView: View {
 
     private var filterBar: some View {
         HStack(spacing: 8) {
-            // Filter button with indicator
-            Button {
-                showFilterOptions = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "line.3.horizontal.decrease.circle" + (hasActiveFilters ? ".fill" : ""))
-                    Text("Filters")
-                    if hasActiveFilters {
-                        Text("(\(activeFilterCount))")
-                            .font(.caption2)
+            // Scrollable filter chips area
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    // Filter button with indicator
+                    Button {
+                        showFilterOptions = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "line.3.horizontal.decrease.circle" + (hasActiveFilters ? ".fill" : ""))
+                            Text("Filters")
+                            if hasActiveFilters {
+                                Text("(\(activeFilterCount))")
+                                    .font(.caption2)
+                            }
+                        }
+                        .font(.subheadline)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    // Quick filter chips
+                    if viewModel.showUnsyncedOnly {
+                        filterChip(text: "Unsynced", icon: "icloud.slash") {
+                            viewModel.showUnsyncedOnly = false
+                        }
+                    }
+
+                    if viewModel.showIgnoredPhotos {
+                        filterChip(text: "Ignored", icon: "eye.slash") {
+                            viewModel.showIgnoredPhotos = false
+                        }
+                    }
+
+                    if viewModel.showHiddenPhotos {
+                        filterChip(text: "Hidden", icon: "eye.trianglebadge.exclamationmark") {
+                            viewModel.showHiddenPhotos = false
+                        }
+                    }
+
+                    if viewModel.enableDateFilter {
+                        filterChip(text: "Date", icon: "calendar") {
+                            viewModel.enableDateFilter = false
+                        }
                     }
                 }
-                .font(.subheadline)
+                .padding(.horizontal)
             }
-            .buttonStyle(.borderedProminent)
 
-            // Quick filter chips
-            if viewModel.showUnsyncedOnly {
-                filterChip(text: "Unsynced", icon: "icloud.slash") {
-                    viewModel.showUnsyncedOnly = false
+            // Fixed action buttons on the right
+            HStack(spacing: 8) {
+                Button {
+                    viewModel.selectAll()
+                } label: {
+                    Image(systemName: "checkmark.circle")
+                }
+
+                Button {
+                    Task { await viewModel.loadPhotos() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
                 }
             }
-
-            if viewModel.showIgnoredPhotos {
-                filterChip(text: "Ignored", icon: "eye.slash") {
-                    viewModel.showIgnoredPhotos = false
-                }
-            }
-
-            if viewModel.showHiddenPhotos {
-                filterChip(text: "Hidden", icon: "eye.trianglebadge.exclamationmark") {
-                    viewModel.showHiddenPhotos = false
-                }
-            }
-
-            if viewModel.enableDateFilter {
-                filterChip(text: "Date", icon: "calendar") {
-                    viewModel.enableDateFilter = false
-                }
-            }
-
-            Spacer()
-
-            Button {
-                viewModel.selectAll()
-            } label: {
-                Image(systemName: "checkmark.circle")
-            }
-
-            Button {
-                Task { await viewModel.loadPhotos() }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
+            .padding(.trailing)
         }
-        .padding(.horizontal)
         .padding(.vertical, 8)
         .background(Color(.systemBackground))
     }
