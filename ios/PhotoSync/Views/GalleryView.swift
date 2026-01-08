@@ -7,6 +7,8 @@ struct GalleryView: View {
     @State private var showCollections = false
     @State private var showServerPhotos = false
     @State private var showFilterOptions = false
+    @State private var showDeleteConfirmation = false
+    @State private var photoToDelete: String?
 
     private let columns = [
         GridItem(.flexible(), spacing: 2),
@@ -78,6 +80,25 @@ struct GalleryView: View {
                 Button("OK") { viewModel.clearError() }
             } message: {
                 Text(viewModel.error ?? "")
+            }
+            .alert("Delete Photo", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {
+                    photoToDelete = nil
+                }
+                Button("Delete", role: .destructive) {
+                    if let photoId = photoToDelete {
+                        Task {
+                            do {
+                                try await viewModel.deletePhoto(for: photoId)
+                            } catch {
+                                viewModel.error = "Failed to delete photo: \(error.localizedDescription)"
+                            }
+                        }
+                    }
+                    photoToDelete = nil
+                }
+            } message: {
+                Text("This photo will be moved to your Recently Deleted album where it will be permanently deleted after 30 days.")
             }
         }
         .task {
@@ -165,7 +186,11 @@ struct GalleryView: View {
                                     PhotoGridItem(
                                         photoState: photoState,
                                         onTap: { viewModel.toggleSelection(for: photoState.id) },
-                                        onIgnoreTap: { viewModel.toggleIgnore(for: photoState.id) }
+                                        onIgnoreTap: { viewModel.toggleIgnore(for: photoState.id) },
+                                        onDeleteTap: {
+                                            photoToDelete = photoState.id
+                                            showDeleteConfirmation = true
+                                        }
                                     )
                                 }
                             }

@@ -293,6 +293,23 @@ class GalleryViewModel: ObservableObject {
         }
     }
 
+    func deletePhoto(for photoId: String) async throws {
+        guard let index = photos.firstIndex(where: { $0.id == photoId }) else { return }
+
+        let asset = photos[index].photo.asset
+
+        await Logger.shared.info("Deleting photo: \(photoId)")
+
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.deleteAssets([asset] as NSArray)
+        }
+
+        // Remove from local array
+        photos.remove(at: index)
+
+        await Logger.shared.info("Photo deleted successfully: \(photoId)")
+    }
+
     func syncSelected() {
         let selectedPhotos = photos.filter { $0.isSelected }.map { $0.photo }
         guard !selectedPhotos.isEmpty else {

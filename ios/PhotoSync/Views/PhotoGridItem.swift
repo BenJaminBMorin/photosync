@@ -5,8 +5,10 @@ struct PhotoGridItem: View {
     let photoState: PhotoWithState
     let onTap: () -> Void
     let onIgnoreTap: () -> Void
+    let onDeleteTap: () -> Void
 
     @State private var thumbnail: UIImage?
+    @State private var showButtons = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -88,12 +90,62 @@ struct PhotoGridItem: View {
                     }
                     .frame(width: geometry.size.width, height: geometry.size.width)
                 }
+
+                // Action buttons overlay (show on long press or when selected)
+                if showButtons && !photoState.isSelected {
+                    VStack {
+                        Spacer()
+                        HStack(spacing: 4) {
+                            // Hide button
+                            Button {
+                                onIgnoreTap()
+                                showButtons = false
+                            } label: {
+                                VStack(spacing: 2) {
+                                    Image(systemName: photoState.syncState == .ignored ? "eye" : "eye.slash")
+                                        .font(.system(size: 14))
+                                    Text(photoState.syncState == .ignored ? "Show" : "Hide")
+                                        .font(.system(size: 10))
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.9))
+                            }
+
+                            // Delete button
+                            Button {
+                                onDeleteTap()
+                                showButtons = false
+                            } label: {
+                                VStack(spacing: 2) {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 14))
+                                    Text("Delete")
+                                        .font(.system(size: 10))
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 6)
+                                .background(Color.red.opacity(0.9))
+                            }
+                        }
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.width)
+                }
             }
         }
         .aspectRatio(1, contentMode: .fit)
         .contentShape(Rectangle())
         .onTapGesture {
-            onTap()
+            if showButtons {
+                showButtons = false
+            } else {
+                onTap()
+            }
+        }
+        .onLongPressGesture(minimumDuration: 0.3) {
+            showButtons.toggle()
         }
         .contextMenu {
             Button {
@@ -103,6 +155,12 @@ struct PhotoGridItem: View {
                     photoState.syncState == .ignored ? "Unignore" : "Ignore",
                     systemImage: photoState.syncState == .ignored ? "eye" : "eye.slash"
                 )
+            }
+
+            Button(role: .destructive) {
+                onDeleteTap()
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
         }
         .task {
@@ -126,7 +184,8 @@ struct PhotoGridItem: View {
             isSelected: true
         ),
         onTap: {},
-        onIgnoreTap: {}
+        onIgnoreTap: {},
+        onDeleteTap: {}
     )
     .frame(width: 120, height: 120)
 }
