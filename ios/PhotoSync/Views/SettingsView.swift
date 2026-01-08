@@ -64,6 +64,48 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+
+                    Toggle(isOn: $viewModel.autoSync) {
+                        VStack(alignment: .leading) {
+                            Text("Auto-Sync New Photos")
+                            Text("Automatically sync new photos when app is available")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Button {
+                        Task {
+                            await viewModel.resyncFromServer()
+                        }
+                    } label: {
+                        HStack {
+                            if viewModel.isResyncing {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Resyncing...")
+                            } else {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Text("Resync from Server")
+                            }
+                        }
+                    }
+                    .disabled(!viewModel.isConfigured || viewModel.isResyncing)
+
+                    if let result = viewModel.resyncResult {
+                        resyncResultView(result)
+                    }
+                }
+
+                Section("Display Settings") {
+                    Toggle(isOn: $viewModel.showServerOnlyPhotos) {
+                        VStack(alignment: .leading) {
+                            Text("Show Server-Only Photos")
+                            Text("Display photos on server but not on phone")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
 
                 Section("Debugging") {
@@ -107,6 +149,28 @@ struct SettingsView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
                 Text("Connection successful!")
+                    .foregroundColor(.green)
+            }
+
+        case .failure(let message):
+            HStack {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.red)
+                Text(message)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func resyncResultView(_ result: SettingsViewModel.ResyncResult) -> some View {
+        switch result {
+        case .success(let count):
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("Resync complete!")
                     .foregroundColor(.green)
             }
 

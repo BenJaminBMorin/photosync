@@ -5,6 +5,7 @@ import CoreData
 struct GalleryView: View {
     @StateObject private var viewModel = GalleryViewModel()
     @State private var showCollections = false
+    @State private var showServerPhotos = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 2),
@@ -48,7 +49,15 @@ struct GalleryView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
+                    HStack(spacing: 12) {
+                        if AppSettings.showServerOnlyPhotos {
+                            Button {
+                                showServerPhotos = true
+                            } label: {
+                                Image(systemName: "cloud.fill")
+                            }
+                        }
+
                         Text("\(viewModel.syncedCount)/\(viewModel.photos.count)")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -57,6 +66,9 @@ struct GalleryView: View {
             }
             .sheet(isPresented: $showCollections) {
                 CollectionsView()
+            }
+            .sheet(isPresented: $showServerPhotos) {
+                ServerPhotosView()
             }
             .alert("Error", isPresented: .constant(viewModel.error != nil)) {
                 Button("OK") { viewModel.clearError() }

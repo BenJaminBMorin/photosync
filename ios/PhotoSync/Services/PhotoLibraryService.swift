@@ -149,11 +149,31 @@ actor PhotoLibraryService {
         }
         return "IMG_\(asset.localIdentifier.prefix(8)).jpg"
     }
+
+    /// Save an image to the photo library
+    func saveImage(_ image: UIImage, filename: String) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            PHPhotoLibrary.shared().performChanges({
+                let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
+                // Note: Cannot set original filename through public API
+                // The photo will be saved with a system-generated name
+            }) { success, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if success {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: PhotoLibraryError.saveFailed)
+                }
+            }
+        }
+    }
 }
 
 enum PhotoLibraryError: Error, LocalizedError {
     case noImageData
     case unauthorized
+    case saveFailed
 
     var errorDescription: String? {
         switch self {
@@ -161,6 +181,8 @@ enum PhotoLibraryError: Error, LocalizedError {
             return "Could not retrieve image data"
         case .unauthorized:
             return "Photo library access not authorized"
+        case .saveFailed:
+            return "Failed to save image to photo library"
         }
     }
 }

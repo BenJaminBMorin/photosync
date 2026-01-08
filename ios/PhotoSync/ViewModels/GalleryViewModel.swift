@@ -11,7 +11,7 @@ class GalleryViewModel: ObservableObject {
     @Published var isSyncing = false
     @Published var syncProgress: SyncProgress?
     @Published var error: String?
-    @Published var showUnsyncedOnly = false
+    @Published var showUnsyncedOnly = true  // Default to showing unsynced photos first
     @Published var showIgnoredPhotos = false
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
 

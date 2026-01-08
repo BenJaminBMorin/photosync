@@ -15,6 +15,10 @@ struct PhotoSyncApp: App {
         // Initialize logger early and log app launch
         Task {
             await Logger.shared.info("PhotoSync app launched")
+
+            // Initialize AutoSyncManager to start monitoring photo library
+            _ = await AutoSyncManager.shared
+            await Logger.shared.info("AutoSyncManager initialized")
         }
     }
 

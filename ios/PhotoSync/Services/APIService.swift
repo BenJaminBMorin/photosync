@@ -118,6 +118,34 @@ actor APIService {
         return try JSONDecoder().decode(PhotoListResponse.self, from: data)
     }
 
+    // MARK: - Download Photo
+
+    /// Download photo thumbnail from server
+    func downloadThumbnail(photoId: String) async throws -> Data {
+        let url = try buildURL(path: "/api/photos/\(photoId)/thumbnail")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        addAPIKeyHeader(to: &request)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        return data
+    }
+
+    /// Download full photo from server
+    func downloadPhoto(photoId: String) async throws -> Data {
+        let url = try buildURL(path: "/api/photos/\(photoId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        addAPIKeyHeader(to: &request)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        return data
+    }
+
     // MARK: - Device Registration
 
     /// Register device for push notifications

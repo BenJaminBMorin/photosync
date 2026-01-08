@@ -6,6 +6,8 @@ struct AppSettings {
     private static let wifiOnlyKey = "wifiOnly"
     private static let deviceIdKey = "deviceId"
     private static let keychainMigratedKey = "keychainMigrated"
+    private static let autoSyncKey = "autoSync"
+    private static let showServerOnlyPhotosKey = "showServerOnlyPhotos"
 
     static var serverURL: String {
         get { UserDefaults.standard.string(forKey: serverURLKey) ?? "" }
@@ -27,6 +29,22 @@ struct AppSettings {
     static var wifiOnly: Bool {
         get { UserDefaults.standard.bool(forKey: wifiOnlyKey) }
         set { UserDefaults.standard.set(newValue, forKey: wifiOnlyKey) }
+    }
+
+    /// Auto-sync new photos in background
+    static var autoSync: Bool {
+        get { UserDefaults.standard.bool(forKey: autoSyncKey) }
+        set {
+            UserDefaults.standard.set(newValue, forKey: autoSyncKey)
+            // Notify that auto-sync setting changed
+            NotificationCenter.default.post(name: .autoSyncSettingChanged, object: nil)
+        }
+    }
+
+    /// Show photos that are on server but not on phone
+    static var showServerOnlyPhotos: Bool {
+        get { UserDefaults.standard.bool(forKey: showServerOnlyPhotosKey) }
+        set { UserDefaults.standard.set(newValue, forKey: showServerOnlyPhotosKey) }
     }
 
     static var deviceId: String? {
@@ -59,4 +77,9 @@ struct AppSettings {
             UserDefaults.standard.set(true, forKey: keychainMigratedKey)
         }
     }
+}
+
+// MARK: - Notification Names
+extension Notification.Name {
+    static let autoSyncSettingChanged = Notification.Name("autoSyncSettingChanged")
 }

@@ -27,6 +27,8 @@ struct PhotoResponse: Codable {
     let fileSize: Int64
     let dateTaken: String
     let uploadedAt: String
+    let hash: String?
+    let thumbnailPath: String?
 }
 
 /// Response from listing photos
