@@ -242,7 +242,8 @@ actor APIService {
     // MARK: - Sync Endpoints
 
     func getSyncStatus(deviceId: String?) async throws -> SyncStatusResponse {
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/sync/status"))
+        let url = try buildURL(path: "/api/sync/status")
+        var request = URLRequest(url: url)
         addAPIKeyHeader(to: &request)
 
         if let deviceId = deviceId {
@@ -258,7 +259,8 @@ actor APIService {
     }
 
     func syncPhotos(request: SyncPhotosRequest) async throws -> SyncPhotosResponse {
-        var urlRequest = URLRequest(url: baseURL.appendingPathComponent("api/sync/photos"))
+        let url = try buildURL(path: "/api/sync/photos")
+        var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         addAPIKeyHeader(to: &urlRequest)
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -276,7 +278,8 @@ actor APIService {
     }
 
     func getLegacyPhotos(limit: Int = 100) async throws -> LegacyPhotosResponse {
-        var components = URLComponents(url: baseURL.appendingPathComponent("api/sync/legacy-photos"), resolvingAgainstBaseURL: false)!
+        let baseUrl = try buildURL(path: "/api/sync/legacy-photos")
+        var components = URLComponents(url: baseUrl, resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
 
         var request = URLRequest(url: components.url!)
@@ -291,7 +294,8 @@ actor APIService {
     }
 
     func claimLegacyPhotos(deviceId: String, claimAll: Bool = true, photoIds: [String]? = nil) async throws -> ClaimLegacyResponse {
-        var urlRequest = URLRequest(url: baseURL.appendingPathComponent("api/sync/claim-legacy"))
+        let url = try buildURL(path: "/api/sync/claim-legacy")
+        var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         addAPIKeyHeader(to: &urlRequest)
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")

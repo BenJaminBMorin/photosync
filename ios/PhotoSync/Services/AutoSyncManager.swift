@@ -275,7 +275,7 @@ class AutoSyncManager: ObservableObject {
             if let asset = localHashMap[serverHash] {
                 // Photo exists locally and on server, but not in sync state - add it
                 let localId = asset.localIdentifier
-                let displayName = asset.fileName ?? "Unknown"
+                let displayName = "Photo-\(localId.prefix(8))"  // Use identifier prefix as display name
                 let dateTaken = asset.creationDate ?? Date()
 
                 _ = SyncedPhotoEntity.create(
