@@ -6,6 +6,7 @@ struct GalleryView: View {
     @StateObject private var viewModel = GalleryViewModel()
     @State private var showCollections = false
     @State private var showServerPhotos = false
+    @State private var showFilterOptions = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 2),
@@ -69,6 +70,9 @@ struct GalleryView: View {
             }
             .sheet(isPresented: $showServerPhotos) {
                 ServerPhotosView()
+            }
+            .sheet(isPresented: $showFilterOptions) {
+                FilterOptionsView(viewModel: viewModel)
             }
             .alert("Error", isPresented: .constant(viewModel.error != nil)) {
                 Button("OK") { viewModel.clearError() }
@@ -193,28 +197,47 @@ struct GalleryView: View {
     }
 
     private var filterBar: some View {
-        HStack {
+        HStack(spacing: 8) {
+            // Filter button with indicator
             Button {
-                viewModel.toggleUnsyncedFilter()
+                showFilterOptions = true
             } label: {
-                HStack {
-                    Image(systemName: viewModel.showUnsyncedOnly ? "checkmark.circle.fill" : "circle")
-                    Text("Unsynced only")
+                HStack(spacing: 4) {
+                    Image(systemName: "line.3.horizontal.decrease.circle" + (hasActiveFilters ? ".fill" : ""))
+                    Text("Filters")
+                    if hasActiveFilters {
+                        Text("(\(activeFilterCount))")
+                            .font(.caption2)
+                    }
                 }
                 .font(.subheadline)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
 
-            Button {
-                viewModel.toggleIgnoredFilter()
-            } label: {
-                HStack {
-                    Image(systemName: viewModel.showIgnoredPhotos ? "checkmark.circle.fill" : "circle")
-                    Text("Show ignored")
+            // Quick filter chips
+            if viewModel.showUnsyncedOnly {
+                filterChip(text: "Unsynced", icon: "icloud.slash") {
+                    viewModel.showUnsyncedOnly = false
                 }
-                .font(.subheadline)
             }
-            .buttonStyle(.bordered)
+
+            if viewModel.showIgnoredPhotos {
+                filterChip(text: "Ignored", icon: "eye.slash") {
+                    viewModel.showIgnoredPhotos = false
+                }
+            }
+
+            if viewModel.showHiddenPhotos {
+                filterChip(text: "Hidden", icon: "eye.trianglebadge.exclamationmark") {
+                    viewModel.showHiddenPhotos = false
+                }
+            }
+
+            if viewModel.enableDateFilter {
+                filterChip(text: "Date", icon: "calendar") {
+                    viewModel.enableDateFilter = false
+                }
+            }
 
             Spacer()
 
@@ -232,6 +255,45 @@ struct GalleryView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+    }
+
+    private func filterChip(text: String, icon: String, onRemove: @escaping () -> Void) -> some View {
+        Button {
+            onRemove()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.caption)
+                Text(text)
+                    .font(.caption)
+                Image(systemName: "xmark.circle.fill")
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.accentColor.opacity(0.2))
+            .foregroundColor(.accentColor)
+            .cornerRadius(12)
+        }
+    }
+
+    private var hasActiveFilters: Bool {
+        !viewModel.showUnsyncedOnly ||
+        viewModel.showIgnoredPhotos ||
+        viewModel.showHiddenPhotos ||
+        viewModel.showServerOnlyPhotos ||
+        viewModel.enableDateFilter
+    }
+
+    private var activeFilterCount: Int {
+        var count = 0
+        if !viewModel.showUnsyncedOnly { count += 1 } // Showing all is a filter
+        if viewModel.showIgnoredPhotos { count += 1 }
+        if viewModel.showHiddenPhotos { count += 1 }
+        if viewModel.showServerOnlyPhotos { count += 1 }
+        if viewModel.enableDateFilter { count += 1 }
+        return count
     }
 
     private var selectionBar: some View {

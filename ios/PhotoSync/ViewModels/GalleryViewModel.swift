@@ -13,6 +13,11 @@ class GalleryViewModel: ObservableObject {
     @Published var error: String?
     @Published var showUnsyncedOnly = true  // Default to showing unsynced photos first
     @Published var showIgnoredPhotos = false
+    @Published var showHiddenPhotos = false
+    @Published var showServerOnlyPhotos = false
+    @Published var enableDateFilter = false
+    @Published var dateFilterStart = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+    @Published var dateFilterEnd = Date()
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
 
     private let photoLibrary = PhotoLibraryService.shared
@@ -49,6 +54,24 @@ class GalleryViewModel: ObservableObject {
         if showUnsyncedOnly {
             filtered = filtered.filter { $0.syncState != .synced }
         }
+
+        // Filter hidden photos
+        if !showHiddenPhotos {
+            filtered = filtered.filter { !$0.photo.asset.isHidden }
+        }
+
+        // Filter by date range
+        if enableDateFilter {
+            let startOfDay = Calendar.current.startOfDay(for: dateFilterStart)
+            let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: dateFilterEnd) ?? dateFilterEnd
+
+            filtered = filtered.filter { photo in
+                photo.photo.creationDate >= startOfDay && photo.photo.creationDate <= endOfDay
+            }
+        }
+
+        // Note: Server-only photos will be handled separately in ServerPhotosView
+        // This filter only affects local photos
 
         return filtered
     }
@@ -332,4 +355,49 @@ class GalleryViewModel: ObservableObject {
     func clearError() {
         error = nil
     }
+
+    func setDateFilter(_ preset: DateFilterPreset) {
+        enableDateFilter = true
+        let calendar = Calendar.current
+        let now = Date()
+
+        switch preset {
+        case .today:
+            dateFilterStart = calendar.startOfDay(for: now)
+            dateFilterEnd = now
+
+        case .thisWeek:
+            let weekday = calendar.component(.weekday, from: now)
+            let daysToSubtract = weekday - calendar.firstWeekday
+            dateFilterStart = calendar.date(byAdding: .day, value: -daysToSubtract, to: calendar.startOfDay(for: now)) ?? now
+            dateFilterEnd = now
+
+        case .thisMonth:
+            let components = calendar.dateComponents([.year, .month], from: now)
+            dateFilterStart = calendar.date(from: components) ?? now
+            dateFilterEnd = now
+
+        case .thisYear:
+            let components = calendar.dateComponents([.year], from: now)
+            dateFilterStart = calendar.date(from: components) ?? now
+            dateFilterEnd = now
+        }
+    }
+
+    func resetFilters() {
+        showUnsyncedOnly = true
+        showIgnoredPhotos = false
+        showHiddenPhotos = false
+        showServerOnlyPhotos = false
+        enableDateFilter = false
+        dateFilterStart = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+        dateFilterEnd = Date()
+    }
+}
+
+enum DateFilterPreset {
+    case today
+    case thisWeek
+    case thisMonth
+    case thisYear
 }

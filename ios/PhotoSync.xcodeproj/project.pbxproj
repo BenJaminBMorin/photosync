@@ -34,6 +34,7 @@
 		41FD3E0C9D4BA2BBE9388B13 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477008FDF921B346D977CBC1 /* AppDelegate.swift */; };
 		51E8C094DE4B61FB753A96E6 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DA4BF7D6A1C201229B5824 /* NotificationService.swift */; };
 		666FE7D5F37C28A61F404649 /* AuthRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */; };
+		85D61A71F2394C327A3ED180 /* FilterOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775150600FE91648308B4E44 /* FilterOptionsView.swift */; };
 		A6E22313262E380E02CFB53A /* CollectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B7393A715D37AF94FA60FC /* CollectionsView.swift */; };
 		AACE4F2065BC38D06DF7815E /* IgnoredPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC5B224E4E4D737B5F5CA80 /* IgnoredPhoto.swift */; };
 		AF88CE17B42F714FA1537B22 /* ServerPhotoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F47765F44238D87D40854AB /* ServerPhotoService.swift */; };
@@ -91,6 +92,7 @@
 		477008FDF921B346D977CBC1 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6F47765F44238D87D40854AB /* ServerPhotoService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotoService.swift; sourceTree = "<group>"; };
 		72D185D39309C1A85B79218B /* KeychainService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		775150600FE91648308B4E44 /* FilterOptionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FilterOptionsView.swift; sourceTree = "<group>"; };
 		82A9CEC6D42B4F5EEE0D2122 /* PhotoSync.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = PhotoSync.entitlements; sourceTree = "<group>"; };
 		94B7393A715D37AF94FA60FC /* CollectionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
 		9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthRequestView.swift; sourceTree = "<group>"; };
@@ -193,6 +195,7 @@
 				9CADAB7A8BB5053422DB76A4 /* AuthRequestView.swift */,
 				B352E8572DACCBD36304D418 /* DeleteRequestView.swift */,
 				B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */,
+				775150600FE91648308B4E44 /* FilterOptionsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -382,6 +385,7 @@
 				AF88CE17B42F714FA1537B22 /* ServerPhotoService.swift in Sources */,
 				B7A4E45BF8FC4937F81CCB45 /* ServerPhotosViewModel.swift in Sources */,
 				05A1EC897CB38A41FA691785 /* ServerPhotosView.swift in Sources */,
+				85D61A71F2394C327A3ED180 /* FilterOptionsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,7 +443,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.morinclan.photosync.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
