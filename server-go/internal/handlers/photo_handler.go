@@ -54,6 +54,7 @@ func NewPhotoHandler(
 // @Param file formData file true "Photo file to upload"
 // @Param originalFilename formData string false "Original filename (uses uploaded filename if not provided)"
 // @Param dateTaken formData string false "Date photo was taken (RFC3339 format)"
+// @Param deviceId formData string false "Device ID that originated the photo (for sync tracking)"
 // @Success 200 {object} models.UploadResult "Photo uploaded successfully (or duplicate found)"
 // @Failure 400 {object} models.ErrorResponse "Invalid request"
 // @Failure 401 {object} models.ErrorResponse "Unauthorized - invalid API key"
@@ -88,6 +89,9 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 			dateTaken = parsed
 		}
 	}
+
+	// Get device ID for origin tracking (optional)
+	deviceID := r.FormValue("deviceId")
 
 	// Read file content for hashing
 	content, err := io.ReadAll(file)
@@ -169,6 +173,11 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	photo.Latitude = exifData.Latitude
 	photo.Longitude = exifData.Longitude
 	photo.Altitude = exifData.Altitude
+
+	// Set origin device if provided
+	if deviceID != "" {
+		photo.OriginDeviceID = &deviceID
+	}
 
 	// Generate thumbnails (if supported format)
 	if services.IsSupportedFormat(originalFilename) {

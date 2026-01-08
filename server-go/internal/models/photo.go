@@ -18,6 +18,7 @@ type Photo struct {
 	DateTaken        time.Time `json:"dateTaken"`
 	UploadedAt       time.Time `json:"uploadedAt"`
 	UserID           *string   `json:"userId,omitempty"`
+	OriginDeviceID   *string   `json:"originDeviceId,omitempty"`
 
 	// Thumbnail paths (relative to storage base)
 	ThumbSmall  *string `json:"thumbSmall,omitempty"`

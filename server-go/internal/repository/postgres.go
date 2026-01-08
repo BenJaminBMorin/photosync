@@ -146,12 +146,26 @@ func createPostgresTables(db *sql.DB) error {
 
 		-- Image dimensions
 		width INTEGER,
-		height INTEGER
+		height INTEGER,
+
+		-- Device origin tracking
+		origin_device_id TEXT REFERENCES devices(id) ON DELETE SET NULL
 	);
 
 	CREATE UNIQUE INDEX IF NOT EXISTS idx_photos_hash ON photos(file_hash);
 	CREATE INDEX IF NOT EXISTS idx_photos_date ON photos(date_taken);
 	CREATE INDEX IF NOT EXISTS idx_photos_user_id ON photos(user_id);
+	CREATE INDEX IF NOT EXISTS idx_photos_origin_device ON photos(origin_device_id);
+
+	-- Device sync state (tracks last sync per device)
+	CREATE TABLE IF NOT EXISTS device_sync_state (
+		device_id TEXT PRIMARY KEY REFERENCES devices(id) ON DELETE CASCADE,
+		last_sync_at TIMESTAMP,
+		last_sync_photo_id TEXT,
+		sync_version INTEGER NOT NULL DEFAULT 0,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	);
 
 	-- Setup config table
 	CREATE TABLE IF NOT EXISTS setup_config (

@@ -26,6 +26,15 @@ type PhotoRepo interface {
 	GetPhotosWithoutThumbnails(ctx context.Context, limit int) ([]*models.Photo, error) // Get photos missing thumbnails
 	UpdateThumbnails(ctx context.Context, photoID, smallPath, mediumPath, largePath string) error // Update thumbnail paths
 	GetOrphanedPhotos(ctx context.Context, limit int) ([]*models.Photo, error) // Get photos without an owner
+
+	// Sync-related methods
+	GetAllForUserWithCursor(ctx context.Context, userID string, cursor string, limit int, sinceTimestamp *time.Time) ([]*models.Photo, string, error)
+	GetCountByOriginDevice(ctx context.Context, userID, deviceID string) (int, error)
+	GetLegacyPhotosForUser(ctx context.Context, userID string, limit int) ([]*models.Photo, error)
+	GetLegacyPhotoCount(ctx context.Context, userID string) (int, error)
+	ClaimLegacyPhotos(ctx context.Context, photoIDs []string, deviceID string) (int, error)
+	ClaimAllLegacyPhotos(ctx context.Context, userID, deviceID string) (int, error)
+	SetOriginDevice(ctx context.Context, photoID, deviceID string) error
 }
 
 // UserRepo defines the interface for user persistence operations
@@ -155,4 +164,13 @@ type CollectionShareRepo interface {
 	Add(ctx context.Context, share *models.CollectionShare) error
 	Remove(ctx context.Context, collectionID, userID string) error
 	RemoveAll(ctx context.Context, collectionID string) error
+}
+
+// DeviceSyncStateRepo defines the interface for device sync state tracking
+type DeviceSyncStateRepo interface {
+	Get(ctx context.Context, deviceID string) (*models.DeviceSyncState, error)
+	Upsert(ctx context.Context, state *models.DeviceSyncState) error
+	GetSyncVersion(ctx context.Context, userID string) (int, error)
+	IncrementSyncVersion(ctx context.Context, userID string) error
+	UpdateLastSync(ctx context.Context, deviceID string, lastPhotoID string) error
 }

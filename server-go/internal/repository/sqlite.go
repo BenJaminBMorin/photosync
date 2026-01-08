@@ -117,12 +117,24 @@ func createTables(db *sql.DB) error {
 		file_hash TEXT NOT NULL,
 		file_size INTEGER NOT NULL,
 		date_taken DATETIME NOT NULL,
-		uploaded_at DATETIME NOT NULL
+		uploaded_at DATETIME NOT NULL,
+		origin_device_id TEXT
 	);
 
 	CREATE UNIQUE INDEX IF NOT EXISTS idx_photos_hash ON photos(file_hash);
 	CREATE INDEX IF NOT EXISTS idx_photos_date ON photos(date_taken);
 	CREATE INDEX IF NOT EXISTS idx_photos_user_id ON photos(user_id);
+	CREATE INDEX IF NOT EXISTS idx_photos_origin_device ON photos(origin_device_id);
+
+	-- Device sync state (tracks last sync per device)
+	CREATE TABLE IF NOT EXISTS device_sync_state (
+		device_id TEXT PRIMARY KEY,
+		last_sync_at TEXT,
+		last_sync_photo_id TEXT,
+		sync_version INTEGER NOT NULL DEFAULT 0,
+		created_at TEXT NOT NULL,
+		updated_at TEXT NOT NULL
+	);
 
 	-- Setup config table
 	CREATE TABLE IF NOT EXISTS setup_config (

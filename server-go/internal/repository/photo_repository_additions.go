@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/photosync/server/internal/models"
 )
@@ -82,4 +83,52 @@ func (r *PhotoRepository) UpdateThumbnails(ctx context.Context, photoID, smallPa
 // Note: SQLite version returns empty slice
 func (r *PhotoRepository) GetOrphanedPhotos(ctx context.Context, limit int) ([]*models.Photo, error) {
 	return []*models.Photo{}, nil
+}
+
+// Sync-related methods for SQLite (stubs for development/testing)
+
+// GetAllForUserWithCursor returns photos with cursor-based pagination
+func (r *PhotoRepository) GetAllForUserWithCursor(ctx context.Context, userID string, cursor string, limit int, sinceTimestamp *time.Time) ([]*models.Photo, string, error) {
+	// SQLite stub - returns all photos without cursor support
+	photos, err := r.GetAllForUser(ctx, userID, 0, limit)
+	if err != nil {
+		return nil, "", err
+	}
+	return photos, "", nil
+}
+
+// GetCountByOriginDevice returns count of photos from a specific device
+func (r *PhotoRepository) GetCountByOriginDevice(ctx context.Context, userID, deviceID string) (int, error) {
+	// SQLite stub - returns 0
+	return 0, nil
+}
+
+// GetLegacyPhotosForUser returns photos without an origin device
+func (r *PhotoRepository) GetLegacyPhotosForUser(ctx context.Context, userID string, limit int) ([]*models.Photo, error) {
+	// SQLite stub - returns empty
+	return []*models.Photo{}, nil
+}
+
+// GetLegacyPhotoCount returns count of photos without an origin device
+func (r *PhotoRepository) GetLegacyPhotoCount(ctx context.Context, userID string) (int, error) {
+	// SQLite stub - returns 0
+	return 0, nil
+}
+
+// ClaimLegacyPhotos sets the origin device for specific photos
+func (r *PhotoRepository) ClaimLegacyPhotos(ctx context.Context, photoIDs []string, deviceID string) (int, error) {
+	// SQLite stub - no-op
+	return 0, nil
+}
+
+// ClaimAllLegacyPhotos sets the origin device for all legacy photos for a user
+func (r *PhotoRepository) ClaimAllLegacyPhotos(ctx context.Context, userID, deviceID string) (int, error) {
+	// SQLite stub - no-op
+	return 0, nil
+}
+
+// SetOriginDevice sets the origin device for a photo
+func (r *PhotoRepository) SetOriginDevice(ctx context.Context, photoID, deviceID string) error {
+	// SQLite stub - no-op
+	return nil
 }

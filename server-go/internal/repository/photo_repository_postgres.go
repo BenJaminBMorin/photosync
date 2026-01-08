@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/photosync/server/internal/models"
 )
@@ -23,7 +24,7 @@ func NewPhotoRepositoryPostgres(db *sql.DB) *PhotoRepositoryPostgres {
 const photoSelectColumns = `id, original_filename, stored_path, file_hash, file_size, date_taken, uploaded_at, user_id,
 	thumb_small, thumb_medium, thumb_large,
 	camera_make, camera_model, lens_model, focal_length, aperture, shutter_speed, iso, orientation,
-	latitude, longitude, altitude, width, height`
+	latitude, longitude, altitude, width, height, origin_device_id`
 
 // scanPhoto scans a row into a Photo struct
 func scanPhoto(scanner interface{ Scan(...interface{}) error }) (*models.Photo, error) {
@@ -53,6 +54,7 @@ func scanPhoto(scanner interface{ Scan(...interface{}) error }) (*models.Photo, 
 		&photo.Altitude,
 		&photo.Width,
 		&photo.Height,
+		&photo.OriginDeviceID,
 	)
 	return &photo, err
 }
@@ -255,8 +257,8 @@ func (r *PhotoRepositoryPostgres) Add(ctx context.Context, photo *models.Photo) 
 			id, original_filename, stored_path, file_hash, file_size, date_taken, uploaded_at, user_id,
 			thumb_small, thumb_medium, thumb_large,
 			camera_make, camera_model, lens_model, focal_length, aperture, shutter_speed, iso, orientation,
-			latitude, longitude, altitude, width, height
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+			latitude, longitude, altitude, width, height, origin_device_id
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
@@ -284,6 +286,7 @@ func (r *PhotoRepositoryPostgres) Add(ctx context.Context, photo *models.Photo) 
 		photo.Altitude,
 		photo.Width,
 		photo.Height,
+		photo.OriginDeviceID,
 	)
 
 	return err
@@ -431,4 +434,184 @@ func (r *PhotoRepositoryPostgres) GetOrphanedPhotos(ctx context.Context, limit i
 		photos = []*models.Photo{}
 	}
 	return photos, rows.Err()
+}
+
+// ============================================================================
+// Sync-related methods
+// ============================================================================
+
+// GetAllForUserWithCursor returns photos for a user using cursor-based pagination
+// Returns photos, next cursor, and error
+func (r *PhotoRepositoryPostgres) GetAllForUserWithCursor(ctx context.Context, userID string, cursor string, limit int, sinceTimestamp *time.Time) ([]*models.Photo, string, error) {
+	var query string
+	var args []interface{}
+
+	if cursor != "" {
+		// Cursor is the last photo ID from previous page
+		// We use uploaded_at + id for stable ordering
+		if sinceTimestamp != nil {
+			query = `SELECT ` + photoSelectColumns + ` FROM photos
+				WHERE user_id = $1 AND uploaded_at >= $2 AND (uploaded_at, id) > (
+					SELECT uploaded_at, id FROM photos WHERE id = $3
+				)
+				ORDER BY uploaded_at ASC, id ASC
+				LIMIT $4`
+			args = []interface{}{userID, *sinceTimestamp, cursor, limit + 1}
+		} else {
+			query = `SELECT ` + photoSelectColumns + ` FROM photos
+				WHERE user_id = $1 AND (uploaded_at, id) > (
+					SELECT uploaded_at, id FROM photos WHERE id = $2
+				)
+				ORDER BY uploaded_at ASC, id ASC
+				LIMIT $3`
+			args = []interface{}{userID, cursor, limit + 1}
+		}
+	} else {
+		// First page
+		if sinceTimestamp != nil {
+			query = `SELECT ` + photoSelectColumns + ` FROM photos
+				WHERE user_id = $1 AND uploaded_at >= $2
+				ORDER BY uploaded_at ASC, id ASC
+				LIMIT $3`
+			args = []interface{}{userID, *sinceTimestamp, limit + 1}
+		} else {
+			query = `SELECT ` + photoSelectColumns + ` FROM photos
+				WHERE user_id = $1
+				ORDER BY uploaded_at ASC, id ASC
+				LIMIT $2`
+			args = []interface{}{userID, limit + 1}
+		}
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	var photos []*models.Photo
+	for rows.Next() {
+		photo, err := scanPhoto(rows)
+		if err != nil {
+			return nil, "", err
+		}
+		photos = append(photos, photo)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, "", err
+	}
+
+	// Check if there's a next page
+	var nextCursor string
+	if len(photos) > limit {
+		// Has more pages, return cursor as the last item's ID
+		nextCursor = photos[limit-1].ID
+		photos = photos[:limit] // Trim the extra item
+	}
+
+	if photos == nil {
+		photos = []*models.Photo{}
+	}
+	return photos, nextCursor, nil
+}
+
+// GetCountByOriginDevice returns count of photos from a specific device
+func (r *PhotoRepositoryPostgres) GetCountByOriginDevice(ctx context.Context, userID, deviceID string) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM photos WHERE user_id = $1 AND origin_device_id = $2",
+		userID, deviceID,
+	).Scan(&count)
+	return count, err
+}
+
+// GetLegacyPhotosForUser returns photos without an origin device (legacy photos)
+func (r *PhotoRepositoryPostgres) GetLegacyPhotosForUser(ctx context.Context, userID string, limit int) ([]*models.Photo, error) {
+	query := `SELECT ` + photoSelectColumns + ` FROM photos
+		WHERE user_id = $1 AND origin_device_id IS NULL
+		ORDER BY date_taken DESC
+		LIMIT $2`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var photos []*models.Photo
+	for rows.Next() {
+		photo, err := scanPhoto(rows)
+		if err != nil {
+			return nil, err
+		}
+		photos = append(photos, photo)
+	}
+
+	if photos == nil {
+		photos = []*models.Photo{}
+	}
+	return photos, rows.Err()
+}
+
+// GetLegacyPhotoCount returns count of photos without origin device
+func (r *PhotoRepositoryPostgres) GetLegacyPhotoCount(ctx context.Context, userID string) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM photos WHERE user_id = $1 AND origin_device_id IS NULL",
+		userID,
+	).Scan(&count)
+	return count, err
+}
+
+// ClaimLegacyPhotos sets origin_device_id for specific photos
+func (r *PhotoRepositoryPostgres) ClaimLegacyPhotos(ctx context.Context, photoIDs []string, deviceID string) (int, error) {
+	if len(photoIDs) == 0 {
+		return 0, nil
+	}
+
+	// Build placeholder list
+	placeholders := make([]string, len(photoIDs))
+	args := make([]interface{}, len(photoIDs)+1)
+	args[0] = deviceID
+	for i, id := range photoIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = id
+	}
+
+	query := fmt.Sprintf(`UPDATE photos SET origin_device_id = $1
+		WHERE id IN (%s) AND origin_device_id IS NULL`,
+		strings.Join(placeholders, ", "))
+
+	result, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	affected, err := result.RowsAffected()
+	return int(affected), err
+}
+
+// ClaimAllLegacyPhotos sets origin_device_id for all user's legacy photos
+func (r *PhotoRepositoryPostgres) ClaimAllLegacyPhotos(ctx context.Context, userID, deviceID string) (int, error) {
+	result, err := r.db.ExecContext(ctx,
+		`UPDATE photos SET origin_device_id = $1
+		WHERE user_id = $2 AND origin_device_id IS NULL`,
+		deviceID, userID,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	affected, err := result.RowsAffected()
+	return int(affected), err
+}
+
+// SetOriginDevice sets the origin device for a photo
+func (r *PhotoRepositoryPostgres) SetOriginDevice(ctx context.Context, photoID, deviceID string) error {
+	_, err := r.db.ExecContext(ctx,
+		"UPDATE photos SET origin_device_id = $1 WHERE id = $2",
+		deviceID, photoID,
+	)
+	return err
 }

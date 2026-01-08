@@ -106,6 +106,9 @@ func main() {
 	themeRepo := repository.NewThemeRepository(db)
 	userPrefsRepo := repository.NewUserPreferencesRepository(db)
 
+	// Sync state repository
+	deviceSyncStateRepo := repository.NewDeviceSyncStateRepository(db)
+
 	// Initialize services
 	hashService := services.NewHashService()
 	storageService, err := services.NewPhotoStorageService(
@@ -257,6 +260,9 @@ func main() {
 	// Invite handler
 	inviteHandler := handlers.NewInviteHandler(inviteTokenRepo, userRepo, smtpService, serverURL)
 
+	// Sync handler
+	syncHandler := handlers.NewSyncHandler(photoRepo, deviceRepo, deviceSyncStateRepo, storageService)
+
 	// Public gallery handler
 	publicGalleryHandler := handlers.NewPublicGalleryHandler(
 		collectionService, collectionRepo, collectionPhotoRepo,
@@ -353,6 +359,19 @@ func main() {
 			r.Get("/", deviceHandler.ListDevices)
 			r.Delete("/{id}", deviceHandler.DeleteDevice)
 		})
+
+		// Sync routes (mobile)
+		r.Route("/api/sync", func(r chi.Router) {
+			r.Get("/status", syncHandler.GetSyncStatus)
+			r.Post("/photos", syncHandler.SyncPhotos)
+			r.Get("/legacy-photos", syncHandler.GetLegacyPhotos)
+			r.Post("/claim-legacy", syncHandler.ClaimLegacy)
+			r.Get("/thumbnail/{id}", syncHandler.GetThumbnail)
+			r.Get("/download/{hash}", syncHandler.DownloadPhotoByHash)
+		})
+
+		// Photo download (mobile)
+		r.Get("/api/photos/{id}/download", syncHandler.DownloadPhoto)
 
 		// Auth response from mobile
 		r.Post("/api/web/auth/respond", webAuthHandler.RespondAuth)
