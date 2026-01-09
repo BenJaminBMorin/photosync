@@ -30,6 +30,7 @@
 		05A1EC897CB38A41FA691785 /* ServerPhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */; };
 		0CECD8DD7FC44C78BCDCACE1 /* AutoSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D1000C7B144AF94BD1C2C3 /* AutoSyncManager.swift */; };
 		10DB9E11EDA4EE39CFD977EE /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00FE87AE68EF9E7EBA883E9 /* InviteService.swift */; };
+		195BA88C0CAF758FC7175EA6 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70560B27226956A3EC3A77F5 /* BackgroundTaskManager.swift */; };
 		251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DCDC25052A126FAC4725B5 /* Logger.swift */; };
 		30BF3715543B02E330296D8F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 401C2F0F51DB6ED8498ADD65 /* FirebaseCore */; };
 		41FD3E0C9D4BA2BBE9388B13 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477008FDF921B346D977CBC1 /* AppDelegate.swift */; };
@@ -96,6 +97,7 @@
 		45DA4BF7D6A1C201229B5824 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		477008FDF921B346D977CBC1 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6F47765F44238D87D40854AB /* ServerPhotoService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotoService.swift; sourceTree = "<group>"; };
+		70560B27226956A3EC3A77F5 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
 		72D185D39309C1A85B79218B /* KeychainService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		775150600FE91648308B4E44 /* FilterOptionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FilterOptionsView.swift; sourceTree = "<group>"; };
 		82A9CEC6D42B4F5EEE0D2122 /* PhotoSync.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = PhotoSync.entitlements; sourceTree = "<group>"; };
@@ -234,6 +236,7 @@
 				33D1000C7B144AF94BD1C2C3 /* AutoSyncManager.swift */,
 				6F47765F44238D87D40854AB /* ServerPhotoService.swift */,
 				B00FE87AE68EF9E7EBA883E9 /* InviteService.swift */,
+				70560B27226956A3EC3A77F5 /* BackgroundTaskManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -402,6 +405,7 @@
 				56A84FA9B6AC5CD265A24580 /* ServerCollection.swift in Sources */,
 				D0B601A1AC43DAF07F33389F /* AllPhotosView.swift in Sources */,
 				FBAEF1A98F48844444EC7980 /* AllPhotosViewModel.swift in Sources */,
+				195BA88C0CAF758FC7175EA6 /* BackgroundTaskManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

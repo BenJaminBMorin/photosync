@@ -150,6 +150,62 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "clock.arrow.2.circlepath")
+                                .foregroundColor(.blue)
+                            Text("Background Sync Status")
+                                .font(.headline)
+                        }
+
+                        Divider()
+
+                        // Background refresh status
+                        HStack {
+                            Text("Background Refresh")
+                                .font(.subheadline)
+                            Spacer()
+                            Text(viewModel.backgroundRefreshStatus)
+                                .font(.caption)
+                                .foregroundColor(viewModel.isBackgroundRefreshAvailable ? .green : .orange)
+                        }
+
+                        // Last background sync
+                        if let lastSync = viewModel.lastBackgroundSync {
+                            HStack {
+                                Text("Last Background Sync")
+                                    .font(.subheadline)
+                                Spacer()
+                                Text(viewModel.formatDate(lastSync))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        // Background sync count
+                        HStack {
+                            Text("Background Syncs")
+                                .font(.subheadline)
+                            Spacer()
+                            Text("\(viewModel.backgroundSyncCount)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                } header: {
+                    Text("Background Processing")
+                } footer: {
+                    if !viewModel.isBackgroundRefreshAvailable {
+                        Text("Background refresh is disabled. Enable it in Settings > PhotoSync > Background App Refresh to allow automatic syncing when the app is closed.")
+                    } else if viewModel.autoSync {
+                        Text("Photos will automatically sync in the background when new photos are detected. Background tasks run every 15-30 minutes when conditions are optimal (wifi, battery).")
+                    } else {
+                        Text("Enable Auto-Sync to allow background processing of new photos.")
+                    }
+                }
+
+                Section {
                     Toggle(isOn: $viewModel.autoCleanupSyncedPhotos) {
                         VStack(alignment: .leading) {
                             Text("Auto-Cleanup Synced Photos")

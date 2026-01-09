@@ -54,6 +54,13 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.morinclan.photosync.sync</string>
+		<string>com.morinclan.photosync.refresh</string>
 	</array>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>

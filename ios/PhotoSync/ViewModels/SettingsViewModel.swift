@@ -31,6 +31,10 @@ class SettingsViewModel: ObservableObject {
     @Published var syncStatus: SyncStatusResponse?
     @Published var isClaiming = false
 
+    // Background processing
+    @Published var lastBackgroundSync: Date?
+    @Published var backgroundSyncCount: Int = 0
+
     enum TestResult {
         case success
         case failure(String)
@@ -52,6 +56,9 @@ class SettingsViewModel: ObservableObject {
         self.showServerOnlyPhotos = AppSettings.showServerOnlyPhotos
         self.autoCleanupSyncedPhotos = AppSettings.autoCleanupSyncedPhotos
         self.autoCleanupAfterDays = AppSettings.autoCleanupAfterDays
+
+        // Load background sync stats
+        loadBackgroundSyncStats()
     }
 
     var isConfigured: Bool {
@@ -142,5 +149,26 @@ class SettingsViewModel: ObservableObject {
         }
 
         isClaiming = false
+    }
+
+    // MARK: - Background Processing
+
+    var isBackgroundRefreshAvailable: Bool {
+        BackgroundTaskManager.shared.isBackgroundRefreshAvailable
+    }
+
+    var backgroundRefreshStatus: String {
+        BackgroundTaskManager.shared.backgroundRefreshStatusString
+    }
+
+    private func loadBackgroundSyncStats() {
+        lastBackgroundSync = BackgroundTaskManager.shared.lastBackgroundSyncDate
+        backgroundSyncCount = BackgroundTaskManager.shared.backgroundSyncCount
+    }
+
+    func formatDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }

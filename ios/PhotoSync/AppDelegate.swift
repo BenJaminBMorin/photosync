@@ -24,7 +24,39 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         // Register for remote notifications
         application.registerForRemoteNotifications()
 
+        // Register background tasks
+        Task { @MainActor in
+            BackgroundTaskManager.shared.registerBackgroundTasks()
+
+            // Enable background sync if auto-sync is enabled
+            if AppSettings.autoSync {
+                BackgroundTaskManager.shared.enableBackgroundSync()
+            }
+        }
+
         return true
+    }
+
+    // MARK: - App Lifecycle
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        Task { @MainActor in
+            await Logger.shared.info("App entering background")
+
+            // Schedule background tasks if auto-sync is enabled
+            if AppSettings.autoSync {
+                BackgroundTaskManager.shared.schedulePhotoSyncTask()
+                BackgroundTaskManager.shared.scheduleRefreshTask()
+                await Logger.shared.info("Background tasks scheduled")
+            }
+        }
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        Task { @MainActor in
+            await Logger.shared.info("App entering foreground")
+            // Background tasks will continue, no need to cancel
+        }
     }
 
     private func requestNotificationPermissions() {

@@ -316,6 +316,108 @@ class AutoSyncManager: ObservableObject {
         NotificationCenter.default.post(name: .collectionDidChange, object: nil)
     }
 
+    // MARK: - Background Execution
+
+    /// Check if there are unsynced photos (for background task quick checks)
+    func hasUnsyncedPhotos() async -> Bool {
+        let assets = await photoLibrary.fetchAllPhotos()
+        let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
+        let ignoredIds = IgnoredPhotoEntity.allIgnoredIdentifiers(context: context)
+
+        let unsyncedCount = assets.filter { asset in
+            !syncedIds.contains(asset.localIdentifier) &&
+            !ignoredIds.contains(asset.localIdentifier)
+        }.count
+
+        await Logger.shared.info("hasUnsyncedPhotos check: \(unsyncedCount) unsynced photos found")
+        return unsyncedCount > 0
+    }
+
+    /// Perform sync during background execution
+    /// This is called by BackgroundTaskManager during background tasks
+    func performBackgroundSync() async {
+        await Logger.shared.info("Starting background sync execution...")
+
+        // Check if configured
+        guard AppSettings.isConfigured else {
+            await Logger.shared.warning("Background sync skipped: app not configured")
+            return
+        }
+
+        // Check if already syncing
+        guard !isAutoSyncing else {
+            await Logger.shared.info("Background sync skipped: already syncing")
+            return
+        }
+
+        // Check wifi requirement
+        if AppSettings.wifiOnly && !isWifiConnected {
+            await Logger.shared.info("Background sync skipped: wifi required but not connected")
+            return
+        }
+
+        // Get unsynced photos
+        let assets = await photoLibrary.fetchAllPhotos()
+        let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
+        let ignoredIds = IgnoredPhotoEntity.allIgnoredIdentifiers(context: context)
+
+        let unsyncedPhotos = assets
+            .filter { asset in
+                !syncedIds.contains(asset.localIdentifier) &&
+                !ignoredIds.contains(asset.localIdentifier)
+            }
+            .map { Photo(asset: $0, isSynced: false) }
+
+        guard !unsyncedPhotos.isEmpty else {
+            await Logger.shared.info("No unsynced photos found for background sync")
+            return
+        }
+
+        await Logger.shared.info("Found \(unsyncedPhotos.count) photos for background sync")
+
+        // Limit to 10 photos per background execution to stay within time limits
+        let photosToSync = Array(unsyncedPhotos.prefix(10))
+        await Logger.shared.info("Syncing \(photosToSync.count) photos in background")
+
+        isAutoSyncing = true
+        autoSyncProgress = SyncProgress(
+            total: photosToSync.count,
+            completed: 0,
+            failed: 0,
+            sequence: 0
+        )
+
+        let result = await syncService.syncPhotos(photosToSync, context: context) { [weak self] progress in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.autoSyncProgress = progress
+            }
+        }
+
+        await Logger.shared.info("Background sync completed: \(result.successCount) succeeded, \(result.failCount) failed")
+
+        isAutoSyncing = false
+        autoSyncProgress = nil
+
+        // Run auto-cleanup if enabled
+        if AppSettings.autoCleanupSyncedPhotos {
+            await performAutoCleanup()
+        }
+
+        // Notify that photos were synced
+        NotificationCenter.default.post(name: .collectionDidChange, object: nil)
+    }
+
+    /// Cancel ongoing sync operation (for background task expiration)
+    func cancelSync() {
+        autoSyncTask?.cancel()
+        isAutoSyncing = false
+        autoSyncProgress = nil
+        Task {
+            await Logger.shared.info("Sync cancelled by system")
+        }
+    }
+
     // MARK: - Auto-Cleanup
 
     /// Automatically cleanup synced photos that are older than the configured days
