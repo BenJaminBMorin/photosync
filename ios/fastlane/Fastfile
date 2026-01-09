@@ -20,16 +20,18 @@ platform :ios do
     # Build the app
     # Project is configured for manual code signing
     # Match provisioning profiles are synced before build
+    # Note: Not specifying codesigning_identity to let Xcode pick the correct cert from the profile
     build_app(
       scheme: "PhotoSync",
       export_method: "app-store",
-      codesigning_identity: "Apple Distribution",
       export_options: {
         provisioningProfiles: {
           "com.morinclan.photosync.app" => "match AppStore com.morinclan.photosync.app"
-        }
+        },
+        signingStyle: "manual",
+        teamID: "DV94566H3R"
       },
-      xcargs: "DEVELOPMENT_TEAM=DV94566H3R CODE_SIGN_STYLE=Manual",
+      xcargs: "CODE_SIGN_STYLE=Manual",
       output_directory: "./build",
       buildlog_path: "./build/logs"
     )
