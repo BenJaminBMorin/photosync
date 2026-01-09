@@ -8,10 +8,13 @@ platform :ios do
     puts "🔨 Starting build process..."
 
     # Sync certificates and provisioning profiles
+    # Force reinstall to ensure certificates are in the temporary CI keychain
     match(
       type: "appstore",
       readonly: false,
-      include_all_certificates: true
+      force: true,
+      include_all_certificates: true,
+      verbose: true
     )
 
     # Build the app
