@@ -19,8 +19,8 @@ struct ContentView: View {
                 }
                 .tag(1)
 
-            // All Pictures - Combined view (future enhancement)
-            GalleryView()
+            // All Pictures - Combined view
+            AllPhotosView()
                 .tabItem {
                     Label("All Photos", systemImage: "photo.on.rectangle.angled")
                 }

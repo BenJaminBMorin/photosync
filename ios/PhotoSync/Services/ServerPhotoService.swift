@@ -11,6 +11,38 @@ actor ServerPhotoService {
 
     private init() {}
 
+    /// Get ALL photos from server with device information
+    /// Returns all photos regardless of origin device
+    func getAllServerPhotos(cursor: String? = nil, limit: Int = 50) async throws -> ServerPhotoPage {
+        await Logger.shared.info("Fetching all server photos (cursor: \(cursor ?? "nil"), limit: \(limit))")
+
+        guard let deviceId = AppSettings.deviceId else {
+            throw ServerPhotoError.noDeviceId
+        }
+
+        // Use the syncPhotos endpoint to get photos with device information
+        let request = SyncPhotosRequest(
+            deviceId: deviceId,
+            cursor: cursor,
+            limit: limit,
+            includeThumbnailUrls: true,  // Request thumbnail URLs from server
+            sinceTimestamp: nil
+        )
+
+        let response = try await api.syncPhotos(request: request)
+
+        // Map all photos to ServerPhoto with device status
+        let serverPhotos = response.photos.map { ServerPhoto(from: $0) }
+
+        await Logger.shared.info("Found \(serverPhotos.count) server photos on this page")
+
+        return ServerPhotoPage(
+            photos: serverPhotos,
+            cursor: response.pagination.cursor,
+            hasMore: response.pagination.hasMore
+        )
+    }
+
     /// Get paginated photos that exist on server but not from this device
     /// This uses the Smart Resync API which efficiently filters on the server side
     func getServerOnlyPhotos(cursor: String? = nil, limit: Int = 50) async throws -> ServerPhotoPage {
@@ -79,6 +111,19 @@ actor ServerPhotoService {
 
         await Logger.shared.info("Successfully restored photo \(photo.id)")
     }
+
+    /// Delete photos from server
+    func deletePhotos(_ photoIds: [String]) async throws {
+        await Logger.shared.info("Deleting \(photoIds.count) photos from server")
+
+        if photoIds.count == 1 {
+            try await api.deletePhoto(photoId: photoIds[0])
+        } else {
+            try await api.deletePhotos(photoIds: photoIds)
+        }
+
+        await Logger.shared.info("Successfully deleted \(photoIds.count) photos from server")
+    }
 }
 
 /// Paginated response for server-only photos
@@ -97,6 +142,9 @@ struct ServerPhoto: Identifiable, Codable {
     let uploadedAt: Date
     let hash: String?
     let thumbnailUrl: String?
+    let isOnDevice: Bool  // Whether this photo is from the current device
+    let originDeviceName: String?  // Name of device that uploaded it
+    let originDevicePlatform: String?  // Platform of origin device
 
     init(from syncPhoto: SyncPhotoItem) {
         self.id = syncPhoto.id
@@ -106,6 +154,17 @@ struct ServerPhoto: Identifiable, Codable {
         self.thumbnailUrl = syncPhoto.thumbnailUrl
         self.dateTaken = syncPhoto.dateTaken
         self.uploadedAt = syncPhoto.uploadedAt
+
+        // Device information
+        if let originDevice = syncPhoto.originDevice {
+            self.isOnDevice = originDevice.isCurrentDevice
+            self.originDeviceName = originDevice.name
+            self.originDevicePlatform = originDevice.platform
+        } else {
+            self.isOnDevice = false
+            self.originDeviceName = nil
+            self.originDevicePlatform = "Legacy"
+        }
     }
 
     init(from response: PhotoResponse) {
@@ -119,6 +178,11 @@ struct ServerPhoto: Identifiable, Codable {
         let formatter = ISO8601DateFormatter()
         self.dateTaken = formatter.date(from: response.dateTaken) ?? Date()
         self.uploadedAt = formatter.date(from: response.uploadedAt) ?? Date()
+
+        // Device information not available from PhotoResponse
+        self.isOnDevice = false
+        self.originDeviceName = nil
+        self.originDevicePlatform = nil
     }
 
     var formattedFileSize: String {

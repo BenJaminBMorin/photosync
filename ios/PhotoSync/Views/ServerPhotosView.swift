@@ -4,6 +4,12 @@ struct ServerPhotosView: View {
     @StateObject private var viewModel = ServerPhotosViewModel()
     @State private var selectedPhoto: ServerPhoto?
     @State private var showRestoreConfirmation = false
+    @State private var showShareSheet = false
+    @State private var shareItems: [Any] = []
+    @State private var showDeleteConfirmation = false
+    @State private var showCollectionsSheet = false
+    @State private var showCreateCollectionDialog = false
+    @State private var newCollectionName = ""
 
     var body: some View {
         NavigationStack {
@@ -15,31 +21,69 @@ struct ServerPhotosView: View {
                 } else {
                     photoGridView
                 }
+
+                // Floating action button for selections
+                if !viewModel.selectedPhotos.isEmpty {
+                    floatingActionButton
+                }
             }
             .navigationTitle("In Cloud")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 8) {
-                        // Photo count badge
-                        if !viewModel.serverPhotos.isEmpty {
-                            Text("\(viewModel.serverPhotos.count) photos")
-                                .font(.caption.monospacedDigit())
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.secondary.opacity(0.1))
-                                .clipShape(Capsule())
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !viewModel.selectedPhotos.isEmpty {
+                        Button("Cancel") {
+                            viewModel.clearSelection()
                         }
+                    }
+                }
 
-                        // Refresh button
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
                         Button {
                             Task {
                                 await viewModel.loadServerPhotos()
                             }
                         } label: {
-                            Image(systemName: "arrow.clockwise")
+                            Label("Refresh", systemImage: "arrow.clockwise")
                         }
-                        .disabled(viewModel.isLoading)
+
+                        Divider()
+
+                        Button {
+                            viewModel.showNotOnDeviceOnly.toggle()
+                        } label: {
+                            Label(
+                                viewModel.showNotOnDeviceOnly ? "Show All" : "Show Not on Device Only",
+                                systemImage: viewModel.showNotOnDeviceOnly ? "iphone" : "iphone.slash"
+                            )
+                        }
+
+                        Divider()
+
+                        Button {
+                            // Select all visible photos
+                            for photo in viewModel.displayedPhotos {
+                                viewModel.selectedPhotos.insert(photo.id)
+                            }
+                        } label: {
+                            Label("Select All", systemImage: "checkmark.circle")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.body.weight(.medium))
+                    }
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        Task {
+                            await viewModel.loadCollections()
+                        }
+                        showCollectionsSheet = true
+                    } label: {
+                        Image(systemName: "folder.fill")
+                            .font(.body.weight(.medium))
                     }
                 }
             }
@@ -68,6 +112,129 @@ struct ServerPhotosView: View {
                     Text(error)
                 }
             }
+            .alert("Delete Photos", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await viewModel.deleteSelectedPhotos()
+                    }
+                }
+            } message: {
+                Text("Delete \(viewModel.selectedPhotos.count) photo(s) from the server? This action cannot be undone.")
+            }
+            .sheet(isPresented: $showCollectionsSheet) {
+                collectionsSheet
+            }
+        }
+    }
+
+    private var collectionsSheet: some View {
+        NavigationStack {
+            Group {
+                if viewModel.isLoadingCollections {
+                    ProgressView("Loading collections...")
+                } else if viewModel.collections.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+
+                        Text("No Collections Yet")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+
+                        Text("Create a collection to organize your photos")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+
+                        Button {
+                            showCreateCollectionDialog = true
+                        } label: {
+                            Label("Create Collection", systemImage: "plus.circle.fill")
+                                .font(.headline)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top)
+                    }
+                    .padding()
+                } else {
+                    List {
+                        ForEach(viewModel.collections) { collection in
+                            Button {
+                                Task {
+                                    await viewModel.addSelectedPhotosToCollection(collection)
+                                    showCollectionsSheet = false
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "folder.fill")
+                                        .foregroundColor(.blue)
+
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(collection.name)
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+
+                                        Text("\(collection.photoCount) photos")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    Task {
+                                        await viewModel.deleteCollection(collection)
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Add to Collection")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        showCollectionsSheet = false
+                    }
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showCreateCollectionDialog = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .alert("Create Collection", isPresented: $showCreateCollectionDialog) {
+                TextField("Collection Name", text: $newCollectionName)
+                Button("Cancel", role: .cancel) {
+                    newCollectionName = ""
+                }
+                Button("Create") {
+                    Task {
+                        let success = await viewModel.createCollection(name: newCollectionName)
+                        if success {
+                            newCollectionName = ""
+                        }
+                    }
+                }
+            } message: {
+                Text("Enter a name for the new collection")
+            }
         }
     }
 
@@ -91,19 +258,28 @@ struct ServerPhotosView: View {
     }
 
     private var photoGridView: some View {
-        ScrollView {
-            LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 100), spacing: 4)
-            ], spacing: 4) {
-                ForEach(viewModel.serverPhotos) { photoWithThumbnail in
-                    ServerPhotoCard(
-                        photo: photoWithThumbnail.photo,
-                        thumbnail: photoWithThumbnail.thumbnail,
-                        onRestore: {
-                            selectedPhoto = photoWithThumbnail.photo
-                            showRestoreConfirmation = true
-                        }
-                    )
+        VStack(spacing: 0) {
+            // Stats and filter bar
+            statsBar
+
+            // Photo grid
+            ScrollView {
+                LazyVGrid(columns: [
+                    GridItem(.adaptive(minimum: 100), spacing: 4)
+                ], spacing: 4) {
+                    ForEach(viewModel.displayedPhotos) { photoWithThumbnail in
+                        ServerPhotoCard(
+                            photo: photoWithThumbnail.photo,
+                            thumbnail: photoWithThumbnail.thumbnail,
+                            isSelected: viewModel.selectedPhotos.contains(photoWithThumbnail.id),
+                            onTap: {
+                                viewModel.toggleSelection(for: photoWithThumbnail.id)
+                            },
+                            onRestore: {
+                                selectedPhoto = photoWithThumbnail.photo
+                                showRestoreConfirmation = true
+                            }
+                        )
                     .onAppear {
                         // Load thumbnail when photo appears
                         viewModel.loadThumbnailIfNeeded(for: photoWithThumbnail)
@@ -130,13 +306,194 @@ struct ServerPhotosView: View {
                 }
             }
             .padding(8)
+            }
         }
+    }
+
+    private var statsBar: some View {
+        VStack(spacing: 12) {
+            // Photo count stats
+            HStack(spacing: 16) {
+                StatBadge(
+                    label: "Total",
+                    count: viewModel.serverPhotos.count,
+                    icon: "cloud.fill",
+                    color: .blue
+                )
+
+                StatBadge(
+                    label: "On Device",
+                    count: viewModel.onDeviceCount,
+                    icon: "iphone",
+                    color: .green
+                )
+
+                StatBadge(
+                    label: "Not on Device",
+                    count: viewModel.notOnDeviceCount,
+                    icon: "iphone.slash",
+                    color: .orange
+                )
+            }
+            .padding(.horizontal)
+
+            // Filter toggle
+            if viewModel.notOnDeviceCount > 0 {
+                Button {
+                    withAnimation {
+                        viewModel.showNotOnDeviceOnly.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: viewModel.showNotOnDeviceOnly ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(viewModel.showNotOnDeviceOnly ? .blue : .secondary)
+                        Text("Show only photos not on this device")
+                            .font(.subheadline)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color(.systemGroupedBackground))
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+            }
+        }
+        .padding(.vertical, 12)
+        .background(Color(.systemBackground))
+    }
+
+    private var floatingActionButton: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Menu {
+                    Button {
+                        // Download selected photos
+                        Task {
+                            await downloadSelectedPhotos()
+                        }
+                    } label: {
+                        Label("Download to Device (\(viewModel.selectedPhotos.count))", systemImage: "arrow.down.circle")
+                    }
+
+                    Button {
+                        // Share selected photos
+                        shareSelectedPhotos()
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+
+                    Button {
+                        // Add to collection
+                        Task {
+                            await viewModel.loadCollections()
+                        }
+                        showCollectionsSheet = true
+                    } label: {
+                        Label("Add to Collection", systemImage: "folder.badge.plus")
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete from Server", systemImage: "trash")
+                    }
+
+                    Divider()
+
+                    Button {
+                        viewModel.clearSelection()
+                    } label: {
+                        Label("Clear Selection", systemImage: "xmark.circle")
+                    }
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.blue, .blue.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 64, height: 64)
+                            .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+
+                        VStack(spacing: 2) {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 20, weight: .semibold))
+
+                            Text("\(viewModel.selectedPhotos.count)")
+                                .font(.caption2.bold())
+                                .monospacedDigit()
+                        }
+                        .foregroundColor(.white)
+                    }
+                }
+                .padding(.trailing, 20)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+
+    private func downloadSelectedPhotos() async {
+        let selectedPhotos = viewModel.displayedPhotos.filter { viewModel.selectedPhotos.contains($0.id) }
+
+        for photoWithThumbnail in selectedPhotos {
+            await viewModel.restorePhoto(photoWithThumbnail.photo)
+        }
+
+        viewModel.clearSelection()
+    }
+
+    private func shareSelectedPhotos() {
+        let selectedPhotos = viewModel.displayedPhotos.filter { viewModel.selectedPhotos.contains($0.id) }
+
+        // For now, share URLs or file names
+        let shareText = selectedPhotos.map { $0.photo.originalFilename }.joined(separator: "\n")
+        shareItems = [shareText]
+        showShareSheet = true
+    }
+}
+
+// MARK: - Supporting Views
+
+private struct StatBadge: View {
+    let label: String
+    let count: Int
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(color)
+
+            Text("\(count)")
+                .font(.title2.bold())
+                .monospacedDigit()
+
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(color.opacity(0.1))
+        .cornerRadius(8)
     }
 }
 
 struct ServerPhotoCard: View {
     let photo: ServerPhoto
     let thumbnail: UIImage?
+    let isSelected: Bool
+    let onTap: () -> Void
     let onRestore: () -> Void
 
     var body: some View {
@@ -156,24 +513,85 @@ struct ServerPhotoCard: View {
                     ProgressView()
                 }
 
-                // Restore button overlay
+                // Device status badge
                 VStack {
-                    Spacer()
                     HStack {
-                        Spacer()
-                        Button {
-                            onRestore()
-                        } label: {
-                            Image(systemName: "arrow.down.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.3), radius: 2)
+                        if photo.isOnDevice {
+                            ZStack {
+                                Circle()
+                                    .fill(.green)
+                                    .frame(width: 20, height: 20)
+
+                                Image(systemName: "iphone")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(4)
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(.orange)
+                                    .frame(width: 20, height: 20)
+
+                                Image(systemName: "iphone.slash")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(4)
                         }
-                        .padding(8)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+
+                // Selection overlay
+                if isSelected {
+                    ZStack {
+                        Color.black.opacity(0.3)
+
+                        VStack {
+                            HStack {
+                                Spacer()
+                                ZStack {
+                                    Circle()
+                                        .fill(.blue)
+                                        .frame(width: 28, height: 28)
+
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                                .padding(4)
+                            }
+                            Spacer()
+                        }
+                    }
+                }
+
+                // Restore button overlay (only show if not on device and not selected)
+                if !photo.isOnDevice && !isSelected {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Button {
+                                onRestore()
+                            } label: {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .shadow(color: .black.opacity(0.3), radius: 2)
+                            }
+                            .padding(8)
+                        }
                     }
                 }
             }
             .frame(width: 100, height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .onTapGesture {
+                onTap()
+            }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(photo.originalFilename)
@@ -191,7 +609,18 @@ struct ServerPhotoCard: View {
         }
         .background(Color(.systemBackground))
         .cornerRadius(8)
-        .shadow(radius: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                    LinearGradient(
+                        colors: isSelected ? [.blue, .blue.opacity(0.7)] : [.clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: isSelected ? 3 : 0
+                )
+        )
+        .shadow(radius: isSelected ? 4 : 2)
     }
 }
 

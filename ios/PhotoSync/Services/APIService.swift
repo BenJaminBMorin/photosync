@@ -154,6 +154,32 @@ actor APIService {
         return data
     }
 
+    /// Delete photo from server
+    func deletePhoto(photoId: String) async throws {
+        let url = try buildURL(path: "/api/photos/\(photoId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        addAPIKeyHeader(to: &request)
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
+    /// Delete multiple photos from server
+    func deletePhotos(photoIds: [String]) async throws {
+        let url = try buildURL(path: "/api/photos/batch-delete")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &request)
+
+        let body = ["photoIds": photoIds]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
     // MARK: - Device Registration
 
     /// Register device for push notifications
@@ -319,6 +345,82 @@ actor APIService {
         try validateResponse(response)
 
         return try JSONDecoder().decode(ClaimLegacyResponse.self, from: data)
+    }
+
+    // MARK: - Collections
+
+    /// Get all collections from server
+    func getCollections() async throws -> CollectionsListResponse {
+        let url = try buildURL(path: "/api/collections")
+        var request = URLRequest(url: url)
+        addAPIKeyHeader(to: &request)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(CollectionsListResponse.self, from: data)
+    }
+
+    /// Create a new collection
+    func createCollection(name: String) async throws -> CollectionResponse {
+        let url = try buildURL(path: "/api/collections")
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &urlRequest)
+
+        let request = CreateCollectionRequest(name: name)
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let (data, response) = try await session.data(for: urlRequest)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(CollectionResponse.self, from: data)
+    }
+
+    /// Delete a collection
+    func deleteCollection(collectionId: String) async throws {
+        let url = try buildURL(path: "/api/collections/\(collectionId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        addAPIKeyHeader(to: &request)
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
+    /// Add photos to a collection
+    func addPhotosToCollection(collectionId: String, photoIds: [String]) async throws {
+        let url = try buildURL(path: "/api/collections/\(collectionId)/photos")
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &urlRequest)
+
+        let request = ManageCollectionPhotosRequest(photoIds: photoIds)
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let (_, response) = try await session.data(for: urlRequest)
+        try validateResponse(response)
+    }
+
+    /// Remove photos from a collection
+    func removePhotosFromCollection(collectionId: String, photoIds: [String]) async throws {
+        let url = try buildURL(path: "/api/collections/\(collectionId)/photos")
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "DELETE"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &urlRequest)
+
+        let request = ManageCollectionPhotosRequest(photoIds: photoIds)
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let (_, response) = try await session.data(for: urlRequest)
+        try validateResponse(response)
     }
 
     // MARK: - Helper Methods
