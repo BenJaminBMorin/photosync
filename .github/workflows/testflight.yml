@@ -65,13 +65,20 @@ jobs:
 
     - name: Setup Keychain
       run: |
-        # For self-hosted runner, the login keychain should already be unlocked
-        # Just ensure it's in the search list and won't lock during build
+        # For self-hosted runner, ensure login keychain is properly configured
+        # Set as default keychain (required for match to work)
+        security default-keychain -s ~/Library/Keychains/login.keychain-db
+
+        # Add to search list
         security list-keychains -d user -s ~/Library/Keychains/login.keychain-db
+
+        # Set timeout to avoid locking during build
         security set-keychain-settings -t 3600 ~/Library/Keychains/login.keychain-db || true
 
         # Show current keychain state
-        echo "Current keychains:"
+        echo "Default keychain:"
+        security default-keychain -d user
+        echo "Search list:"
         security list-keychains -d user
 
     - name: Create GoogleService-Info.plist
