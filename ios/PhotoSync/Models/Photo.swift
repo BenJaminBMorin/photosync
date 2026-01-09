@@ -48,6 +48,14 @@ enum SyncState: Equatable {
     }
 }
 
+/// Badge state for animated sync badge UI component
+enum SyncBadgeState {
+    case queued    // Orange - waiting to sync
+    case syncing   // Blue - actively syncing (animated)
+    case synced    // Green - completed
+    case error     // Red - failed
+}
+
 /// Photo with its current selection and sync state for UI
 struct PhotoWithState: Identifiable {
     let photo: Photo
@@ -60,6 +68,24 @@ struct PhotoWithState: Identifiable {
         self.photo = photo
         self.isSelected = isSelected
         self.syncState = photo.isSynced ? .synced : .notSynced
+    }
+
+    /// Maps SyncState to SyncBadgeState for the animated badge component
+    var badgeState: SyncBadgeState {
+        switch syncState {
+        case .notSynced:
+            // Photos waiting to be synced show as "queued"
+            return .queued
+        case .syncing:
+            return .syncing
+        case .synced:
+            return .synced
+        case .error:
+            return .error
+        case .ignored:
+            // Ignored photos don't show a badge
+            return .synced  // Default, but ignored photos are filtered out in UI
+        }
     }
 }
 

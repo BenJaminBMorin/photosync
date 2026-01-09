@@ -16,17 +16,31 @@ struct ServerPhotosView: View {
                     photoGridView
                 }
             }
-            .navigationTitle("Server-Only Photos")
+            .navigationTitle("In Cloud")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task {
-                            await viewModel.loadServerPhotos()
+                    HStack(spacing: 8) {
+                        // Photo count badge
+                        if !viewModel.serverPhotos.isEmpty {
+                            Text("\(viewModel.serverPhotos.count) photos")
+                                .font(.caption.monospacedDigit())
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.secondary.opacity(0.1))
+                                .clipShape(Capsule())
                         }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
+
+                        // Refresh button
+                        Button {
+                            Task {
+                                await viewModel.loadServerPhotos()
+                            }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .disabled(viewModel.isLoading)
                     }
-                    .disabled(viewModel.isLoading)
                 }
             }
             .task {

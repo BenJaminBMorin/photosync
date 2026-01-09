@@ -5,16 +5,16 @@ import CoreData
 struct GalleryView: View {
     @StateObject private var viewModel = GalleryViewModel()
     @State private var showCollections = false
-    @State private var showServerPhotos = false
     @State private var showFilterOptions = false
     @State private var showDeleteConfirmation = false
     @State private var photoToDelete: String?
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2)
-    ]
+    // Adaptive columns based on device size
+    private var columns: [GridItem] {
+        let deviceWidth = UIScreen.main.bounds.width
+        let columnCount = deviceWidth > 600 ? 5 : 3  // iPad gets 5, iPhone gets 3
+        return Array(repeating: GridItem(.flexible(), spacing: 4), count: columnCount)
+    }
 
     var body: some View {
         NavigationStack {
@@ -41,37 +41,39 @@ struct GalleryView: View {
                     )
                 }
             }
-            .navigationTitle("PhotoSync")
+            .navigationTitle("On Device")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         showCollections = true
                     } label: {
-                        Image(systemName: "square.grid.2x2")
+                        HStack(spacing: 4) {
+                            Image(systemName: "folder")
+                            Text("Albums")
+                                .font(.body)
+                        }
                     }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 12) {
-                        if AppSettings.showServerOnlyPhotos {
-                            Button {
-                                showServerPhotos = true
-                            } label: {
-                                Image(systemName: "cloud.fill")
-                            }
+                    HStack(spacing: 8) {
+                        // Sync status badge
+                        HStack(spacing: 4) {
+                            Image(systemName: "icloud.and.arrow.up")
+                                .font(.caption)
+                            Text("\(viewModel.syncedCount)/\(viewModel.photos.count)")
+                                .font(.caption.monospacedDigit())
                         }
-
-                        Text("\(viewModel.syncedCount)/\(viewModel.photos.count)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        .foregroundColor(viewModel.unsyncedCount > 0 ? .orange : .green)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.1))
+                        .clipShape(Capsule())
                     }
                 }
             }
             .sheet(isPresented: $showCollections) {
                 CollectionsView()
-            }
-            .sheet(isPresented: $showServerPhotos) {
-                ServerPhotosView()
             }
             .sheet(isPresented: $showFilterOptions) {
                 FilterOptionsView(viewModel: viewModel)
@@ -190,7 +192,7 @@ struct GalleryView: View {
                 LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
                     ForEach(viewModel.groupedPhotos) { group in
                         Section {
-                            LazyVGrid(columns: columns, spacing: 2) {
+                            LazyVGrid(columns: columns, spacing: 4) {
                                 ForEach(group.photos) { photoState in
                                     PhotoGridItem(
                                         photoState: photoState,
@@ -203,8 +205,8 @@ struct GalleryView: View {
                                     )
                                 }
                             }
-                            .padding(.horizontal, 2)
-                            .padding(.bottom, 16)
+                            .padding(.horizontal, 4)
+                            .padding(.bottom, 20)
                         } header: {
                             HStack {
                                 Text(group.displayTitle)
