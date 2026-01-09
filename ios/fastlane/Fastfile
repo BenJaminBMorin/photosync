@@ -8,12 +8,11 @@ platform :ios do
     puts "🔨 Starting build process..."
 
     # Sync certificates and provisioning profiles
-    # Force reinstall to ensure certificates are in the temporary CI keychain
-    # Don't include all certificates - only import the one that matches the profile
+    # In CI, use readonly mode - certificates already exist in the repo
+    # This avoids needing Apple ID password for portal verification
     match(
       type: "appstore",
-      readonly: false,
-      force: true,
+      readonly: true,
       verbose: true
     )
 
