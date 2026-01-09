@@ -192,13 +192,13 @@ class BackgroundTaskManager: ObservableObject {
     func enableBackgroundSync() {
         schedulePhotoSyncTask()
         scheduleRefreshTask()
-        await Logger.shared.info("Background sync enabled")
+        Task { await Logger.shared.info("Background sync enabled") }
     }
 
     /// Disable background syncing (cancels tasks)
     func disableBackgroundSync() {
         cancelAllTasks()
-        await Logger.shared.info("Background sync disabled")
+        Task { await Logger.shared.info("Background sync disabled") }
     }
 
     /// Check if background refresh is available
