@@ -90,6 +90,29 @@ struct ServerPhotosView: View {
                             showRestoreConfirmation = true
                         }
                     )
+                    .onAppear {
+                        // Load thumbnail when photo appears
+                        viewModel.loadThumbnailIfNeeded(for: photoWithThumbnail)
+
+                        // Load more photos if needed
+                        Task {
+                            await viewModel.loadMoreIfNeeded(currentPhoto: photoWithThumbnail)
+                        }
+                    }
+                }
+
+                // Loading indicator at bottom
+                if viewModel.isLoadingMore {
+                    VStack {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                            .padding()
+                        Text("Loading more...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
                 }
             }
             .padding(8)
