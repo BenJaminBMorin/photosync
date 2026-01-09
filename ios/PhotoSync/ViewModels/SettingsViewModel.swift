@@ -27,6 +27,7 @@ class SettingsViewModel: ObservableObject {
     @Published var testResult: TestResult?
     @Published var isResyncing = false
     @Published var resyncResult: ResyncResult?
+    @Published var resyncProgress: String?
     @Published var syncStatus: SyncStatusResponse?
     @Published var isClaiming = false
 
@@ -80,6 +81,7 @@ class SettingsViewModel: ObservableObject {
     func resyncFromServer() async {
         isResyncing = true
         resyncResult = nil
+        resyncProgress = nil
 
         do {
             // Fetch sync status first
@@ -92,7 +94,11 @@ class SettingsViewModel: ObservableObject {
                 }
             }
 
-            try await autoSyncManager.resyncFromServer()
+            try await autoSyncManager.resyncFromServer { progress in
+                Task { @MainActor in
+                    self.resyncProgress = progress
+                }
+            }
 
             // Refresh sync status after resync
             if let deviceId = AppSettings.deviceId {
@@ -111,6 +117,7 @@ class SettingsViewModel: ObservableObject {
         }
 
         isResyncing = false
+        resyncProgress = nil
     }
 
     func clearResyncResult() {

@@ -196,7 +196,7 @@ class AutoSyncManager: ObservableObject {
     /// Resync the local database from the server
     /// This fetches all photos on the server and marks matching local photos as synced
     /// Re-sync from server using cursor-based pagination
-    func resyncFromServer() async throws {
+    func resyncFromServer(progressHandler: ((String) -> Void)? = nil) async throws {
         await Logger.shared.info("Starting resync from server with cursor-based pagination...")
 
         guard AppSettings.isConfigured else {
@@ -213,16 +213,19 @@ class AutoSyncManager: ObservableObject {
 
         // Step 1: Check if there are legacy photos to claim
         await Logger.shared.info("Calling getSyncStatus...")
+        progressHandler?("Checking server status...")
         let status = try await APIService.shared.getSyncStatus(deviceId: deviceId)
         await Logger.shared.info("Sync status: \(status.totalPhotos) total, \(status.devicePhotos) from this device, \(status.legacyPhotos) legacy")
 
         if status.needsLegacyClaim && status.legacyPhotos > 0 {
             await Logger.shared.info("Found \(status.legacyPhotos) legacy photos - claiming for this device...")
+            progressHandler?("Claiming \(status.legacyPhotos) legacy photos...")
             let claimResult = try await APIService.shared.claimLegacyPhotos(deviceId: deviceId, claimAll: true)
             await Logger.shared.info("Claimed \(claimResult.claimed) legacy photos")
         }
 
         // Step 2: Fetch all server photos using cursor pagination
+        progressHandler?("Fetching photos from server...")
         var allServerHashes: Set<String> = []
         var cursor: String? = nil
         var pageCount = 0
@@ -250,30 +253,40 @@ class AutoSyncManager: ObservableObject {
         } while cursor != nil
 
         await Logger.shared.info("Fetched \(allServerHashes.count) photo hashes from server")
+        progressHandler?("Fetched \(allServerHashes.count) photos from server")
 
         // Step 3: Compare with local Core Data sync state
         let syncedIds = SyncedPhotoEntity.allSyncedIdentifiers(context: context)
         await Logger.shared.info("Found \(syncedIds.count) synced photos in local database")
 
         // Step 4: Fetch all local photos and build hash map
+        progressHandler?("Loading local photos...")
         let assets = await photoLibrary.fetchAllPhotos()
         await Logger.shared.info("Found \(assets.count) photos in local library")
 
+        let unsyncedAssets = assets.filter { !syncedIds.contains($0.localIdentifier) }
+        progressHandler?("Computing hashes for \(unsyncedAssets.count) unsynced photos...")
+
         var localHashMap: [String: PHAsset] = [:]
-        for asset in assets {
-            // Only compute hash for photos not yet synced
+        var processedCount = 0
+        for asset in unsyncedAssets {
             let localId = asset.localIdentifier
-            if !syncedIds.contains(localId) {
-                if let imageData = try? await photoLibrary.getImageData(for: asset) {
-                    let hash = HashService.sha256(imageData)
-                    localHashMap[hash] = asset
-                }
+            if let imageData = try? await photoLibrary.getImageData(for: asset) {
+                let hash = HashService.sha256(imageData)
+                localHashMap[hash] = asset
+            }
+            processedCount += 1
+            // Update progress every 100 photos
+            if processedCount % 100 == 0 {
+                progressHandler?("Hashed \(processedCount)/\(unsyncedAssets.count) photos...")
             }
         }
 
         await Logger.shared.info("Computed hashes for \(localHashMap.count) unsynced local photos")
 
         // Step 5: Find photos on server that exist locally but aren't marked as synced
+        await Logger.shared.info("Matching server photos with local library...")
+        progressHandler?("Matching photos...")
         var addedCount = 0
         for serverHash in allServerHashes {
             if let asset = localHashMap[serverHash] {
@@ -296,11 +309,11 @@ class AutoSyncManager: ObservableObject {
 
         await Logger.shared.info("Resync complete: Added \(addedCount) photos to sync state")
 
-        // Save changes and notify UI
-        if addedCount > 0 {
-            try context.save()
-            NotificationCenter.default.post(name: .collectionDidChange, object: nil)
-        }
+        // Save changes and ALWAYS notify UI (even if addedCount is 0)
+        // This ensures the UI refreshes to show the correct sync state
+        try context.save()
+        await Logger.shared.info("Posting collectionDidChange notification to refresh UI")
+        NotificationCenter.default.post(name: .collectionDidChange, object: nil)
     }
 
     // MARK: - Auto-Cleanup

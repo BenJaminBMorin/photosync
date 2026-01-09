@@ -83,7 +83,14 @@ struct SettingsView: View {
                             if viewModel.isResyncing {
                                 ProgressView()
                                     .scaleEffect(0.8)
-                                Text("Resyncing...")
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Resyncing...")
+                                    if let progress = viewModel.resyncProgress {
+                                        Text(progress)
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                             } else {
                                 Image(systemName: "arrow.triangle.2.circlepath")
                                 Text("Resync from Server")
