@@ -75,11 +75,22 @@ jobs:
         # Set timeout to avoid locking during build
         security set-keychain-settings -t 3600 ~/Library/Keychains/login.keychain-db || true
 
+        # Remove old distribution certificates to avoid conflicts
+        # Match will reinstall the correct one
+        echo "Removing old distribution certificates..."
+        security find-identity -v -p codesigning | grep "Apple Distribution" | while read line; do
+          HASH=$(echo "$line" | awk '{print $2}')
+          if [ -n "$HASH" ]; then
+            echo "Removing certificate: $HASH"
+            security delete-certificate -Z "$HASH" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
+          fi
+        done
+
         # Show current keychain state
         echo "Default keychain:"
         security default-keychain -d user
-        echo "Search list:"
-        security list-keychains -d user
+        echo "Remaining certificates:"
+        security find-identity -v -p codesigning
 
     - name: Create GoogleService-Info.plist
       working-directory: ios/PhotoSync
