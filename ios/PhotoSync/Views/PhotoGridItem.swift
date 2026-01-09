@@ -47,6 +47,26 @@ struct PhotoGridItem: View {
                         .padding(4)
                 }
 
+                // Syncing indicator
+                if photoState.syncState == .syncing {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Circle()
+                                .fill(Color.blue)
+                                .frame(width: 20, height: 20)
+                                .overlay {
+                                    Image(systemName: "icloud.and.arrow.up")
+                                        .font(.system(size: 10).bold())
+                                        .foregroundColor(.white)
+                                }
+                                .padding(4)
+                        }
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.width)
+                }
+
                 // Synced indicator
                 if photoState.syncState == .synced {
                     VStack {
@@ -58,6 +78,26 @@ struct PhotoGridItem: View {
                                 .frame(width: 20, height: 20)
                                 .overlay {
                                     Image(systemName: "checkmark")
+                                        .font(.caption2.bold())
+                                        .foregroundColor(.white)
+                                }
+                                .padding(4)
+                        }
+                    }
+                    .frame(width: geometry.size.width, height: geometry.size.width)
+                }
+
+                // Error indicator
+                if case .error = photoState.syncState {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 20, height: 20)
+                                .overlay {
+                                    Image(systemName: "exclamationmark")
                                         .font(.caption2.bold())
                                         .foregroundColor(.white)
                                 }

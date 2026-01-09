@@ -321,6 +321,13 @@ class GalleryViewModel: ObservableObject {
             isSyncing = true
             syncProgress = SyncProgress(total: selectedPhotos.count, completed: 0, failed: 0)
 
+            // Mark selected photos as syncing
+            for photo in selectedPhotos {
+                if let index = photos.firstIndex(where: { $0.id == photo.id }) {
+                    photos[index].syncState = .syncing
+                }
+            }
+
             do {
                 let result = await syncService.syncPhotos(selectedPhotos, context: context) { progress in
                     Task { @MainActor [weak self] in
