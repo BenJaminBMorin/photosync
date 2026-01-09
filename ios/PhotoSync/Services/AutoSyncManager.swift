@@ -200,15 +200,19 @@ class AutoSyncManager: ObservableObject {
         await Logger.shared.info("Starting resync from server with cursor-based pagination...")
 
         guard AppSettings.isConfigured else {
+            await Logger.shared.error("Resync failed: App not configured")
             throw AutoSyncError.notConfigured
         }
+        await Logger.shared.info("App is configured, checking device ID...")
 
         guard let deviceId = AppSettings.deviceId else {
             await Logger.shared.error("Cannot resync: device not registered")
             throw AutoSyncError.notConfigured
         }
+        await Logger.shared.info("Device ID found: \(deviceId)")
 
         // Step 1: Check if there are legacy photos to claim
+        await Logger.shared.info("Calling getSyncStatus...")
         let status = try await APIService.shared.getSyncStatus(deviceId: deviceId)
         await Logger.shared.info("Sync status: \(status.totalPhotos) total, \(status.devicePhotos) from this device, \(status.legacyPhotos) legacy")
 

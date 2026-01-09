@@ -242,7 +242,7 @@ actor APIService {
     // MARK: - Sync Endpoints
 
     func getSyncStatus(deviceId: String?) async throws -> SyncStatusResponse {
-        print("[API] getSyncStatus called with deviceId: \(deviceId ?? "nil")")
+        await Logger.shared.info("API: getSyncStatus called with deviceId: \(deviceId ?? "nil")")
         let url = try buildURL(path: "/api/sync/status")
         var request = URLRequest(url: url)
         addAPIKeyHeader(to: &request)
@@ -251,15 +251,15 @@ actor APIService {
             request.setValue(deviceId, forHTTPHeaderField: "X-Device-ID")
         }
 
-        print("[API] Making request to: \(url.absoluteString)")
+        await Logger.shared.info("API: Making request to: \(url.absoluteString)")
         let (data, response) = try await session.data(for: request)
 
         // Log response for debugging
         if let httpResponse = response as? HTTPURLResponse {
-            print("[API] Response status: \(httpResponse.statusCode)")
+            await Logger.shared.info("API: Response status: \(httpResponse.statusCode)")
             if httpResponse.statusCode != 200 {
                 let responseBody = String(data: data, encoding: .utf8) ?? "Unable to decode response"
-                print("[API] Error response body: \(responseBody)")
+                await Logger.shared.error("API: Error response body: \(responseBody)")
             }
         }
 
@@ -331,9 +331,13 @@ actor APIService {
             let maskedKey = apiKey.count > 8
                 ? "\(apiKey.prefix(4))...\(apiKey.suffix(4))"
                 : "****"
-            print("[API] Adding API key header: X-API-Key = \(maskedKey)")
+            Task {
+                await Logger.shared.info("API: Adding API key header: X-API-Key = \(maskedKey)")
+            }
         } else {
-            print("[API] WARNING: API key is empty, header not added")
+            Task {
+                await Logger.shared.error("API: WARNING - API key is empty, header not added")
+            }
         }
     }
 

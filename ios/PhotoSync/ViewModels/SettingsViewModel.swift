@@ -84,18 +84,29 @@ class SettingsViewModel: ObservableObject {
         do {
             // Fetch sync status first
             if let deviceId = AppSettings.deviceId {
-                syncStatus = try? await APIService.shared.getSyncStatus(deviceId: deviceId)
+                do {
+                    syncStatus = try await APIService.shared.getSyncStatus(deviceId: deviceId)
+                } catch {
+                    await Logger.shared.error("Failed to get initial sync status: \(error.localizedDescription)")
+                    // Continue anyway to try the resync
+                }
             }
 
             try await autoSyncManager.resyncFromServer()
 
             // Refresh sync status after resync
             if let deviceId = AppSettings.deviceId {
-                syncStatus = try? await APIService.shared.getSyncStatus(deviceId: deviceId)
+                do {
+                    syncStatus = try await APIService.shared.getSyncStatus(deviceId: deviceId)
+                } catch {
+                    await Logger.shared.error("Failed to get final sync status: \(error.localizedDescription)")
+                    // Continue anyway since resync succeeded
+                }
             }
 
             resyncResult = .success(0)
         } catch {
+            await Logger.shared.error("Resync failed: \(error.localizedDescription)")
             resyncResult = .failure(error.localizedDescription)
         }
 
