@@ -9,11 +9,11 @@ platform :ios do
 
     # Sync certificates and provisioning profiles
     # Force reinstall to ensure certificates are in the temporary CI keychain
+    # Don't include all certificates - only import the one that matches the profile
     match(
       type: "appstore",
       readonly: false,
       force: true,
-      include_all_certificates: true,
       verbose: true
     )
 
