@@ -43,7 +43,7 @@ class BackgroundTaskManager: ObservableObject {
             }
         }
 
-        await Logger.shared.info("Background tasks registered")
+        Task { await Logger.shared.info("Background tasks registered") }
     }
 
     // MARK: - Task Scheduling
@@ -61,9 +61,9 @@ class BackgroundTaskManager: ObservableObject {
 
         do {
             try BGTaskScheduler.shared.submit(request)
-            await Logger.shared.info("Scheduled background photo sync task")
+            Task { await Logger.shared.info("Scheduled background photo sync task") }
         } catch {
-            await Logger.shared.info("Failed to schedule photo sync task: \(error.localizedDescription)")
+            Task { await Logger.shared.info("Failed to schedule photo sync task: \(error.localizedDescription)") }
         }
     }
 
@@ -76,9 +76,9 @@ class BackgroundTaskManager: ObservableObject {
 
         do {
             try BGTaskScheduler.shared.submit(request)
-            await Logger.shared.info("Scheduled background refresh task")
+            Task { await Logger.shared.info("Scheduled background refresh task") }
         } catch {
-            await Logger.shared.info("Failed to schedule refresh task: \(error.localizedDescription)")
+            Task { await Logger.shared.info("Failed to schedule refresh task: \(error.localizedDescription)") }
         }
     }
 
@@ -86,7 +86,7 @@ class BackgroundTaskManager: ObservableObject {
     func cancelAllTasks() {
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.photoSyncTaskIdentifier)
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.refreshTaskIdentifier)
-        await Logger.shared.info("Cancelled all background tasks")
+        Task { await Logger.shared.info("Cancelled all background tasks") }
     }
 
     // MARK: - Task Handlers
