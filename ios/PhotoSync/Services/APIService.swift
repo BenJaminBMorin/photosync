@@ -423,6 +423,143 @@ actor APIService {
         try validateResponse(response)
     }
 
+    // MARK: - Mobile Authentication
+
+    /// Login with email and password, get API key
+    func login(
+        email: String,
+        password: String,
+        deviceName: String,
+        fcmToken: String
+    ) async throws -> LoginResponse {
+        let url = try buildURL(path: "/api/mobile/auth/login")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = LoginRequest(
+            email: email,
+            password: password,
+            deviceName: deviceName,
+            platform: "iOS",
+            fcmToken: fcmToken
+        )
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        return try JSONDecoder().decode(LoginResponse.self, from: data)
+    }
+
+    /// Refresh API key after verifying password
+    func refreshAPIKey(password: String) async throws -> String {
+        let url = try buildURL(path: "/api/mobile/auth/refresh-key")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &request)
+
+        let body = RefreshAPIKeyRequest(password: password)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        let result = try JSONDecoder().decode(RefreshAPIKeyResponse.self, from: data)
+        return result.apiKey
+    }
+
+    // MARK: - Password Reset - Email
+
+    /// Initiate email password reset (always returns success for security)
+    func initiateEmailPasswordReset(email: String) async throws {
+        let url = try buildURL(path: "/api/mobile/auth/reset/email/initiate")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = InitiateEmailResetRequest(email: email)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
+    /// Verify reset code and set new password
+    func verifyPasswordResetCode(
+        email: String,
+        code: String,
+        newPassword: String
+    ) async throws {
+        let url = try buildURL(path: "/api/mobile/auth/reset/email/verify")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = VerifyCodeRequest(
+            email: email,
+            code: code,
+            newPassword: newPassword
+        )
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
+    // MARK: - Password Reset - Phone 2FA
+
+    /// Initiate phone-based password reset (sends FCM push to user's devices)
+    func initiatePhonePasswordReset(
+        email: String,
+        newPassword: String
+    ) async throws -> String {
+        let url = try buildURL(path: "/api/mobile/auth/reset/phone/initiate")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = InitiatePhoneResetRequest(
+            email: email,
+            newPassword: newPassword
+        )
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let result = try decoder.decode(InitiatePhoneResetResponse.self, from: data)
+        return result.requestId
+    }
+
+    /// Check status of phone-based password reset approval
+    func checkPhoneResetStatus(requestId: String) async throws -> PhoneResetStatusResponse {
+        let url = try buildURL(path: "/api/mobile/auth/reset/phone/status/\(requestId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(PhoneResetStatusResponse.self, from: data)
+    }
+
+    /// Complete phone-based password reset after device approval
+    func completePhoneReset(requestId: String) async throws {
+        let url = try buildURL(path: "/api/mobile/auth/reset/phone/complete/\(requestId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(response)
+    }
+
     // MARK: - Helper Methods
 
     private func addAPIKeyHeader(to request: inout URLRequest) {

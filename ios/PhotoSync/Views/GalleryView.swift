@@ -8,6 +8,7 @@ struct GalleryView: View {
     @State private var showFilterOptions = false
     @State private var showDeleteConfirmation = false
     @State private var photoToDelete: String?
+    @State private var showLogin = false
 
     // Adaptive columns based on device size
     private var columns: [GridItem] {
@@ -118,19 +119,42 @@ struct GalleryView: View {
     }
 
     private var notConfiguredView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "gear")
+        VStack(spacing: 20) {
+            Image(systemName: "icloud.and.arrow.up")
                 .font(.system(size: 64))
                 .foregroundColor(.accentColor)
 
-            Text("Server not configured")
-                .font(.headline)
+            Text("Welcome to PhotoSync")
+                .font(.title2)
+                .fontWeight(.bold)
 
-            Text("Please configure your server URL and API key in Settings")
+            Text("Sign in to start syncing your photos to your server")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
+
+            VStack(spacing: 12) {
+                Button {
+                    showLogin = true
+                } label: {
+                    HStack {
+                        Image(systemName: "person.fill")
+                        Text("Sign In with Password")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Text("or configure manually in Settings")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 32)
+        }
+        .sheet(isPresented: $showLogin) {
+            LoginView()
         }
     }
 

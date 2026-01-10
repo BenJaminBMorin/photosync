@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @State private var showAPIKey = false
+    @State private var showChangePassword = false
+    @State private var showLogoutConfirm = false
 
     var body: some View {
         NavigationStack {
@@ -246,6 +248,34 @@ struct SettingsView: View {
                     }
                 }
 
+                if viewModel.isConfigured {
+                    Section("Security") {
+                        Button {
+                            showChangePassword = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "key.fill")
+                                    .foregroundColor(.blue)
+                                Text("Change Password")
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.gray)
+                                    .font(.caption)
+                            }
+                        }
+
+                        Button(role: .destructive) {
+                            showLogoutConfirm = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                Text("Sign Out")
+                            }
+                        }
+                    }
+                }
+
                 Section("Debugging") {
                     NavigationLink {
                         LogsView()
@@ -276,6 +306,30 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .sheet(isPresented: $showChangePassword) {
+                ChangePasswordView()
+            }
+            .confirmationDialog(
+                "Sign Out",
+                isPresented: $showLogoutConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Sign Out", role: .destructive) {
+                    signOut()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Are you sure you want to sign out? You'll need to log in again to sync photos.")
+            }
+        }
+    }
+
+    private func signOut() {
+        AppSettings.apiKey = ""
+        AppSettings.deviceId = nil
+
+        Task {
+            await Logger.shared.info("User signed out")
         }
     }
 

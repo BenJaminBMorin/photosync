@@ -77,6 +77,17 @@ struct AppSettings {
         deviceId != nil
     }
 
+    /// Check if user needs to authenticate (no API key stored)
+    static var needsAuthentication: Bool {
+        apiKey.isEmpty
+    }
+
+    /// Clear all authentication data (used for sign out)
+    static func clearAuthentication() {
+        apiKey = ""
+        deviceId = nil
+    }
+
     /// Normalized server URL (removes trailing slash)
     static var normalizedServerURL: String {
         var url = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)

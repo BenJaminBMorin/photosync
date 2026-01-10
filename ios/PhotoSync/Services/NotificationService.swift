@@ -8,12 +8,15 @@ actor NotificationService {
     private var fcmToken: String?
     private var pendingAuthRequest: AuthRequest?
     private var pendingDeleteRequest: DeleteRequest?
+    private var pendingPasswordResetRequest: PasswordResetRequest?
 
     // Published state for UI binding
     @MainActor @Published var currentAuthRequest: AuthRequest?
     @MainActor @Published var showAuthRequestSheet = false
     @MainActor @Published var currentDeleteRequest: DeleteRequest?
     @MainActor @Published var showDeleteRequestSheet = false
+    @MainActor @Published var currentPasswordResetRequest: PasswordResetRequest?
+    @MainActor @Published var showPasswordResetSheet = false
 
     private init() {}
 
@@ -227,6 +230,83 @@ actor NotificationService {
         }
     }
 
+    // MARK: - Password Reset Request Handling
+
+    func handlePasswordResetRequest(id: String, userInfo: [AnyHashable: Any]) async {
+        await Logger.shared.info("Password reset request received: \(id)")
+
+        let request = PasswordResetRequest(
+            id: id,
+            email: userInfo["email"] as? String ?? "Unknown",
+            ipAddress: userInfo["ipAddress"] as? String,
+            userAgent: userInfo["userAgent"] as? String,
+            timestamp: Date()
+        )
+
+        self.pendingPasswordResetRequest = request
+
+        await MainActor.run {
+            self.currentPasswordResetRequest = request
+            self.showPasswordResetSheet = true
+            NotificationCenter.default.post(name: .showPasswordResetRequest, object: request)
+        }
+
+        await Logger.shared.info("Password reset sheet should now be visible")
+    }
+
+    func approvePasswordResetRequest() async {
+        await Logger.shared.info("approvePasswordResetRequest() called")
+
+        guard let request = pendingPasswordResetRequest else {
+            await Logger.shared.warning("No pending password reset request to approve")
+            return
+        }
+
+        await Logger.shared.info("Sending approval for password reset: \(request.id)")
+
+        do {
+            try await APIService.shared.respondToAuthRequest(
+                id: request.id,
+                approved: true
+            )
+            await Logger.shared.info("Password reset request approved: \(request.id)")
+            await clearPasswordResetRequest()
+        } catch {
+            await Logger.shared.error("Failed to approve password reset: \(error)")
+        }
+    }
+
+    func denyPasswordResetRequest() async {
+        await Logger.shared.info("denyPasswordResetRequest() called")
+
+        guard let request = pendingPasswordResetRequest else {
+            await Logger.shared.warning("No pending password reset request to deny")
+            return
+        }
+
+        await Logger.shared.info("Sending denial for password reset: \(request.id)")
+
+        do {
+            try await APIService.shared.respondToAuthRequest(
+                id: request.id,
+                approved: false
+            )
+            await Logger.shared.info("Password reset request denied: \(request.id)")
+            await clearPasswordResetRequest()
+        } catch {
+            await Logger.shared.error("Failed to deny password reset: \(error)")
+        }
+    }
+
+    private func clearPasswordResetRequest() async {
+        pendingPasswordResetRequest = nil
+
+        await MainActor.run {
+            self.currentPasswordResetRequest = nil
+            self.showPasswordResetSheet = false
+        }
+    }
+
     func approveAuthRequest() async {
         await Logger.shared.info("approveAuthRequest() called")
 
@@ -355,5 +435,36 @@ struct DeleteRequest: Identifiable {
         }
 
         return "Web browser"
+    }
+}
+
+// MARK: - Password Reset Request Model
+
+struct PasswordResetRequest: Identifiable {
+    let id: String
+    let email: String
+    let ipAddress: String?
+    let userAgent: String?
+    let timestamp: Date
+
+    var formattedTimestamp: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: timestamp)
+    }
+
+    var browserInfo: String {
+        guard let userAgent = userAgent else { return "Unknown device" }
+
+        if userAgent.contains("iPhone") {
+            return "iPhone"
+        } else if userAgent.contains("iPad") {
+            return "iPad"
+        } else if userAgent.contains("Android") {
+            return "Android"
+        }
+
+        return "Unknown device"
     }
 }

@@ -7,6 +7,7 @@ struct PhotoSyncApp: App {
 
     @State private var authRequestToShow: AuthRequest?
     @State private var deleteRequestToShow: DeleteRequest?
+    @State private var passwordResetRequestToShow: PasswordResetRequest?
     @State private var showInviteError: Bool = false
     @State private var inviteErrorMessage: String = ""
     @State private var isProcessingInvite: Bool = false
@@ -126,6 +127,46 @@ struct PhotoSyncApp: App {
                         }
                     )
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .showPasswordResetRequest)) { notification in
+                    Task {
+                        await Logger.shared.info("PhotoSyncApp received showPasswordResetRequest notification")
+                    }
+                    if let request = notification.object as? PasswordResetRequest {
+                        Task {
+                            await Logger.shared.info("Successfully cast to PasswordResetRequest - id: \(request.id), email: \(request.email)")
+                        }
+                        passwordResetRequestToShow = request
+                    } else {
+                        Task {
+                            await Logger.shared.error("Failed to cast notification.object to PasswordResetRequest")
+                        }
+                    }
+                }
+                .sheet(item: $passwordResetRequestToShow) { request in
+                    PasswordResetApprovalView(
+                        request: request,
+                        onApprove: {
+                            Task {
+                                await Logger.shared.info("User tapped APPROVE button for password reset: \(request.id)")
+                                await NotificationService.shared.approvePasswordResetRequest()
+                                await Logger.shared.info("Password reset approve completed, dismissing sheet")
+                                await MainActor.run {
+                                    passwordResetRequestToShow = nil
+                                }
+                            }
+                        },
+                        onDeny: {
+                            Task {
+                                await Logger.shared.info("User tapped DENY button for password reset: \(request.id)")
+                                await NotificationService.shared.denyPasswordResetRequest()
+                                await Logger.shared.info("Password reset deny completed, dismissing sheet")
+                                await MainActor.run {
+                                    passwordResetRequestToShow = nil
+                                }
+                            }
+                        }
+                    )
+                }
                 .onOpenURL { url in
                     Task {
                         await handleDeepLink(url)
@@ -239,4 +280,5 @@ struct PhotoSyncApp: App {
 extension Notification.Name {
     static let showAuthRequest = Notification.Name("showAuthRequest")
     static let showDeleteRequest = Notification.Name("showDeleteRequest")
+    static let showPasswordResetRequest = Notification.Name("showPasswordResetRequest")
 }

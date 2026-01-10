@@ -195,3 +195,80 @@ struct ClaimLegacyResponse: Codable {
     let alreadyClaimed: Int
     let failed: Int
 }
+
+// MARK: - Mobile Authentication
+
+/// Request to login with email and password
+struct LoginRequest: Codable {
+    let email: String
+    let password: String
+    let deviceName: String
+    let platform: String
+    let fcmToken: String
+}
+
+/// Response from user login
+struct UserResponse: Codable {
+    let id: String
+    let email: String
+    let name: String?
+    let isActive: Bool
+}
+
+/// Response from successful login
+struct LoginResponse: Codable {
+    let success: Bool
+    let user: UserResponse
+    let device: DeviceResponse
+    let apiKey: String
+}
+
+/// Request to refresh API key
+struct RefreshAPIKeyRequest: Codable {
+    let password: String
+}
+
+/// Response from refreshing API key
+struct RefreshAPIKeyResponse: Codable {
+    let apiKey: String
+}
+
+// MARK: - Password Reset - Email
+
+/// Request to initiate email password reset
+struct InitiateEmailResetRequest: Codable {
+    let email: String
+}
+
+/// Request to verify reset code and set new password
+struct VerifyCodeRequest: Codable {
+    let email: String
+    let code: String
+    let newPassword: String
+}
+
+// MARK: - Password Reset - Phone 2FA
+
+/// Request to initiate phone-based password reset
+struct InitiatePhoneResetRequest: Codable {
+    let email: String
+    let newPassword: String
+}
+
+/// Response from initiating phone-based password reset
+struct InitiatePhoneResetResponse: Codable {
+    let requestId: String
+    let expiresAt: Date
+}
+
+/// Response from checking phone reset status
+struct PhoneResetStatusResponse: Codable {
+    let status: String  // "pending", "approved", "denied", "expired"
+    let expiresAt: Date
+    let errorMessage: String?
+}
+
+/// Request to complete phone-based password reset
+struct CompletePhoneResetRequest: Codable {
+    let requestId: String
+}
