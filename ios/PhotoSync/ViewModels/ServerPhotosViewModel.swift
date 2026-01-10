@@ -39,8 +39,8 @@ class ServerPhotosViewModel: ObservableObject {
             let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: dateFilterEnd) ?? dateFilterEnd
 
             filtered = filtered.filter { photo in
-                guard let creationDate = photo.photo.creationDate else { return true }
-                return creationDate >= startOfDay && creationDate <= endOfDay
+                let dateTaken = photo.photo.dateTaken
+                return dateTaken >= startOfDay && dateTaken <= endOfDay
             }
         }
 

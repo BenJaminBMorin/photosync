@@ -31,6 +31,7 @@
 		05A1EC897CB38A41FA691785 /* ServerPhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */; };
 		0CECD8DD7FC44C78BCDCACE1 /* AutoSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D1000C7B144AF94BD1C2C3 /* AutoSyncManager.swift */; };
 		10DB9E11EDA4EE39CFD977EE /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00FE87AE68EF9E7EBA883E9 /* InviteService.swift */; };
+		14B8994FE57EA57F645571DB /* ImageViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E66AC67F16D46BC3D8B3AA /* ImageViewerView.swift */; };
 		195BA88C0CAF758FC7175EA6 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70560B27226956A3EC3A77F5 /* BackgroundTaskManager.swift */; };
 		251C4D0A8F4BFE0122CEEEBE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DCDC25052A126FAC4725B5 /* Logger.swift */; };
 		30BF3715543B02E330296D8F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 401C2F0F51DB6ED8498ADD65 /* FirebaseCore */; };
@@ -117,6 +118,7 @@
 		B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotosView.swift; sourceTree = "<group>"; };
 		BF3DCB2B0328ECB67873478F /* ServerCollection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerCollection.swift; sourceTree = "<group>"; };
 		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = CrashReportView.swift; sourceTree = "<group>"; };
+		C7E66AC67F16D46BC3D8B3AA /* ImageViewerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageViewerView.swift; path = PhotoSync/Views/ImageViewerView.swift; sourceTree = "<group>"; };
 		D6A94B3F5D81F581778CBCA6 /* PhotoCollection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoCollection.swift; sourceTree = "<group>"; };
 		DE1110A9E6C7FF643F727E8D /* ServerPhotosViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotosViewModel.swift; sourceTree = "<group>"; };
 		EC94EB053A5944C1E63DF874 /* LoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginView.swift; path = PhotoSync/Views/LoginView.swift; sourceTree = SOURCE_ROOT; };
@@ -226,6 +228,7 @@
 				FE2FE2A278B5A57B8862FBC0 /* PhonePasswordResetView.swift */,
 				30B9E3175CF2A4A00DDF1AAD /* ChangePasswordView.swift */,
 				F09BC8DFA4A9E8CD9AEEA84F /* PasswordResetApprovalView.swift */,
+				C7E66AC67F16D46BC3D8B3AA /* ImageViewerView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -430,6 +433,7 @@
 				A262529E947901292F4500C1 /* PhonePasswordResetView.swift in Sources */,
 				8EA2A3995AD3F2CEC6DC0745 /* ChangePasswordView.swift in Sources */,
 				01898792ABC4280431C4C6AA /* PasswordResetApprovalView.swift in Sources */,
+				14B8994FE57EA57F645571DB /* ImageViewerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -415,7 +415,7 @@ actor APIService {
     func getCollections() async throws -> CollectionsListResponse {
         await Logger.shared.info("API: getCollections called")
 
-        let apiKey = KeychainService.shared.getAPIKey()
+        let apiKey = KeychainService.getAPIKey()
         await Logger.shared.info("API: API key state for getCollections: \(apiKey != nil ? "present (\(apiKey!.prefix(8))...)" : "MISSING")")
 
         let url = try buildURL(path: "/api/collections")
@@ -539,7 +539,7 @@ actor APIService {
     func refreshAPIKey(password: String) async throws -> String {
         await Logger.shared.info("API: refreshAPIKey called")
 
-        let apiKey = KeychainService.shared.getAPIKey()
+        let apiKey = KeychainService.getAPIKey()
         await Logger.shared.info("API: Current API key state: \(apiKey != nil ? "present" : "MISSING")")
 
         let url = try buildURL(path: "/api/mobile/auth/refresh-key")
