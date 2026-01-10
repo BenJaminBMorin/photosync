@@ -5,55 +5,137 @@ struct SettingsView: View {
     @State private var showAPIKey = false
     @State private var showChangePassword = false
     @State private var showLogoutConfirm = false
+    @State private var showLogin = false
+    @State private var showAdvancedConfig = false
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("Server Configuration") {
+                // Server URL Section
+                Section {
                     TextField("Server URL", text: $viewModel.serverURL)
                         .textContentType(.URL)
                         .keyboardType(.URL)
                         .autocapitalization(.none)
                         .autocorrectionDisabled()
+                } header: {
+                    Text("Server")
+                } footer: {
+                    Text("Enter your PhotoSync server address (e.g., https://photos.example.com)")
+                }
 
-                    HStack {
-                        if showAPIKey {
-                            TextField("API Key", text: $viewModel.apiKey)
-                                .autocapitalization(.none)
-                                .autocorrectionDisabled()
-                        } else {
-                            SecureField("API Key", text: $viewModel.apiKey)
+                // Authentication Section
+                Section("Account") {
+                    if viewModel.isConfigured {
+                        // Signed in state
+                        HStack {
+                            Image(systemName: "person.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.green)
+                            VStack(alignment: .leading) {
+                                Text("Signed In")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text(AppSettings.userEmail ?? "Unknown")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
                         }
 
                         Button {
-                            showAPIKey.toggle()
+                            Task {
+                                await viewModel.testConnection()
+                            }
                         } label: {
-                            Image(systemName: showAPIKey ? "eye.slash" : "eye")
-                                .foregroundColor(.secondary)
+                            HStack {
+                                if viewModel.isTesting {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("Testing...")
+                                } else {
+                                    Image(systemName: "network")
+                                    Text("Test Connection")
+                                }
+                            }
                         }
-                        .buttonStyle(.plain)
-                    }
+                        .disabled(viewModel.isTesting)
 
-                    Button {
-                        Task {
-                            await viewModel.testConnection()
+                        if let result = viewModel.testResult {
+                            testResultView(result)
                         }
-                    } label: {
+                    } else if !viewModel.serverURL.isEmpty {
+                        // Server URL set but not authenticated
                         HStack {
-                            if viewModel.isTesting {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                Text("Testing...")
-                            } else {
-                                Image(systemName: "network")
-                                Text("Test Connection")
+                            Image(systemName: "person.circle")
+                                .font(.title2)
+                                .foregroundColor(.orange)
+                            VStack(alignment: .leading) {
+                                Text("Not Signed In")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text("Sign in to sync photos")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        Button {
+                            showLogin = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "person.fill")
+                                Text("Sign In to Server")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    } else {
+                        // No server configured
+                        HStack {
+                            Image(systemName: "exclamationmark.circle")
+                                .font(.title2)
+                                .foregroundColor(.gray)
+                            VStack(alignment: .leading) {
+                                Text("No Server Configured")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text("Enter server URL above to get started")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                         }
                     }
-                    .disabled(!viewModel.isConfigured || viewModel.isTesting)
+                }
 
-                    if let result = viewModel.testResult {
-                        testResultView(result)
+                // Advanced Configuration (manual API key)
+                Section {
+                    DisclosureGroup("Advanced Configuration", isExpanded: $showAdvancedConfig) {
+                        HStack {
+                            if showAPIKey {
+                                TextField("API Key", text: $viewModel.apiKey)
+                                    .autocapitalization(.none)
+                                    .autocorrectionDisabled()
+                            } else {
+                                SecureField("API Key", text: $viewModel.apiKey)
+                            }
+
+                            Button {
+                                showAPIKey.toggle()
+                            } label: {
+                                Image(systemName: showAPIKey ? "eye.slash" : "eye")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Text("Only use this if you have a pre-generated API key. Otherwise, use Sign In above.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -306,6 +388,9 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .sheet(isPresented: $showLogin) {
+                LoginView()
+            }
             .sheet(isPresented: $showChangePassword) {
                 ChangePasswordView()
             }
@@ -325,8 +410,7 @@ struct SettingsView: View {
     }
 
     private func signOut() {
-        AppSettings.apiKey = ""
-        AppSettings.deviceId = nil
+        AppSettings.clearAuthentication()
 
         Task {
             await Logger.shared.info("User signed out")

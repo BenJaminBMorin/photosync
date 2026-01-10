@@ -22,13 +22,19 @@ struct LoginView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.blue)
 
-                    Text("Login with Password")
+                    Text("Sign In")
                         .font(.title2)
                         .fontWeight(.bold)
 
-                    Text("Enter your email and password")
+                    Text("Connecting to:")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+
+                    Text(AppSettings.normalizedServerURL)
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
                 .padding(.top, 32)
 
@@ -145,10 +151,11 @@ struct LoginView: View {
                     fcmToken: fcmToken ?? "unknown"
                 )
 
-                // Store API key and device info
+                // Store API key, device info, and user email
                 await MainActor.run {
                     AppSettings.apiKey = response.apiKey
                     AppSettings.deviceId = response.device.id
+                    AppSettings.userEmail = response.user.email
 
                     // Clear form and dismiss
                     email = ""

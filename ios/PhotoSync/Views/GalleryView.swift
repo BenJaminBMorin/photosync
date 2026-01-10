@@ -8,7 +8,6 @@ struct GalleryView: View {
     @State private var showFilterOptions = false
     @State private var showDeleteConfirmation = false
     @State private var photoToDelete: String?
-    @State private var showLogin = false
 
     // Adaptive columns based on device size
     private var columns: [GridItem] {
@@ -128,34 +127,64 @@ struct GalleryView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Sign in to start syncing your photos to your server")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            if AppSettings.serverURL.isEmpty {
+                // No server configured
+                Text("Configure your server to start syncing photos")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
 
-            VStack(spacing: 12) {
-                Button {
-                    showLogin = true
-                } label: {
-                    HStack {
-                        Image(systemName: "person.fill")
-                        Text("Sign In with Password")
-                    }
-                    .frame(maxWidth: .infinity)
+                VStack(spacing: 8) {
+                    Image(systemName: "gear")
+                        .font(.title)
+                        .foregroundColor(.blue)
+                    Text("Go to Settings tab to get started")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+            } else {
+                // Server configured but not authenticated
+                Text("Sign in to start syncing your photos")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
 
-                Text("or configure manually in Settings")
+                VStack(spacing: 8) {
+                    HStack {
+                        Image(systemName: "server.rack")
+                            .foregroundColor(.green)
+                        Text(AppSettings.normalizedServerURL)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Image(systemName: "person.circle")
+                            .foregroundColor(.orange)
+                        Text("Not signed in")
+                            .font(.subheadline)
+                            .foregroundColor(.orange)
+                    }
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+
+                Text("Go to Settings tab to sign in")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            .padding(.horizontal, 32)
         }
-        .sheet(isPresented: $showLogin) {
-            LoginView()
-        }
+        .padding(.horizontal, 32)
     }
 
     private var requestAccessView: some View {

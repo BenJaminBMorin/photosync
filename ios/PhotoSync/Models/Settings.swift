@@ -10,6 +10,7 @@ struct AppSettings {
     private static let showServerOnlyPhotosKey = "showServerOnlyPhotos"
     private static let autoCleanupSyncedPhotosKey = "autoCleanupSyncedPhotos"
     private static let autoCleanupAfterDaysKey = "autoCleanupAfterDays"
+    private static let userEmailKey = "userEmail"
 
     static var serverURL: String {
         get { UserDefaults.standard.string(forKey: serverURLKey) ?? "" }
@@ -69,8 +70,19 @@ struct AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: deviceIdKey) }
     }
 
+    /// Email of the currently logged-in user
+    static var userEmail: String? {
+        get { UserDefaults.standard.string(forKey: userEmailKey) }
+        set { UserDefaults.standard.set(newValue, forKey: userEmailKey) }
+    }
+
     static var isConfigured: Bool {
         !serverURL.isEmpty && !apiKey.isEmpty
+    }
+
+    /// Server URL is set but user hasn't authenticated yet
+    static var hasServerButNotAuthenticated: Bool {
+        !serverURL.isEmpty && apiKey.isEmpty
     }
 
     static var isDeviceRegistered: Bool {
@@ -86,6 +98,7 @@ struct AppSettings {
     static func clearAuthentication() {
         apiKey = ""
         deviceId = nil
+        userEmail = nil
     }
 
     /// Normalized server URL (removes trailing slash)
@@ -110,4 +123,5 @@ struct AppSettings {
 // MARK: - Notification Names
 extension Notification.Name {
     static let autoSyncSettingChanged = Notification.Name("autoSyncSettingChanged")
+    static let authenticationRequired = Notification.Name("authenticationRequired")
 }

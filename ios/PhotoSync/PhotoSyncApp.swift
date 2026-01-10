@@ -13,6 +13,7 @@ struct PhotoSyncApp: App {
     @State private var isProcessingInvite: Bool = false
     @State private var showInviteSuccess: Bool = false
     @State private var inviteSuccessEmail: String = ""
+    @State private var showAuthenticationRequired: Bool = false
 
     init() {
         // Perform one-time migrations (API key to Keychain)
@@ -167,10 +168,23 @@ struct PhotoSyncApp: App {
                         }
                     )
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .authenticationRequired)) { _ in
+                    Task {
+                        await Logger.shared.warning("Authentication required - prompting user")
+                    }
+                    showAuthenticationRequired = true
+                }
                 .onOpenURL { url in
                     Task {
                         await handleDeepLink(url)
                     }
+                }
+                .alert("Session Expired", isPresented: $showAuthenticationRequired) {
+                    Button("Go to Settings") {
+                        showAuthenticationRequired = false
+                    }
+                } message: {
+                    Text("Your session has expired. Please sign in again in Settings.")
                 }
                 .alert("Invite Error", isPresented: $showInviteError) {
                     Button("OK", role: .cancel) {

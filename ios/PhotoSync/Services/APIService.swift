@@ -589,6 +589,18 @@ actor APIService {
         case 200...299:
             return
         case 401:
+            // Post notification that authentication is required
+            Task { @MainActor in
+                // Clear invalid credentials
+                AppSettings.clearAuthentication()
+
+                // Notify app that re-authentication is needed
+                NotificationCenter.default.post(name: .authenticationRequired, object: nil)
+
+                Task {
+                    await Logger.shared.warning("API returned 401 - authentication required")
+                }
+            }
             throw APIError.unauthorized
         case 400:
             throw APIError.badRequest
