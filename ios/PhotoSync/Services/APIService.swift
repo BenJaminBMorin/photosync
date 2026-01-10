@@ -17,15 +17,47 @@ actor APIService {
 
     /// Test connection to the server
     func healthCheck() async throws -> HealthResponse {
+        await Logger.shared.info("API: healthCheck called")
+
         let url = try buildURL(path: "/api/health")
+        await Logger.shared.info("API: healthCheck URL: \(url.absoluteString)")
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.timeoutInterval = 10 // 10 second timeout for health check
         // Health check doesn't require API key
 
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
+        await Logger.shared.info("API: healthCheck sending request...")
 
-        return try JSONDecoder().decode(HealthResponse.self, from: data)
+        do {
+            let (data, response) = try await session.data(for: request)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            await Logger.shared.info("API: healthCheck response status: \(statusCode)")
+
+            try validateResponse(response)
+
+            let result = try JSONDecoder().decode(HealthResponse.self, from: data)
+            await Logger.shared.info("API: healthCheck success - server status: \(result.status)")
+            return result
+        } catch let error as URLError {
+            switch error.code {
+            case .timedOut:
+                await Logger.shared.error("API: healthCheck timed out after 10 seconds")
+                throw APIError.timeout(message: "Connection timed out after 10 seconds. Check your server URL and network connection.")
+            case .cannotConnectToHost:
+                await Logger.shared.error("API: healthCheck cannot connect to host")
+                throw APIError.connectionFailed(message: "Cannot connect to server. Verify the server URL is correct and the server is running.")
+            case .notConnectedToInternet:
+                await Logger.shared.error("API: healthCheck - no internet connection")
+                throw APIError.noInternet(message: "No internet connection. Please check your network settings.")
+            default:
+                await Logger.shared.error("API: healthCheck network error: \(error.localizedDescription)")
+                throw error
+            }
+        } catch {
+            await Logger.shared.error("API: healthCheck failed: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     // MARK: - Setup Status
@@ -381,16 +413,37 @@ actor APIService {
 
     /// Get all collections from server
     func getCollections() async throws -> CollectionsListResponse {
+        await Logger.shared.info("API: getCollections called")
+
+        let apiKey = KeychainService.shared.getAPIKey()
+        await Logger.shared.info("API: API key state for getCollections: \(apiKey != nil ? "present (\(apiKey!.prefix(8))...)" : "MISSING")")
+
         let url = try buildURL(path: "/api/collections")
+        await Logger.shared.info("API: getCollections URL: \(url.absoluteString)")
+
         var request = URLRequest(url: url)
         addAPIKeyHeader(to: &request)
 
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
+        do {
+            let (data, response) = try await session.data(for: request)
+            await Logger.shared.info("API: getCollections response status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
 
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(CollectionsListResponse.self, from: data)
+            try validateResponse(response)
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+
+            let result = try decoder.decode(CollectionsListResponse.self, from: data)
+            await Logger.shared.info("API: getCollections success - found \(result.collections.count) collections")
+            return result
+        } catch {
+            await Logger.shared.error("API: getCollections failed: \(error.localizedDescription)")
+            if let data = try? await session.data(for: request).0,
+               let responseBody = String(data: data, encoding: .utf8) {
+                await Logger.shared.error("API: getCollections response body: \(responseBody.prefix(500))")
+            }
+            throw error
+        }
     }
 
     /// Create a new collection
@@ -484,7 +537,14 @@ actor APIService {
 
     /// Refresh API key after verifying password
     func refreshAPIKey(password: String) async throws -> String {
+        await Logger.shared.info("API: refreshAPIKey called")
+
+        let apiKey = KeychainService.shared.getAPIKey()
+        await Logger.shared.info("API: Current API key state: \(apiKey != nil ? "present" : "MISSING")")
+
         let url = try buildURL(path: "/api/mobile/auth/refresh-key")
+        await Logger.shared.info("API: refreshAPIKey URL: \(url.absoluteString)")
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -493,11 +553,71 @@ actor APIService {
         let body = RefreshAPIKeyRequest(password: password)
         request.httpBody = try JSONEncoder().encode(body)
 
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
+        await Logger.shared.info("API: refreshAPIKey sending request with password validation...")
 
-        let result = try JSONDecoder().decode(RefreshAPIKeyResponse.self, from: data)
-        return result.apiKey
+        do {
+            let (data, response) = try await session.data(for: request)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            await Logger.shared.info("API: refreshAPIKey response status: \(statusCode)")
+
+            if statusCode == 401 {
+                await Logger.shared.error("API: refreshAPIKey - current password is incorrect (401)")
+                throw APIError.unauthorized
+            }
+
+            try validateResponse(response)
+
+            let result = try JSONDecoder().decode(RefreshAPIKeyResponse.self, from: data)
+            await Logger.shared.info("API: refreshAPIKey success - new API key generated")
+            return result.apiKey
+        } catch {
+            await Logger.shared.error("API: refreshAPIKey failed: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+    /// Change user password
+    func changePassword(currentPassword: String, newPassword: String) async throws {
+        await Logger.shared.info("API: changePassword called")
+
+        let url = try buildURL(path: "/api/mobile/auth/change-password")
+        await Logger.shared.info("API: changePassword URL: \(url.absoluteString)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAPIKeyHeader(to: &request)
+
+        struct ChangePasswordRequest: Encodable {
+            let currentPassword: String
+            let newPassword: String
+        }
+
+        let body = ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        await Logger.shared.info("API: changePassword sending request...")
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            await Logger.shared.info("API: changePassword response status: \(statusCode)")
+
+            if statusCode == 401 {
+                await Logger.shared.error("API: changePassword - current password is incorrect (401)")
+                throw APIError.unauthorized
+            }
+
+            try validateResponse(response)
+            await Logger.shared.info("API: changePassword success")
+        } catch {
+            await Logger.shared.error("API: changePassword failed: \(error.localizedDescription)")
+            if let data = try? await session.data(for: request).0,
+               let responseBody = String(data: data, encoding: .utf8) {
+                await Logger.shared.error("API: changePassword response: \(responseBody.prefix(500))")
+            }
+            throw error
+        }
     }
 
     // MARK: - Password Reset - Email
@@ -650,6 +770,9 @@ enum APIError: Error, LocalizedError {
     case notFound
     case serverError(Int)
     case networkError(Error)
+    case timeout(message: String)
+    case connectionFailed(message: String)
+    case noInternet(message: String)
 
     var errorDescription: String? {
         switch self {
@@ -658,7 +781,7 @@ enum APIError: Error, LocalizedError {
         case .invalidResponse:
             return "Invalid response from server"
         case .unauthorized:
-            return "Invalid API key"
+            return "Invalid API key or credentials"
         case .badRequest:
             return "Bad request"
         case .notFound:
@@ -667,6 +790,12 @@ enum APIError: Error, LocalizedError {
             return "Server error (\(code))"
         case .networkError(let error):
             return "Network error: \(error.localizedDescription)"
+        case .timeout(let message):
+            return message
+        case .connectionFailed(let message):
+            return message
+        case .noInternet(let message):
+            return message
         }
     }
 }

@@ -8,6 +8,8 @@ struct GalleryView: View {
     @State private var showFilterOptions = false
     @State private var showDeleteConfirmation = false
     @State private var photoToDelete: String?
+    @State private var showImageViewer = false
+    @State private var selectedPhotoIndex = 0
 
     // Adaptive columns based on device size
     private var columns: [GridItem] {
@@ -41,36 +43,36 @@ struct GalleryView: View {
                     )
                 }
             }
-            .navigationTitle("On Device")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        showCollections = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "folder")
-                            Text("Albums")
-                                .font(.body)
+                        viewModel.isSelectionMode.toggle()
+                        if !viewModel.isSelectionMode {
+                            viewModel.clearSelection()
                         }
+                    } label: {
+                        Text(viewModel.isSelectionMode ? "Done" : "Select")
                     }
                 }
 
+                ToolbarItem(placement: .principal) {
+                    deviceHeaderView
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 8) {
-                        // Sync status badge
-                        HStack(spacing: 4) {
-                            Image(systemName: "icloud.and.arrow.up")
-                                .font(.caption)
-                            Text("\(viewModel.syncedCount)/\(viewModel.photos.count)")
-                                .font(.caption.monospacedDigit())
-                        }
-                        .foregroundColor(viewModel.unsyncedCount > 0 ? .orange : .green)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.secondary.opacity(0.1))
-                        .clipShape(Capsule())
+                    Button {
+                        showCollections = true
+                    } label: {
+                        Image(systemName: "folder")
                     }
                 }
+            }
+            .fullScreenCover(isPresented: $showImageViewer) {
+                ImageViewerView(
+                    photos: viewModel.displayedPhotos,
+                    selectedIndex: $selectedPhotoIndex
+                )
             }
             .sheet(isPresented: $showCollections) {
                 CollectionsView()
@@ -246,10 +248,28 @@ struct GalleryView: View {
                     ForEach(viewModel.groupedPhotos) { group in
                         Section {
                             LazyVGrid(columns: columns, spacing: 4) {
-                                ForEach(group.photos) { photoState in
+                                ForEach(Array(group.photos.enumerated()), id: \.element.id) { index, photoState in
                                     PhotoGridItem(
                                         photoState: photoState,
-                                        onTap: { viewModel.toggleSelection(for: photoState.id) },
+                                        isSelectionMode: viewModel.isSelectionMode,
+                                        onTap: {
+                                            if viewModel.isSelectionMode {
+                                                viewModel.toggleSelection(for: photoState.id)
+                                            } else {
+                                                // Find the index in displayedPhotos
+                                                if let displayIndex = viewModel.displayedPhotos.firstIndex(where: { $0.id == photoState.id }) {
+                                                    selectedPhotoIndex = displayIndex
+                                                    showImageViewer = true
+                                                }
+                                            }
+                                        },
+                                        onLongPress: {
+                                            // Long press enters selection mode and selects the photo
+                                            if !viewModel.isSelectionMode {
+                                                viewModel.isSelectionMode = true
+                                            }
+                                            viewModel.toggleSelection(for: photoState.id)
+                                        },
                                         onIgnoreTap: { viewModel.toggleIgnore(for: photoState.id) },
                                         onDeleteTap: {
                                             photoToDelete = photoState.id
@@ -382,6 +402,46 @@ struct GalleryView: View {
         if viewModel.showServerOnlyPhotos { count += 1 }
         if viewModel.enableDateFilter { count += 1 }
         return count
+    }
+
+    private var deviceHeaderView: some View {
+        VStack(spacing: 2) {
+            // Top row: Device name and album
+            HStack(spacing: 8) {
+                // Device name
+                HStack(spacing: 4) {
+                    Image(systemName: "iphone")
+                        .font(.caption)
+                    Text(viewModel.deviceName)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
+                }
+
+                // Divider
+                Text("•")
+                    .foregroundColor(.secondary)
+
+                // Selected album
+                HStack(spacing: 4) {
+                    Image(systemName: "folder")
+                        .font(.caption)
+                    Text(viewModel.selectedCollectionName)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+
+            // Bottom row: Upload progress
+            HStack(spacing: 4) {
+                Image(systemName: "icloud.and.arrow.up")
+                    .font(.caption2)
+                Text("\(viewModel.syncedCount) / \(viewModel.photos.count) uploaded")
+                    .font(.caption)
+                    .monospacedDigit()
+            }
+            .foregroundColor(viewModel.unsyncedCount > 0 ? .orange : .green)
+        }
     }
 
     private var selectionBar: some View {

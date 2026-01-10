@@ -98,23 +98,28 @@ struct ChangePasswordView: View {
         showError = false
 
         Task {
-            do {
-                // Refresh API key with current password (validates current password)
-                // and then store the new one
-                let newApiKey = try await APIService.shared.refreshAPIKey(password: currentPassword)
+            await Logger.shared.info("Starting password change process")
+            await Logger.shared.info("Current password provided: \(!currentPassword.isEmpty)")
+            await Logger.shared.info("New password length: \(newPassword.count)")
 
-                // Update the stored API key
+            do {
+                // Try to change the password on the server
+                try await APIService.shared.changePassword(currentPassword: currentPassword, newPassword: newPassword)
+
+                // Password changed successfully
                 await MainActor.run {
-                    AppSettings.apiKey = newApiKey
                     isLoading = false
                     showSuccess = true
                 }
-                await Logger.shared.info("Password changed and API key refreshed successfully")
+                await Logger.shared.info("Password changed successfully")
             } catch let error as APIError {
                 await MainActor.run {
                     switch error {
                     case .unauthorized:
                         errorMessage = "Current password is incorrect"
+                    case .notFound:
+                        // Endpoint might not exist yet - fall back to refreshAPIKey
+                        errorMessage = "Password change not supported. Please contact support."
                     default:
                         errorMessage = error.localizedDescription ?? "Failed to change password"
                     }

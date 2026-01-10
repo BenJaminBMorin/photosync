@@ -207,7 +207,18 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("Sync Settings") {
+                Section {
+                    // Auto-Sync toggle
+                    Toggle(isOn: $viewModel.autoSync) {
+                        VStack(alignment: .leading) {
+                            Text("Auto-Sync")
+                            Text("Automatically sync new photos")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // Wi-Fi Only toggle
                     Toggle(isOn: $viewModel.wifiOnly) {
                         VStack(alignment: .leading) {
                             Text("Wi-Fi Only")
@@ -217,15 +228,43 @@ struct SettingsView: View {
                         }
                     }
 
-                    Toggle(isOn: $viewModel.autoSync) {
+                    // Auto-Cleanup toggle
+                    Toggle(isOn: $viewModel.autoCleanupSyncedPhotos) {
                         VStack(alignment: .leading) {
-                            Text("Auto-Sync New Photos")
-                            Text("Automatically sync new photos when app is available")
+                            Text("Auto-Cleanup Synced Photos")
+                            Text("Remove photos from device after sync")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
 
+                    // Cleanup threshold (only show when auto-cleanup is enabled)
+                    if viewModel.autoCleanupSyncedPhotos {
+                        Stepper(value: $viewModel.autoCleanupAfterDays, in: 1...365, step: 1) {
+                            VStack(alignment: .leading) {
+                                Text("Remove Files Older Than")
+                                Text("\(viewModel.autoCleanupAfterDays) days")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+
+                    // Background status row
+                    HStack {
+                        Text("Background Refresh")
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(viewModel.isBackgroundRefreshAvailable ? Color.green : Color.orange)
+                                .frame(width: 8, height: 8)
+                            Text(viewModel.isBackgroundRefreshAvailable ? "Available" : "Disabled")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // Resync button
                     Button {
                         Task {
                             await viewModel.resyncFromServer()
@@ -255,7 +294,7 @@ struct SettingsView: View {
                         resyncResultView(result)
                     }
 
-                    // Show sync status if available
+                    // Sync status info
                     if let syncStatus = viewModel.syncStatus {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
@@ -299,91 +338,15 @@ struct SettingsView: View {
                         }
                         .disabled(viewModel.isClaiming)
                     }
-                }
-
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "clock.arrow.2.circlepath")
-                                .foregroundColor(.blue)
-                            Text("Background Sync Status")
-                                .font(.headline)
-                        }
-
-                        Divider()
-
-                        // Background refresh status
-                        HStack {
-                            Text("Background Refresh")
-                                .font(.subheadline)
-                            Spacer()
-                            Text(viewModel.backgroundRefreshStatus)
-                                .font(.caption)
-                                .foregroundColor(viewModel.isBackgroundRefreshAvailable ? .green : .orange)
-                        }
-
-                        // Last background sync
-                        if let lastSync = viewModel.lastBackgroundSync {
-                            HStack {
-                                Text("Last Background Sync")
-                                    .font(.subheadline)
-                                Spacer()
-                                Text(viewModel.formatDate(lastSync))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-
-                        // Background sync count
-                        HStack {
-                            Text("Background Syncs")
-                                .font(.subheadline)
-                            Spacer()
-                            Text("\(viewModel.backgroundSyncCount)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 4)
                 } header: {
-                    Text("Background Processing")
-                } footer: {
-                    if !viewModel.isBackgroundRefreshAvailable {
-                        Text("Background refresh is disabled. Enable it in Settings > PhotoSync > Background App Refresh to allow automatic syncing when the app is closed.")
-                    } else if viewModel.autoSync {
-                        Text("Photos will automatically sync in the background when new photos are detected. Background tasks run every 15-30 minutes when conditions are optimal (wifi, battery).")
-                    } else {
-                        Text("Enable Auto-Sync to allow background processing of new photos.")
-                    }
-                }
-
-                Section {
-                    Toggle(isOn: $viewModel.autoCleanupSyncedPhotos) {
-                        VStack(alignment: .leading) {
-                            Text("Auto-Cleanup Synced Photos")
-                            Text("Automatically remove photos from device after they're synced")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-
-                    if viewModel.autoCleanupSyncedPhotos {
-                        Stepper(value: $viewModel.autoCleanupAfterDays, in: 1...365, step: 1) {
-                            VStack(alignment: .leading) {
-                                Text("Keep Photos For")
-                                Text("\(viewModel.autoCleanupAfterDays) days after sync")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Photo Cleanup")
+                    Text("Sync & Background Settings")
                 } footer: {
                     if viewModel.autoCleanupSyncedPhotos {
-                        Text("Photos older than \(viewModel.autoCleanupAfterDays) days that are synced to the server will be automatically removed from your device. They'll be moved to Recently Deleted where they'll be permanently deleted after 30 days.")
+                        Text("Photos older than \(viewModel.autoCleanupAfterDays) days will be automatically cleaned up after sync.")
+                    } else if !viewModel.isBackgroundRefreshAvailable {
+                        Text("Background refresh is disabled. Enable in Settings > PhotoSync > Background App Refresh.")
                     } else {
-                        Text("Enable to automatically free up space by removing synced photos from your device")
+                        Text("Photos will sync automatically when conditions are optimal.")
                     }
                 }
 

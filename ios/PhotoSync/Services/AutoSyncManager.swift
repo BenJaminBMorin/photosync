@@ -459,29 +459,21 @@ class AutoSyncManager: ObservableObject {
 
         await Logger.shared.info("Found \(photosToCleanup.count) photos eligible for cleanup")
 
-        // Delete photos one by one
-        var deletedCount = 0
-        var failedCount = 0
-
-        for asset in photosToCleanup {
-            do {
-                try await PHPhotoLibrary.shared().performChanges {
-                    PHAssetChangeRequest.deleteAssets([asset] as NSArray)
-                }
-                deletedCount += 1
-                await Logger.shared.info("Auto-deleted photo: \(asset.localIdentifier)")
-            } catch {
-                failedCount += 1
-                await Logger.shared.error("Failed to auto-delete photo \(asset.localIdentifier): \(error)")
+        // Batch all deletions into a single operation
+        // This shows ONE confirmation dialog instead of one per photo
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.deleteAssets(photosToCleanup as NSArray)
             }
+            await Logger.shared.info("Auto-cleanup complete: \(photosToCleanup.count) photos deleted in batch")
+        } catch {
+            // If batch delete fails (e.g., user cancels), log it
+            await Logger.shared.error("Batch auto-cleanup failed: \(error.localizedDescription)")
+            await Logger.shared.info("User may have declined the batch deletion")
         }
-
-        await Logger.shared.info("Auto-cleanup complete: \(deletedCount) deleted, \(failedCount) failed")
 
         // Notify UI to refresh
-        if deletedCount > 0 {
-            NotificationCenter.default.post(name: .collectionDidChange, object: nil)
-        }
+        NotificationCenter.default.post(name: .collectionDidChange, object: nil)
     }
 }
 

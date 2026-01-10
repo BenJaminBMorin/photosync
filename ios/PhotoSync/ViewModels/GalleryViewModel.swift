@@ -3,6 +3,7 @@ import Photos
 import CoreData
 import Combine
 import UIKit
+import SwiftUI
 
 @MainActor
 class GalleryViewModel: ObservableObject {
@@ -18,6 +19,7 @@ class GalleryViewModel: ObservableObject {
     @Published var dateFilterStart = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
     @Published var dateFilterEnd = Date()
     @Published var authorizationStatus: PHAuthorizationStatus = .notDetermined
+    @Published var isSelectionMode = false  // Toggle between view and selection mode
 
     private let photoLibrary = PhotoLibraryService.shared
     private let syncService = SyncService.shared
@@ -93,6 +95,33 @@ class GalleryViewModel: ObservableObject {
         AppSettings.isConfigured
     }
 
+    var deviceName: String {
+        UIDevice.current.name
+    }
+
+    var selectedCollectionName: String {
+        if let collectionId = UserDefaults.standard.string(forKey: "selectedCollectionId") {
+            // Try to find the collection name
+            // This is a lightweight check - the full collection list is loaded elsewhere
+            return _cachedCollectionName ?? "Album"
+        }
+        return "All Photos"
+    }
+
+    // Cache the collection name to avoid repeated fetches
+    @Published private var _cachedCollectionName: String?
+
+    func updateCollectionName() async {
+        if let collectionId = UserDefaults.standard.string(forKey: "selectedCollectionId") {
+            let collections = await photoLibrary.fetchCollections()
+            if let collection = collections.first(where: { $0.id == collectionId }) {
+                _cachedCollectionName = collection.title
+            }
+        } else {
+            _cachedCollectionName = nil
+        }
+    }
+
     init(context: NSManagedObjectContext = PersistenceController.shared.container.viewContext) {
         self.context = context
         Task {
@@ -106,8 +135,14 @@ class GalleryViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task {
+                await self?.updateCollectionName()
                 await self?.loadPhotos()
             }
+        }
+
+        // Initial collection name load
+        Task {
+            await updateCollectionName()
         }
     }
 

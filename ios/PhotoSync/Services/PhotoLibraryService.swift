@@ -141,6 +141,29 @@ actor PhotoLibraryService {
         }
     }
 
+    /// Get full resolution image for viewing
+    func getFullResolutionImage(for asset: PHAsset, targetSize: CGSize) async -> UIImage? {
+        await withCheckedContinuation { continuation in
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            options.isSynchronous = false
+            options.resizeMode = .exact
+
+            PHImageManager.default().requestImage(
+                for: asset,
+                targetSize: targetSize,
+                contentMode: .aspectFit,
+                options: options
+            ) { image, info in
+                let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+                if !isDegraded {
+                    continuation.resume(returning: image)
+                }
+            }
+        }
+    }
+
     /// Get the original filename for an asset
     func getFilename(for asset: PHAsset) async -> String {
         let resources = PHAssetResource.assetResources(for: asset)

@@ -3,7 +3,9 @@ import Photos
 
 struct PhotoGridItem: View {
     let photoState: PhotoWithState
+    var isSelectionMode: Bool = false
     let onTap: () -> Void
+    var onLongPress: (() -> Void)? = nil
     let onIgnoreTap: () -> Void
     let onDeleteTap: () -> Void
 
@@ -164,7 +166,13 @@ struct PhotoGridItem: View {
             }
         }
         .onLongPressGesture(minimumDuration: 0.3) {
-            showButtons.toggle()
+            if let onLongPress = onLongPress {
+                // If we have a long press handler (for entering selection mode)
+                onLongPress()
+            } else {
+                // Fall back to showing action buttons
+                showButtons.toggle()
+            }
         }
         .contextMenu {
             Button {

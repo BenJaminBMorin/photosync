@@ -14,6 +14,11 @@ class ServerPhotosViewModel: ObservableObject {
     @Published var collections: [ServerCollection] = []  // Available collections
     @Published var isLoadingCollections = false
 
+    // Date filtering
+    @Published var enableDateFilter = false
+    @Published var dateFilterStart = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+    @Published var dateFilterEnd = Date()
+
     private let serverPhotoService = ServerPhotoService.shared
     private let api = APIService.shared
     private var currentCursor: String?
@@ -21,11 +26,25 @@ class ServerPhotosViewModel: ObservableObject {
     private var thumbnailLoadingTasks: [String: Task<Void, Never>] = [:]
 
     var displayedPhotos: [ServerPhotoWithThumbnail] {
+        var filtered = serverPhotos
+
+        // Filter by device status
         if showNotOnDeviceOnly {
-            return serverPhotos.filter { !$0.photo.isOnDevice }
-        } else {
-            return serverPhotos
+            filtered = filtered.filter { !$0.photo.isOnDevice }
         }
+
+        // Filter by date range
+        if enableDateFilter {
+            let startOfDay = Calendar.current.startOfDay(for: dateFilterStart)
+            let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: dateFilterEnd) ?? dateFilterEnd
+
+            filtered = filtered.filter { photo in
+                guard let creationDate = photo.photo.creationDate else { return true }
+                return creationDate >= startOfDay && creationDate <= endOfDay
+            }
+        }
+
+        return filtered
     }
 
     var notOnDeviceCount: Int {

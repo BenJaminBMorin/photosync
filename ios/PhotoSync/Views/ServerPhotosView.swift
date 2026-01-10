@@ -10,6 +10,7 @@ struct ServerPhotosView: View {
     @State private var showCollectionsSheet = false
     @State private var showCreateCollectionDialog = false
     @State private var newCollectionName = ""
+    @State private var showDateFilter = false
 
     var body: some View {
         NavigationStack {
@@ -337,30 +338,108 @@ struct ServerPhotosView: View {
             }
             .padding(.horizontal)
 
-            // Filter toggle
-            if viewModel.notOnDeviceCount > 0 {
+            // Filter toggles
+            VStack(spacing: 8) {
+                // Device filter
+                if viewModel.notOnDeviceCount > 0 {
+                    Button {
+                        withAnimation {
+                            viewModel.showNotOnDeviceOnly.toggle()
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: viewModel.showNotOnDeviceOnly ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(viewModel.showNotOnDeviceOnly ? .blue : .secondary)
+                            Text("Show only photos not on this device")
+                                .font(.subheadline)
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color(.systemGroupedBackground))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Date filter toggle
                 Button {
                     withAnimation {
-                        viewModel.showNotOnDeviceOnly.toggle()
+                        showDateFilter.toggle()
                     }
                 } label: {
                     HStack {
-                        Image(systemName: viewModel.showNotOnDeviceOnly ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(viewModel.showNotOnDeviceOnly ? .blue : .secondary)
-                        Text("Show only photos not on this device")
+                        Image(systemName: viewModel.enableDateFilter ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(viewModel.enableDateFilter ? .blue : .secondary)
+                        Text("Filter by date")
                             .font(.subheadline)
                         Spacer()
+                        if viewModel.enableDateFilter {
+                            Text(dateRangeText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Image(systemName: showDateFilter ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                     .padding()
                     .background(Color(.systemGroupedBackground))
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal)
+
+                // Date picker section (collapsible)
+                if showDateFilter {
+                    VStack(spacing: 12) {
+                        Toggle("Enable date filter", isOn: $viewModel.enableDateFilter)
+                            .tint(.blue)
+
+                        if viewModel.enableDateFilter {
+                            // Preset buttons
+                            HStack(spacing: 8) {
+                                datePresetButton(title: "7 days", days: 7)
+                                datePresetButton(title: "30 days", days: 30)
+                                datePresetButton(title: "90 days", days: 90)
+                                datePresetButton(title: "1 year", days: 365)
+                            }
+
+                            Divider()
+
+                            // Custom date pickers
+                            DatePicker("From", selection: $viewModel.dateFilterStart, displayedComponents: .date)
+                            DatePicker("To", selection: $viewModel.dateFilterEnd, displayedComponents: .date)
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGroupedBackground))
+                    .cornerRadius(8)
+                }
             }
+            .padding(.horizontal)
         }
         .padding(.vertical, 12)
         .background(Color(.systemBackground))
+    }
+
+    private var dateRangeText: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return "\(formatter.string(from: viewModel.dateFilterStart)) - \(formatter.string(from: viewModel.dateFilterEnd))"
+    }
+
+    private func datePresetButton(title: String, days: Int) -> some View {
+        Button {
+            viewModel.dateFilterStart = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+            viewModel.dateFilterEnd = Date()
+        } label: {
+            Text(title)
+                .font(.caption)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.blue.opacity(0.1))
+                .foregroundColor(.blue)
+                .cornerRadius(16)
+        }
     }
 
     private var floatingActionButton: some View {
