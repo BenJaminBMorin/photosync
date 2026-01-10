@@ -118,7 +118,7 @@
 		B5FD23A19B64C4368E913C08 /* ServerPhotosView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotosView.swift; sourceTree = "<group>"; };
 		BF3DCB2B0328ECB67873478F /* ServerCollection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerCollection.swift; sourceTree = "<group>"; };
 		BFB9AFC32C32E5CD9C3D9844 /* CrashReportView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CrashReportView.swift; path = CrashReportView.swift; sourceTree = "<group>"; };
-		C7E66AC67F16D46BC3D8B3AA /* ImageViewerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageViewerView.swift; path = PhotoSync/Views/ImageViewerView.swift; sourceTree = "<group>"; };
+		C7E66AC67F16D46BC3D8B3AA /* ImageViewerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImageViewerView.swift; sourceTree = "<group>"; };
 		D6A94B3F5D81F581778CBCA6 /* PhotoCollection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoCollection.swift; sourceTree = "<group>"; };
 		DE1110A9E6C7FF643F727E8D /* ServerPhotosViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServerPhotosViewModel.swift; sourceTree = "<group>"; };
 		EC94EB053A5944C1E63DF874 /* LoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginView.swift; path = PhotoSync/Views/LoginView.swift; sourceTree = SOURCE_ROOT; };
