@@ -18,15 +18,17 @@ const (
 
 // AuthRequest represents a pending push notification auth request
 type AuthRequest struct {
-	ID          string            `json:"id"`
-	UserID      string            `json:"userId"`
-	Status      AuthRequestStatus `json:"status"`
-	CreatedAt   time.Time         `json:"createdAt"`
-	ExpiresAt   time.Time         `json:"expiresAt"`
-	RespondedAt *time.Time        `json:"respondedAt,omitempty"`
-	DeviceID    *string           `json:"deviceId,omitempty"`
-	IPAddress   string            `json:"ipAddress,omitempty"`
-	UserAgent   string            `json:"userAgent,omitempty"`
+	ID               string            `json:"id"`
+	UserID           string            `json:"userId"`
+	Status           AuthRequestStatus `json:"status"`
+	RequestType      string            `json:"requestType,omitempty"`      // "web_login" or "password_reset"
+	NewPasswordHash  string            `json:"-"`                         // For password reset flow
+	CreatedAt        time.Time         `json:"createdAt"`
+	ExpiresAt        time.Time         `json:"expiresAt"`
+	RespondedAt      *time.Time        `json:"respondedAt,omitempty"`
+	DeviceID         *string           `json:"deviceId,omitempty"`
+	IPAddress        string            `json:"ipAddress,omitempty"`
+	UserAgent        string            `json:"userAgent,omitempty"`
 }
 
 // InitiateAuthRequest is the request body for starting auth
@@ -48,17 +50,34 @@ type RespondAuthRequest struct {
 	DeviceID  *string `json:"deviceId,omitempty"`
 }
 
-// NewAuthRequest creates a new pending auth request
+// NewAuthRequest creates a new pending auth request (for web login)
 func NewAuthRequest(userID, ipAddress, userAgent string, timeoutSeconds int) *AuthRequest {
 	now := time.Now().UTC()
 	return &AuthRequest{
-		ID:        uuid.New().String(),
-		UserID:    userID,
-		Status:    AuthStatusPending,
-		CreatedAt: now,
-		ExpiresAt: now.Add(time.Duration(timeoutSeconds) * time.Second),
-		IPAddress: ipAddress,
-		UserAgent: userAgent,
+		ID:          uuid.New().String(),
+		UserID:      userID,
+		Status:      AuthStatusPending,
+		RequestType: "web_login",
+		CreatedAt:   now,
+		ExpiresAt:   now.Add(time.Duration(timeoutSeconds) * time.Second),
+		IPAddress:   ipAddress,
+		UserAgent:   userAgent,
+	}
+}
+
+// NewPasswordResetAuthRequest creates a new password reset auth request
+func NewPasswordResetAuthRequest(userID, newPasswordHash, ipAddress, userAgent string, timeoutSeconds int) *AuthRequest {
+	now := time.Now().UTC()
+	return &AuthRequest{
+		ID:              uuid.New().String(),
+		UserID:          userID,
+		Status:          AuthStatusPending,
+		RequestType:     "password_reset",
+		NewPasswordHash: newPasswordHash,
+		CreatedAt:       now,
+		ExpiresAt:       now.Add(time.Duration(timeoutSeconds) * time.Second),
+		IPAddress:       ipAddress,
+		UserAgent:       userAgent,
 	}
 }
 

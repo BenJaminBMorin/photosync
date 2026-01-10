@@ -328,6 +328,63 @@ func createPostgresTables(db *sql.DB) error {
 		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 	);
+
+	-- Orphan files (files on disk not in database)
+	CREATE TABLE IF NOT EXISTS orphan_files (
+		id TEXT PRIMARY KEY,
+		file_path TEXT NOT NULL UNIQUE,
+		file_size BIGINT,
+		file_hash TEXT,
+		discovered_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+		-- Embedded metadata from file (if present)
+		embedded_photo_id TEXT,
+		embedded_user_id TEXT,
+		embedded_device_id TEXT,
+		embedded_file_hash TEXT,
+		embedded_uploaded_at TIMESTAMP,
+
+		-- Status: pending, ignored, claimed, deleted
+		status TEXT NOT NULL DEFAULT 'pending',
+		status_changed_at TIMESTAMP,
+		status_changed_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+
+		-- Admin assignment
+		assigned_to_user TEXT REFERENCES users(id) ON DELETE SET NULL,
+		assigned_to_device TEXT REFERENCES devices(id) ON DELETE SET NULL
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_orphan_files_status ON orphan_files(status);
+	CREATE INDEX IF NOT EXISTS idx_orphan_files_embedded_user ON orphan_files(embedded_user_id);
+	CREATE INDEX IF NOT EXISTS idx_orphan_files_file_hash ON orphan_files(file_hash);
+
+	-- File conflicts (mismatch between file metadata and database)
+	CREATE TABLE IF NOT EXISTS file_conflicts (
+		id TEXT PRIMARY KEY,
+		photo_id TEXT NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
+		file_path TEXT NOT NULL,
+		discovered_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		conflict_type TEXT NOT NULL,
+
+		-- Database values
+		db_photo_id TEXT,
+		db_user_id TEXT,
+		db_device_id TEXT,
+
+		-- File metadata values
+		file_photo_id TEXT,
+		file_user_id TEXT,
+		file_device_id TEXT,
+
+		-- Resolution: pending, resolved_db, resolved_file, ignored
+		status TEXT NOT NULL DEFAULT 'pending',
+		resolved_at TIMESTAMP,
+		resolved_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+		resolution_notes TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_file_conflicts_status ON file_conflicts(status);
+	CREATE INDEX IF NOT EXISTS idx_file_conflicts_photo_id ON file_conflicts(photo_id);
 	`
 
 	_, err := db.Exec(schema)

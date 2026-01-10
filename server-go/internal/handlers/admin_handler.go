@@ -203,6 +203,49 @@ func (h *AdminHandler) ResetAPIKey(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(models.ResetAPIKeyResponse{APIKey: apiKey})
 }
 
+// SetUserPassword sets or updates a user's password
+// @Summary Set user password
+// @Description Set or update a user's password for password-based authentication
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body models.SetPasswordRequest true "New password"
+// @Success 200 {object} map[string]bool
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Security SessionAuth
+// @Router /api/admin/users/{id}/password [post]
+func (h *AdminHandler) SetUserPassword(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+	var req models.SetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Password == "" {
+		http.Error(w, "Password is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.adminService.SetUserPassword(r.Context(), userID, req.Password); err != nil {
+		if err == models.ErrUserNotFound {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		if err == models.ErrPasswordTooShort {
+			http.Error(w, "Password must be at least 8 characters", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
 // GetUserDevices returns all devices for a user
 // @Summary List user devices
 // @Description Get all devices registered for a user

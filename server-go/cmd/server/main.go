@@ -17,6 +17,7 @@ import (
 	"github.com/photosync/server/internal/config"
 	"github.com/photosync/server/internal/handlers"
 	custommw "github.com/photosync/server/internal/middleware"
+	"github.com/photosync/server/internal/observability"
 	"github.com/photosync/server/internal/repository"
 	"github.com/photosync/server/internal/services"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -61,6 +62,30 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	// Initialize telemetry (OpenTelemetry for SigNoz)
+	ctx := context.Background()
+	telemetryCfg := observability.NewConfig("photosync-server", Version)
+	telemetry, err := observability.Initialize(ctx, telemetryCfg)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize telemetry: %v", err)
+		// Continue without telemetry
+	}
+	defer func() {
+		if telemetry != nil {
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if err := telemetry.Shutdown(shutdownCtx); err != nil {
+				log.Printf("Error shutting down telemetry: %v", err)
+			}
+		}
+	}()
+
+	// Initialize HTTP metrics for observability
+	httpMetrics, err := observability.NewHTTPMetrics()
+	if err != nil {
+		log.Printf("Warning: Failed to initialize HTTP metrics: %v", err)
+	}
+
 	// Initialize database
 	var db *sql.DB
 	var photoRepo repository.PhotoRepo
@@ -96,6 +121,7 @@ func main() {
 	inviteTokenRepo := repository.NewInviteTokenRepository(db)
 	configOverrideRepo := repository.NewConfigOverrideRepository(db)
 	smtpConfigRepo := repository.NewSMTPConfigRepository(db)
+	resetTokenRepo := repository.NewPasswordResetTokenRepository(db)
 
 	// Collection repositories
 	collectionRepo := repository.NewCollectionRepository(db)
@@ -108,6 +134,10 @@ func main() {
 
 	// Sync state repository
 	deviceSyncStateRepo := repository.NewDeviceSyncStateRepository(db)
+
+	// File integrity repositories
+	orphanFileRepo := repository.NewOrphanFileRepository(db)
+	fileConflictRepo := repository.NewFileConflictRepository(db)
 
 	// Initialize services
 	hashService := services.NewHashService()
@@ -128,6 +158,24 @@ func main() {
 	// Maintenance service for background tasks
 	maintenanceService := services.NewMaintenanceService(photoRepo, thumbnailService, cfg.PhotoStorage.BasePath)
 	maintenanceService.Start()
+
+	// File scanner service for orphan/conflict detection
+	var fileScannerService *services.FileScannerService
+	if cfg.FileScanner.Enabled {
+		fileScannerService = services.NewFileScannerService(
+			photoRepo, orphanFileRepo, fileConflictRepo,
+			metadataService, hashService, cfg.PhotoStorage.BasePath,
+			cfg.FileScanner.IntervalHours,
+		)
+		if cfg.FileScanner.AutoStart {
+			fileScannerService.Start()
+			log.Printf("File scanner auto-started (interval: %d hours)", cfg.FileScanner.IntervalHours)
+		} else {
+			log.Println("File scanner initialized (manual start via admin API)")
+		}
+	} else {
+		log.Println("File scanner disabled via configuration")
+	}
 
 	// Config directory for Firebase credentials etc
 	configDir := filepath.Join(cfg.PhotoStorage.BasePath, ".config")
@@ -188,6 +236,11 @@ func main() {
 		}
 	}
 
+	// WebSocket hub for real-time notifications
+	wsHub := services.NewWebSocketHub()
+	go wsHub.Run()
+	log.Println("WebSocket hub started")
+
 	// Auth service
 	authTimeout := 60     // 60 seconds for auth approval
 	sessionDuration := 24 // 24 hours session
@@ -195,6 +248,21 @@ func main() {
 		userRepo, deviceRepo, authRequestRepo, sessionRepo,
 		fcmService, authTimeout, sessionDuration,
 	)
+	authService.SetWebSocketHub(wsHub)
+
+	// Mobile auth service for password-based authentication
+	mobileAuthService := services.NewMobileAuthService(userRepo, deviceRepo)
+
+	// Password reset service for email and phone-based reset flows
+	passwordResetService := services.NewPasswordResetService(
+		userRepo, deviceRepo, authRequestRepo, resetTokenRepo,
+		fcmService, smtpService, authTimeout,
+	)
+
+	// Set WebSocket hub on scanner service (if enabled)
+	if fileScannerService != nil {
+		fileScannerService.SetWebSocketHub(wsHub)
+	}
 
 	// Delete service
 	deleteTimeout := 60 // 60 seconds for delete approval
@@ -242,6 +310,10 @@ func main() {
 	webDeleteHandler := handlers.NewWebDeleteHandler(deleteService)
 	adminHandler := handlers.NewAdminHandler(adminService)
 	configHandler := handlers.NewConfigHandler(configService, smtpService)
+
+	// Mobile authentication handlers
+	mobileAuthHandler := handlers.NewMobileAuthHandler(mobileAuthService, deviceRepo, userRepo)
+	passwordResetHandler := handlers.NewPasswordResetHandler(passwordResetService, authService)
 	// Web gallery handler requires PostgreSQL for location features
 	var webGalleryHandler *handlers.WebGalleryHandler
 	if photoRepoPostgres != nil {
@@ -269,51 +341,75 @@ func main() {
 		photoRepo, cfg.PhotoStorage.BasePath, webDir,
 	)
 
-	// Setup router
-	r := chi.NewRouter()
+	// File integrity handlers
+	orphanHandler := handlers.NewOrphanHandler(
+		orphanFileRepo, photoRepo, deviceRepo, cfg.PhotoStorage.BasePath,
+		storageService, hashService, exifService, thumbnailService, metadataService,
+	)
+	conflictHandler := handlers.NewConflictHandler(fileConflictRepo, photoRepo, metadataService)
+	var scannerHandler *handlers.ScannerHandler
+	if fileScannerService != nil {
+		scannerHandler = handlers.NewScannerHandler(fileScannerService)
+	}
 
-	// Global middleware
-	r.Use(middleware.Logger)
+	// WebSocket handler
+	wsHandler := handlers.NewWebSocketHandler(wsHub, authService)
+
+	// Setup router - use two routers to avoid Logger on WebSocket routes
+	// WebSocket needs raw http.Hijacker which Logger middleware breaks
+
+	// Main router with minimal middleware
+	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 
-	// Setup required middleware (redirects to /setup if not configured)
-	r.Use(custommw.SetupRequired(setupService))
+	// WebSocket routes (no Logger)
+	r.Get("/ws", wsHandler.HandleConnection)
+	r.Get("/ws/auth", wsHandler.HandleAuthConnection)
+
+	// App router with Logger and other middleware
+	appRouter := chi.NewRouter()
+	appRouter.Use(middleware.Logger)
+	appRouter.Use(observability.TracingMiddleware("photosync-server"))
+	if httpMetrics != nil {
+		appRouter.Use(observability.MetricsMiddleware(httpMetrics))
+	}
+	appRouter.Use(custommw.SetupRequired(setupService))
 
 	// Static file server for web UI
 	fileServer := http.FileServer(http.Dir(webDir))
-	r.Handle("/css/*", fileServer)
-	r.Handle("/js/*", fileServer)
-	r.Handle("/images/*", fileServer)
+	appRouter.Handle("/css/*", fileServer)
+	appRouter.Handle("/js/*", fileServer)
+	appRouter.Handle("/images/*", fileServer)
 
 	// Swagger UI (always accessible)
-	r.Get("/swagger/*", httpSwagger.Handler(
+	appRouter.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("/swagger/doc.json"),
 	))
 
 	// Health check and version (no auth)
-	r.Get("/health", healthHandler.HealthCheck)
-	r.Get("/api/health", healthHandler.HealthCheck)
-	r.Get("/api/info", healthHandler.GetAppInfo)
-	r.Get("/api/version", handlers.VersionHandler)
+	appRouter.Get("/health", healthHandler.HealthCheck)
+	appRouter.Get("/api/health", healthHandler.HealthCheck)
+	appRouter.Get("/api/info", healthHandler.GetAppInfo)
+	appRouter.Get("/api/version", handlers.VersionHandler)
 
 	// Public theme routes (no auth required)
-	r.Get("/api/themes", themeHandler.ListThemes)
-	r.Get("/api/themes/{id}", themeHandler.GetTheme)
-	r.Get("/api/themes/{id}/css", themeHandler.GetThemeCSS)
+	appRouter.Get("/api/themes", themeHandler.ListThemes)
+	appRouter.Get("/api/themes/{id}", themeHandler.GetTheme)
+	appRouter.Get("/api/themes/{id}/css", themeHandler.GetThemeCSS)
 
 	// Public invite redemption (no auth required)
-	r.Post("/api/invite/redeem", inviteHandler.HandleRedeemInvite)
+	appRouter.Post("/api/invite/redeem", inviteHandler.HandleRedeemInvite)
 
 	// Setup routes (no auth during setup)
-	r.Get("/setup", func(w http.ResponseWriter, r *http.Request) {
+	appRouter.Get("/setup", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(webDir, "setup", "index.html"))
 	})
-	r.Get("/setup/*", func(w http.ResponseWriter, r *http.Request) {
+	appRouter.Get("/setup/*", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(webDir, "setup", "index.html"))
 	})
-	r.Route("/api/setup", func(r chi.Router) {
+	appRouter.Route("/api/setup", func(r chi.Router) {
 		r.Get("/status", setupHandler.GetStatus)
 		r.Post("/firebase", setupHandler.UploadFirebaseCredentials)
 		r.Post("/email", setupHandler.ConfigureEmail)
@@ -324,12 +420,22 @@ func main() {
 	})
 
 	// Web authentication routes (no auth required for initiate/status/admin-login/bootstrap/recovery)
-	r.Post("/api/web/auth/initiate", webAuthHandler.InitiateAuth)
-	r.Get("/api/web/auth/status/{id}", webAuthHandler.CheckStatus)
-	r.Post("/api/web/auth/admin-login", webAuthHandler.AdminLogin)
-	r.Post("/api/web/auth/bootstrap", webAuthHandler.BootstrapLogin)
-	r.Post("/api/web/auth/request-recovery", webAuthHandler.RequestRecovery)
-	r.Post("/api/web/auth/recover", webAuthHandler.RecoverAccount)
+	appRouter.Post("/api/web/auth/initiate", webAuthHandler.InitiateAuth)
+	appRouter.Get("/api/web/auth/status/{id}", webAuthHandler.CheckStatus)
+	appRouter.Post("/api/web/auth/respond", webAuthHandler.RespondAuth)
+	appRouter.Post("/api/web/delete/respond", webDeleteHandler.RespondDelete)
+	appRouter.Post("/api/web/auth/admin-login", webAuthHandler.AdminLogin)
+	appRouter.Post("/api/web/auth/bootstrap", webAuthHandler.BootstrapLogin)
+	appRouter.Post("/api/web/auth/request-recovery", webAuthHandler.RequestRecovery)
+	appRouter.Post("/api/web/auth/recover", webAuthHandler.RecoverAccount)
+
+	// Mobile authentication routes (no auth required)
+	appRouter.Post("/api/mobile/auth/login", mobileAuthHandler.Login)
+	appRouter.Post("/api/mobile/auth/reset/email/initiate", passwordResetHandler.InitiateEmailReset)
+	appRouter.Post("/api/mobile/auth/reset/email/verify", passwordResetHandler.VerifyCodeAndReset)
+	appRouter.Post("/api/mobile/auth/reset/phone/initiate", passwordResetHandler.InitiatePhoneReset)
+	appRouter.Get("/api/mobile/auth/reset/phone/status/{id}", passwordResetHandler.CheckPhoneResetStatus)
+	appRouter.Post("/api/mobile/auth/reset/phone/complete/{id}", passwordResetHandler.CompletePhoneReset)
 
 	// API routes requiring API key authentication
 	skipPaths := []string{
@@ -339,10 +445,14 @@ func main() {
 		"/api/setup/*",
 		"/api/web/auth/initiate",
 		"/api/web/auth/status/*",
+		"/api/mobile/auth/*",
 	}
 
-	r.Group(func(r chi.Router) {
+	appRouter.Group(func(r chi.Router) {
 		r.Use(custommw.UserAPIKeyAuth(userRepo, cfg.Security.APIKeyHeader, skipPaths))
+
+		// Mobile authentication (API key auth required)
+		r.Post("/api/mobile/auth/refresh-key", mobileAuthHandler.RefreshAPIKey)
 
 		// Photo upload API (mobile)
 		r.Route("/api/photos", func(r chi.Router) {
@@ -350,6 +460,7 @@ func main() {
 			r.Post("/check", photoHandler.CheckHashes)
 			r.Get("/", photoHandler.List)
 			r.Get("/{id}", photoHandler.GetByID)
+			r.Get("/{id}/thumbnail", syncHandler.GetThumbnail)
 			r.Delete("/{id}", photoHandler.Delete)
 		})
 
@@ -372,16 +483,10 @@ func main() {
 
 		// Photo download (mobile)
 		r.Get("/api/photos/{id}/download", syncHandler.DownloadPhoto)
-
-		// Auth response from mobile
-		r.Post("/api/web/auth/respond", webAuthHandler.RespondAuth)
-
-		// Delete response from mobile
-		r.Post("/api/web/delete/respond", webDeleteHandler.RespondDelete)
 	})
 
 	// Web routes requiring session authentication
-	r.Group(func(r chi.Router) {
+	appRouter.Group(func(r chi.Router) {
 		r.Use(custommw.SessionAuth(sessionRepo, userRepo))
 
 		r.Get("/api/web/session", webAuthHandler.GetSession)
@@ -420,10 +525,17 @@ func main() {
 			r.Post("/{id}/shares", collectionHandler.ShareWithUsers)
 			r.Delete("/{id}/shares/{userId}", collectionHandler.RemoveShare)
 		})
+
+		// User orphan file routes (view/ignore/claim their own orphans)
+		r.Route("/api/web/orphans", func(r chi.Router) {
+			r.Get("/", orphanHandler.ListMyOrphans)
+			r.Post("/{id}/ignore", orphanHandler.IgnoreOrphan)
+			r.Post("/{id}/claim", orphanHandler.ClaimOrphan)
+		})
 	})
 
 	// Admin routes requiring session auth + admin status
-	r.Group(func(r chi.Router) {
+	appRouter.Group(func(r chi.Router) {
 		r.Use(custommw.AdminAuth(sessionRepo, userRepo))
 
 		r.Route("/api/admin", func(r chi.Router) {
@@ -434,6 +546,7 @@ func main() {
 			r.Put("/users/{id}", adminHandler.UpdateUser)
 			r.Delete("/users/{id}", adminHandler.DeleteUser)
 			r.Post("/users/{id}/reset-api-key", adminHandler.ResetAPIKey)
+			r.Post("/users/{id}/password", adminHandler.SetUserPassword)
 			r.Post("/users/{id}/invite", inviteHandler.HandleGenerateInvite)
 
 			// User's devices
@@ -529,6 +642,43 @@ func main() {
 				json.NewEncoder(w).Encode(response)
 			})
 
+			// Orphan file management
+			r.Route("/orphans", func(r chi.Router) {
+				r.Get("/", orphanHandler.AdminListOrphans)
+				r.Get("/unassigned", orphanHandler.AdminListUnassignedOrphans)
+				r.Get("/stats", orphanHandler.AdminGetOrphanStats)
+				r.Post("/{id}/assign", orphanHandler.AdminAssignOrphan)
+				r.Post("/{id}/claim", orphanHandler.AdminClaimOrphan)
+				r.Get("/{id}/thumbnail", orphanHandler.GetOrphanThumbnail)
+				r.Delete("/{id}", orphanHandler.AdminDeleteOrphan)
+				r.Post("/bulk-assign", orphanHandler.AdminBulkAssignOrphans)
+				r.Post("/bulk-claim", orphanHandler.AdminBulkClaimOrphans)
+				r.Post("/bulk-delete", orphanHandler.AdminBulkDeleteOrphans)
+			})
+
+			// File conflict management
+			r.Route("/conflicts", func(r chi.Router) {
+				r.Get("/", conflictHandler.ListConflicts)
+				r.Get("/pending", conflictHandler.ListPendingConflicts)
+				r.Get("/stats", conflictHandler.GetConflictStats)
+				r.Get("/{id}", conflictHandler.GetConflict)
+				r.Post("/{id}/resolve-db", conflictHandler.ResolveConflictDB)
+				r.Post("/{id}/resolve-file", conflictHandler.ResolveConflictFile)
+				r.Post("/{id}/ignore", conflictHandler.IgnoreConflict)
+			})
+
+			// File scanner management (only if enabled)
+			if scannerHandler != nil {
+				r.Route("/scanner", func(r chi.Router) {
+					r.Get("/status", scannerHandler.GetStatus)
+					r.Post("/start", scannerHandler.StartScanner)
+					r.Post("/stop", scannerHandler.StopScanner)
+					r.Post("/run", scannerHandler.RunNow)
+					r.Post("/scan-file", scannerHandler.ScanFile)
+					r.Get("/verify", scannerHandler.VerifyIntegrity)
+				})
+			}
+
 			// Thumbnail regeneration
 			r.Post("/regenerate-thumbnails", func(w http.ResponseWriter, r *http.Request) {
 				ctx := r.Context()
@@ -586,38 +736,41 @@ func main() {
 	})
 
 	// Admin UI pages
-	r.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(webDir, "admin", "index.html"))
+	appRouter.Get("/admin", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, filepath.Join(webDir, "admin", "index.html"))
 	})
-	r.Get("/admin/*", func(w http.ResponseWriter, r *http.Request) {
-		path := chi.URLParam(r, "*")
+	appRouter.Get("/admin/*", func(w http.ResponseWriter, req *http.Request) {
+		path := chi.URLParam(req, "*")
 		filePath := filepath.Join(webDir, "admin", path+".html")
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			// Fall back to index.html for SPA routing
-			http.ServeFile(w, r, filepath.Join(webDir, "admin", "index.html"))
+			http.ServeFile(w, req, filepath.Join(webDir, "admin", "index.html"))
 			return
 		}
-		http.ServeFile(w, r, filePath)
+		http.ServeFile(w, req, filePath)
 	})
 
 	// Public gallery routes (no auth required)
-	r.Get("/gallery/{slug}", publicGalleryHandler.ViewGalleryBySlug)
-	r.Get("/gallery/s/{token}", publicGalleryHandler.ViewGalleryByToken)
-	r.Get("/gallery/photos/{photoId}/image", publicGalleryHandler.ServeGalleryImage)
-	r.Get("/gallery/photos/{photoId}/thumbnail", publicGalleryHandler.ServeGalleryThumbnail)
+	appRouter.Get("/gallery/{slug}", publicGalleryHandler.ViewGalleryBySlug)
+	appRouter.Get("/gallery/s/{token}", publicGalleryHandler.ViewGalleryByToken)
+	appRouter.Get("/gallery/photos/{photoId}/image", publicGalleryHandler.ServeGalleryImage)
+	appRouter.Get("/gallery/photos/{photoId}/thumbnail", publicGalleryHandler.ServeGalleryThumbnail)
 
 	// Collections management page (requires session auth handled by JS)
-	r.Get("/collections", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(webDir, "collections.html"))
+	appRouter.Get("/collections", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, filepath.Join(webDir, "collections.html"))
 	})
 
 	// Web UI pages
-	r.Get("/login.html", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(webDir, "login.html"))
+	appRouter.Get("/login.html", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, filepath.Join(webDir, "login.html"))
 	})
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join(webDir, "index.html"))
+	appRouter.Get("/", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, filepath.Join(webDir, "index.html"))
 	})
+
+	// Mount appRouter on main router (after WebSocket routes)
+	r.Mount("/", appRouter)
 
 	// Create server
 	srv := &http.Server{

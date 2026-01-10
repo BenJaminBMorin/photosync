@@ -210,6 +210,34 @@ func (s *AdminService) ResetAPIKey(ctx context.Context, userID string) (string, 
 	return newAPIKey, nil
 }
 
+// SetUserPassword sets or updates a user's password
+func (s *AdminService) SetUserPassword(ctx context.Context, userID, password string) error {
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return models.ErrUserNotFound
+	}
+
+	// Validate password
+	if len(password) < 8 {
+		return models.ErrPasswordTooShort
+	}
+
+	// Hash the password
+	if err := user.SetPassword(password); err != nil {
+		return err
+	}
+
+	// Update user's password hash in database
+	if err := s.userRepo.UpdatePasswordHash(ctx, userID, user.PasswordHash); err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
+}
+
 // GetUserDevices returns all devices for a user
 func (s *AdminService) GetUserDevices(ctx context.Context, userID string) ([]*models.Device, error) {
 	return s.deviceRepo.GetAllForUser(ctx, userID)

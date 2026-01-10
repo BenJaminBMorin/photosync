@@ -191,6 +191,71 @@ func sanitizeFilename(filename string) string {
 	return name
 }
 
+// MoveFile moves a file from one location to another within storage
+// Returns the new relative path
+func (s *PhotoStorageService) MoveFile(currentPath, newRelativeFolder, newFilename string) (string, error) {
+	// Get full path of current file
+	currentFullPath, err := s.GetFullPath(currentPath)
+	if err != nil {
+		return "", fmt.Errorf("invalid current path: %w", err)
+	}
+
+	// Check current file exists
+	if _, err := os.Stat(currentFullPath); os.IsNotExist(err) {
+		return "", fmt.Errorf("source file does not exist: %s", currentPath)
+	}
+
+	// Create new folder
+	newFolderFullPath := filepath.Join(s.basePath, newRelativeFolder)
+	if err := os.MkdirAll(newFolderFullPath, 0755); err != nil {
+		return "", fmt.Errorf("failed to create destination folder: %w", err)
+	}
+
+	// Generate unique filename in new location
+	uniqueFilename := generateUniqueFilename(newFilename, newFolderFullPath)
+	newRelativePath := filepath.Join(newRelativeFolder, uniqueFilename)
+	newFullPath := filepath.Join(s.basePath, newRelativePath)
+
+	// Security check
+	absNewPath, err := filepath.Abs(newFullPath)
+	if err != nil {
+		return "", err
+	}
+	if !strings.HasPrefix(absNewPath, s.basePath) {
+		return "", models.ErrPathTraversal
+	}
+
+	// Move the file
+	if err := os.Rename(currentFullPath, newFullPath); err != nil {
+		// If rename fails (cross-device), try copy+delete
+		if err := copyFile(currentFullPath, newFullPath); err != nil {
+			return "", fmt.Errorf("failed to move file: %w", err)
+		}
+		os.Remove(currentFullPath)
+	}
+
+	// Return path with forward slashes for consistency
+	return strings.ReplaceAll(newRelativePath, string(os.PathSeparator), "/"), nil
+}
+
+// copyFile copies a file from src to dst
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	return err
+}
+
 // generateUniqueFilename creates a unique filename if collision exists
 func generateUniqueFilename(filename, folderPath string) string {
 	nameWithoutExt := strings.TrimSuffix(filename, filepath.Ext(filename))

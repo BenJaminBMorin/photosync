@@ -343,6 +343,118 @@ func (s *FCMService) SendDataNotification(ctx context.Context, fcmToken, title, 
 	return nil
 }
 
+// PasswordResetNotification represents a password reset FCM push
+type PasswordResetNotification struct {
+	RequestID string `json:"requestId"`
+	Email     string `json:"email"`
+	IPAddress string `json:"ipAddress"`
+	UserAgent string `json:"userAgent"`
+}
+
+// SendPasswordResetRequest sends a push notification for password reset approval
+func (s *FCMService) SendPasswordResetRequest(ctx context.Context, fcmToken string, notification PasswordResetNotification) error {
+	token, err := s.getAccessToken(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get access token: %w", err)
+	}
+
+	body := fmt.Sprintf("Password reset requested from %s", notification.IPAddress)
+
+	message := fcmMessage{
+		Message: fcmMessageBody{
+			Token: fcmToken,
+			Data: map[string]string{
+				"type":      "password_reset",
+				"requestId": notification.RequestID,
+				"email":     notification.Email,
+				"ipAddress": notification.IPAddress,
+			},
+			Notification: &fcmNotification{
+				Title: "Password Reset Request",
+				Body:  body,
+			},
+			Android: &fcmAndroid{
+				Priority: "high",
+				Notification: &fcmAndroidNotification{
+					ClickAction: "OPEN_PASSWORD_RESET_APPROVAL",
+					ChannelID:   "password_reset",
+				},
+			},
+			APNS: &fcmAPNS{
+				Headers: map[string]string{
+					"apns-priority":  "10",
+					"apns-push-type": "alert",
+				},
+				Payload: &fcmAPNSPayload{
+					Aps: &fcmAps{
+						Alert: &fcmApsAlert{
+							Title: "Password Reset Request",
+							Body:  body,
+						},
+						Sound:            "default",
+						ContentAvailable: 1,
+						Category:         "PASSWORD_RESET",
+					},
+				},
+			},
+		},
+	}
+
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %w", err)
+	}
+
+	url := fmt.Sprintf("https://fcm.googleapis.com/v1/projects/%s/messages:send", s.projectID)
+	log.Printf("FCM: Sending to URL: %s", url)
+	log.Printf("FCM: Request body: %s", string(jsonData))
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	log.Printf("FCM: Authorization header set (Bearer token len=%d)", len(token))
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("FCM API error: status=%d, body=%s", resp.StatusCode, string(respBody))
+		log.Printf("FCM: Debug - project_id=%s, fcm_token_prefix=%s...", s.projectID, fcmToken[:min(20, len(fcmToken))])
+		return fmt.Errorf("FCM API error: %s", string(respBody))
+	}
+
+	log.Printf("FCM notification sent successfully: %s", string(respBody))
+	return nil
+}
+
+// SendPasswordResetRequestToMultiple sends the same notification to multiple tokens
+func (s *FCMService) SendPasswordResetRequestToMultiple(ctx context.Context, fcmTokens []string, notification PasswordResetNotification) (int, error) {
+	if len(fcmTokens) == 0 {
+		return 0, nil
+	}
+
+	successCount := 0
+	for _, token := range fcmTokens {
+		if err := s.SendPasswordResetRequest(ctx, token, notification); err != nil {
+			log.Printf("FCM send failed for token %s...: %v", token[:min(20, len(token))], err)
+			continue
+		}
+		successCount++
+	}
+
+	return successCount, nil
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a

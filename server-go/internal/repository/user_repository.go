@@ -18,57 +18,69 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*models.User, error) {
-	query := `SELECT id, email, display_name, api_key, api_key_hash, is_admin, created_at, is_active
+	query := `SELECT id, email, display_name, api_key, api_key_hash, password_hash, is_admin, created_at, is_active
 			  FROM users WHERE id = $1`
 
 	var user models.User
+	var passwordHash sql.NullString
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&user.ID, &user.Email, &user.DisplayName, &user.APIKey, &user.APIKeyHash,
-		&user.IsAdmin, &user.CreatedAt, &user.IsActive,
+		&passwordHash, &user.IsAdmin, &user.CreatedAt, &user.IsActive,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
+	}
+	if passwordHash.Valid {
+		user.PasswordHash = passwordHash.String
 	}
 	user.APIKey = "" // Never return API key after creation
 	return &user, nil
 }
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	query := `SELECT id, email, display_name, api_key, api_key_hash, is_admin, created_at, is_active
+	query := `SELECT id, email, display_name, api_key, api_key_hash, password_hash, is_admin, created_at, is_active
 			  FROM users WHERE email = $1`
 
 	var user models.User
+	var passwordHash sql.NullString
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
 		&user.ID, &user.Email, &user.DisplayName, &user.APIKey, &user.APIKeyHash,
-		&user.IsAdmin, &user.CreatedAt, &user.IsActive,
+		&passwordHash, &user.IsAdmin, &user.CreatedAt, &user.IsActive,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
+	}
+	if passwordHash.Valid {
+		user.PasswordHash = passwordHash.String
 	}
 	user.APIKey = "" // Never return API key after creation
 	return &user, nil
 }
 
 func (r *UserRepository) GetByAPIKeyHash(ctx context.Context, apiKeyHash string) (*models.User, error) {
-	query := `SELECT id, email, display_name, api_key, api_key_hash, is_admin, created_at, is_active
+	query := `SELECT id, email, display_name, api_key, api_key_hash, password_hash, is_admin, created_at, is_active
 			  FROM users WHERE api_key_hash = $1 AND is_active = true`
 
 	var user models.User
+	var passwordHash sql.NullString
 	err := r.db.QueryRowContext(ctx, query, apiKeyHash).Scan(
 		&user.ID, &user.Email, &user.DisplayName, &user.APIKey, &user.APIKeyHash,
-		&user.IsAdmin, &user.CreatedAt, &user.IsActive,
+		&passwordHash, &user.IsAdmin, &user.CreatedAt, &user.IsActive,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
+	}
+	if passwordHash.Valid {
+		user.PasswordHash = passwordHash.String
 	}
 	user.APIKey = "" // Never return API key after creation
 	return &user, nil
@@ -132,7 +144,14 @@ func (r *UserRepository) Delete(ctx context.Context, id string) (bool, error) {
 
 // UpdateAPIKeyHash updates a user's API key hash (used for API key reset)
 func (r *UserRepository) UpdateAPIKeyHash(ctx context.Context, id, apiKeyHash string) error {
-	query := `UPDATE users SET api_key_hash = $2 WHERE id = $1`
+	query := `UPDATE users SET api_key_hash = $2, api_key = '' WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id, apiKeyHash)
+	return err
+}
+
+// UpdatePasswordHash updates a user's password hash
+func (r *UserRepository) UpdatePasswordHash(ctx context.Context, userID, passwordHash string) error {
+	query := `UPDATE users SET password_hash = $2 WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, userID, passwordHash)
 	return err
 }

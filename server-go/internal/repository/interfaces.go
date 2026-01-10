@@ -20,6 +20,7 @@ type PhotoRepo interface {
 	GetCountForUser(ctx context.Context, userID string) (int, error)
 	Add(ctx context.Context, photo *models.Photo) error
 	AddWithUser(ctx context.Context, photo *models.Photo, userID string) error
+	Update(ctx context.Context, photo *models.Photo) error
 	Delete(ctx context.Context, id string) (bool, error)
 	DeleteAll(ctx context.Context) (int, error)                                  // Delete all photos
 	VerifyExistence(ctx context.Context, ids []string) (map[string]bool, error)  // Check which IDs exist
@@ -47,6 +48,7 @@ type UserRepo interface {
 	Add(ctx context.Context, user *models.User) error
 	Update(ctx context.Context, user *models.User) error
 	UpdateAPIKeyHash(ctx context.Context, id, apiKeyHash string) error
+	UpdatePasswordHash(ctx context.Context, id, passwordHash string) error
 	Delete(ctx context.Context, id string) (bool, error)
 }
 
@@ -173,4 +175,49 @@ type DeviceSyncStateRepo interface {
 	GetSyncVersion(ctx context.Context, userID string) (int, error)
 	IncrementSyncVersion(ctx context.Context, userID string) error
 	UpdateLastSync(ctx context.Context, deviceID string, lastPhotoID string) error
+}
+
+// OrphanFileRepo defines the interface for orphan file persistence
+type OrphanFileRepo interface {
+	// Basic CRUD
+	Add(ctx context.Context, orphan *models.OrphanFile) error
+	GetByID(ctx context.Context, id string) (*models.OrphanFile, error)
+	GetByPath(ctx context.Context, path string) (*models.OrphanFile, error)
+	Delete(ctx context.Context, id string) error
+
+	// Listing methods
+	GetAll(ctx context.Context, status string, skip, take int) ([]*models.OrphanFile, int, error)
+	GetForUser(ctx context.Context, userID string, status string, skip, take int) ([]*models.OrphanFile, int, error)
+	GetUnassigned(ctx context.Context, skip, take int) ([]*models.OrphanFile, int, error)
+
+	// Status management
+	UpdateStatus(ctx context.Context, id, status, changedBy string) error
+	AssignToUser(ctx context.Context, id, userID, deviceID, assignedBy string) error
+
+	// Bulk operations
+	BulkUpdateStatus(ctx context.Context, ids []string, status, changedBy string) (int, error)
+	BulkAssign(ctx context.Context, ids []string, userID, deviceID, assignedBy string) (int, error)
+	BulkDelete(ctx context.Context, ids []string) (int, error)
+
+	// Statistics
+	GetStats(ctx context.Context) (*models.OrphanFileStats, error)
+}
+
+// FileConflictRepo defines the interface for file conflict persistence
+type FileConflictRepo interface {
+	// Basic CRUD
+	Add(ctx context.Context, conflict *models.FileConflict) error
+	GetByID(ctx context.Context, id string) (*models.FileConflict, error)
+	GetByPhotoID(ctx context.Context, photoID string) ([]*models.FileConflict, error)
+	Delete(ctx context.Context, id string) error
+
+	// Listing methods
+	GetAll(ctx context.Context, status string, skip, take int) ([]*models.FileConflict, int, error)
+	GetPending(ctx context.Context, skip, take int) ([]*models.FileConflict, int, error)
+
+	// Resolution
+	Resolve(ctx context.Context, id, status, resolvedBy string, notes *string) error
+
+	// Statistics
+	GetStats(ctx context.Context) (*models.FileConflictStats, error)
 }

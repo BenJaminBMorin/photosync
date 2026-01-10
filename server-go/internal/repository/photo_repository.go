@@ -185,6 +185,66 @@ func (r *PhotoRepository) Add(ctx context.Context, photo *models.Photo) error {
 	return err
 }
 
+// Update updates an existing photo record
+func (r *PhotoRepository) Update(ctx context.Context, photo *models.Photo) error {
+	query := `
+		UPDATE photos SET
+			original_filename = ?,
+			stored_path = ?,
+			file_hash = ?,
+			file_size = ?,
+			date_taken = ?,
+			user_id = ?,
+			origin_device_id = ?,
+			thumb_small = ?,
+			thumb_medium = ?,
+			thumb_large = ?,
+			width = ?,
+			height = ?,
+			camera_make = ?,
+			camera_model = ?,
+			lens_model = ?,
+			focal_length = ?,
+			aperture = ?,
+			shutter_speed = ?,
+			iso = ?,
+			orientation = ?,
+			latitude = ?,
+			longitude = ?,
+			altitude = ?
+		WHERE id = ?
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		photo.OriginalFilename,
+		photo.StoredPath,
+		photo.FileHash,
+		photo.FileSize,
+		photo.DateTaken,
+		photo.UserID,
+		photo.OriginDeviceID,
+		photo.ThumbSmall,
+		photo.ThumbMedium,
+		photo.ThumbLarge,
+		photo.Width,
+		photo.Height,
+		photo.CameraMake,
+		photo.CameraModel,
+		photo.LensModel,
+		photo.FocalLength,
+		photo.Aperture,
+		photo.ShutterSpeed,
+		photo.ISO,
+		photo.Orientation,
+		photo.Latitude,
+		photo.Longitude,
+		photo.Altitude,
+		photo.ID,
+	)
+
+	return err
+}
+
 // Delete removes a photo by ID
 func (r *PhotoRepository) Delete(ctx context.Context, id string) (bool, error) {
 	result, err := r.db.ExecContext(ctx, "DELETE FROM photos WHERE id = ?", id)

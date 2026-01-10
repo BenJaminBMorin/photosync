@@ -19,14 +19,16 @@ func NewAuthRequestRepository(db *sql.DB) *AuthRequestRepository {
 }
 
 func (r *AuthRequestRepository) GetByID(ctx context.Context, id string) (*models.AuthRequest, error) {
-	query := `SELECT id, user_id, status, created_at, expires_at, responded_at, device_id, ip_address, user_agent
+	query := `SELECT id, user_id, status, request_type, new_password_hash, created_at, expires_at, responded_at, device_id, ip_address, user_agent
 			  FROM auth_requests WHERE id = $1`
 
 	var req models.AuthRequest
 	var respondedAt sql.NullTime
 	var deviceID sql.NullString
+	var requestType sql.NullString
+	var newPasswordHash sql.NullString
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&req.ID, &req.UserID, &req.Status, &req.CreatedAt, &req.ExpiresAt,
+		&req.ID, &req.UserID, &req.Status, &requestType, &newPasswordHash, &req.CreatedAt, &req.ExpiresAt,
 		&respondedAt, &deviceID, &req.IPAddress, &req.UserAgent,
 	)
 	if err == sql.ErrNoRows {
@@ -34,6 +36,14 @@ func (r *AuthRequestRepository) GetByID(ctx context.Context, id string) (*models
 	}
 	if err != nil {
 		return nil, err
+	}
+	if requestType.Valid {
+		req.RequestType = requestType.String
+	} else {
+		req.RequestType = "web_login"
+	}
+	if newPasswordHash.Valid {
+		req.NewPasswordHash = newPasswordHash.String
 	}
 	if respondedAt.Valid {
 		req.RespondedAt = &respondedAt.Time
@@ -76,12 +86,17 @@ func (r *AuthRequestRepository) GetPendingForUser(ctx context.Context, userID st
 }
 
 func (r *AuthRequestRepository) Add(ctx context.Context, req *models.AuthRequest) error {
-	query := `INSERT INTO auth_requests (id, user_id, status, created_at, expires_at, ip_address, user_agent)
-			  VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	query := `INSERT INTO auth_requests (id, user_id, status, request_type, new_password_hash, created_at, expires_at, ip_address, user_agent)
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+
+	requestType := req.RequestType
+	if requestType == "" {
+		requestType = "web_login"
+	}
 
 	_, err := r.db.ExecContext(ctx, query,
-		req.ID, req.UserID, req.Status, req.CreatedAt, req.ExpiresAt,
-		req.IPAddress, req.UserAgent,
+		req.ID, req.UserID, req.Status, requestType, req.NewPasswordHash,
+		req.CreatedAt, req.ExpiresAt, req.IPAddress, req.UserAgent,
 	)
 	return err
 }

@@ -28,6 +28,12 @@ func SetupRequired(setupService *services.SetupService) func(http.Handler) http.
 				return
 			}
 
+			// Allow mobile auth endpoints for password-based authentication and password reset
+			if strings.HasPrefix(path, "/api/mobile/auth") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			// Always allow health checks
 			if path == "/health" || path == "/api/health" {
 				next.ServeHTTP(w, r)

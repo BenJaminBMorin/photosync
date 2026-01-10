@@ -298,6 +298,81 @@ func createTables(db *sql.DB) error {
 		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);
 
+	-- Orphan files (files on disk not in database)
+	CREATE TABLE IF NOT EXISTS orphan_files (
+		id TEXT PRIMARY KEY,
+		file_path TEXT NOT NULL UNIQUE,
+		file_size INTEGER,
+		file_hash TEXT,
+		discovered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+		-- Embedded metadata from file (if present)
+		embedded_photo_id TEXT,
+		embedded_user_id TEXT,
+		embedded_device_id TEXT,
+		embedded_file_hash TEXT,
+		embedded_uploaded_at DATETIME,
+
+		-- Status: pending, ignored, claimed, deleted
+		status TEXT NOT NULL DEFAULT 'pending',
+		status_changed_at DATETIME,
+		status_changed_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+
+		-- Admin assignment
+		assigned_to_user TEXT REFERENCES users(id) ON DELETE SET NULL,
+		assigned_to_device TEXT REFERENCES devices(id) ON DELETE SET NULL
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_orphan_files_status ON orphan_files(status);
+	CREATE INDEX IF NOT EXISTS idx_orphan_files_embedded_user ON orphan_files(embedded_user_id);
+	CREATE INDEX IF NOT EXISTS idx_orphan_files_file_hash ON orphan_files(file_hash);
+
+	-- File conflicts (mismatch between file metadata and database)
+	CREATE TABLE IF NOT EXISTS file_conflicts (
+		id TEXT PRIMARY KEY,
+		photo_id TEXT NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
+		file_path TEXT NOT NULL,
+		discovered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		conflict_type TEXT NOT NULL,
+
+		-- Database values
+		db_photo_id TEXT,
+		db_user_id TEXT,
+		db_device_id TEXT,
+
+		-- File metadata values
+		file_photo_id TEXT,
+		file_user_id TEXT,
+		file_device_id TEXT,
+
+		-- Resolution: pending, resolved_db, resolved_file, ignored
+		status TEXT NOT NULL DEFAULT 'pending',
+		resolved_at DATETIME,
+		resolved_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+		resolution_notes TEXT
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_file_conflicts_status ON file_conflicts(status);
+	CREATE INDEX IF NOT EXISTS idx_file_conflicts_photo_id ON file_conflicts(photo_id);
+
+	-- Password reset tokens (email-based password reset)
+	CREATE TABLE IF NOT EXISTS password_reset_tokens (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		code_hash TEXT NOT NULL,
+		email TEXT NOT NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		expires_at DATETIME NOT NULL,
+		used INTEGER NOT NULL DEFAULT 0,
+		used_at DATETIME,
+		ip_address TEXT,
+		attempts INTEGER NOT NULL DEFAULT 0,
+		last_attempt_at DATETIME
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset_tokens(user_id);
+	CREATE INDEX IF NOT EXISTS idx_password_reset_expires ON password_reset_tokens(expires_at);
+
 	-- Add theme_source column to collections (migration-compatible)
 	-- Note: SQLite doesn't support ALTER TABLE ADD COLUMN IF NOT EXISTS in older versions
 	-- This will be handled by checking the table schema first
@@ -321,6 +396,64 @@ func createTables(db *sql.DB) error {
 
 	if !hasThemeSource {
 		_, err = db.Exec(`ALTER TABLE collections ADD COLUMN theme_source TEXT NOT NULL DEFAULT 'explicit'`)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add password_hash column to users if it doesn't exist
+	var hasPasswordHash bool
+	err = db.QueryRow(`
+		SELECT COUNT(*) > 0 FROM pragma_table_info('users')
+		WHERE name = 'password_hash'
+	`).Scan(&hasPasswordHash)
+
+	if err != nil {
+		return err
+	}
+
+	if !hasPasswordHash {
+		_, err = db.Exec(`ALTER TABLE users ADD COLUMN password_hash TEXT`)
+		if err != nil {
+			return err
+		}
+		// Create index for password_hash
+		db.Exec(`CREATE INDEX IF NOT EXISTS idx_users_password_hash ON users(password_hash)`)
+	}
+
+	// Add request_type column to auth_requests if it doesn't exist
+	var hasRequestType bool
+	err = db.QueryRow(`
+		SELECT COUNT(*) > 0 FROM pragma_table_info('auth_requests')
+		WHERE name = 'request_type'
+	`).Scan(&hasRequestType)
+
+	if err != nil {
+		return err
+	}
+
+	if !hasRequestType {
+		_, err = db.Exec(`ALTER TABLE auth_requests ADD COLUMN request_type TEXT NOT NULL DEFAULT 'web_login'`)
+		if err != nil {
+			return err
+		}
+		// Create index for request_type
+		db.Exec(`CREATE INDEX IF NOT EXISTS idx_auth_requests_type ON auth_requests(request_type)`)
+	}
+
+	// Add new_password_hash column to auth_requests if it doesn't exist
+	var hasNewPasswordHash bool
+	err = db.QueryRow(`
+		SELECT COUNT(*) > 0 FROM pragma_table_info('auth_requests')
+		WHERE name = 'new_password_hash'
+	`).Scan(&hasNewPasswordHash)
+
+	if err != nil {
+		return err
+	}
+
+	if !hasNewPasswordHash {
+		_, err = db.Exec(`ALTER TABLE auth_requests ADD COLUMN new_password_hash TEXT`)
 		if err != nil {
 			return err
 		}

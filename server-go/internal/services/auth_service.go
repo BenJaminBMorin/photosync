@@ -15,6 +15,7 @@ type AuthService struct {
 	authRequestRepo repository.AuthRequestRepo
 	sessionRepo     repository.WebSessionRepo
 	fcmService      *FCMService
+	wsHub           *WebSocketHub
 	authTimeout     int // seconds
 	sessionDuration int // hours
 }
@@ -44,6 +45,11 @@ func NewAuthService(
 		authTimeout:     authTimeout,
 		sessionDuration: sessionDuration,
 	}
+}
+
+// SetWebSocketHub sets the WebSocket hub for real-time notifications
+func (s *AuthService) SetWebSocketHub(hub *WebSocketHub) {
+	s.wsHub = hub
 }
 
 // InitiateAuthResult contains the result of initiating auth
@@ -117,6 +123,8 @@ func (s *AuthService) CheckAuthStatus(ctx context.Context, requestID string) (*m
 		return nil, models.ErrAuthRequestNotFound
 	}
 
+	fmt.Printf("DEBUG: CheckAuthStatus - requestID: %s, status: %s\n", requestID, authReq.Status)
+
 	// Check if expired
 	if authReq.IsExpired() && authReq.Status == models.AuthStatusPending {
 		authReq.Status = models.AuthStatusExpired
@@ -130,18 +138,25 @@ func (s *AuthService) CheckAuthStatus(ctx context.Context, requestID string) (*m
 
 	// If approved, create session and include token
 	if authReq.Status == models.AuthStatusApproved {
+		fmt.Printf("DEBUG: CheckAuthStatus - status is approved, looking for session\n")
 		// Check if session was already created for this auth request
 		existingSessions, err := s.sessionRepo.GetActiveForUser(ctx, authReq.UserID)
 		if err == nil {
+			fmt.Printf("DEBUG: CheckAuthStatus - found %d active sessions for user\n", len(existingSessions))
 			for _, sess := range existingSessions {
+				fmt.Printf("DEBUG: CheckAuthStatus - session %s, authRequestID: %v\n", sess.ID, sess.AuthRequestID)
 				if sess.AuthRequestID != nil && *sess.AuthRequestID == authReq.ID {
+					fmt.Printf("DEBUG: CheckAuthStatus - found matching session: %s\n", sess.ID)
 					response.SessionToken = sess.ID
 					return response, nil
 				}
 			}
+		} else {
+			fmt.Printf("DEBUG: CheckAuthStatus - error getting sessions: %v\n", err)
 		}
 
 		// Create new session
+		fmt.Printf("DEBUG: CheckAuthStatus - creating new session\n")
 		session := models.NewWebSession(authReq.UserID, &authReq.ID, authReq.IPAddress, authReq.UserAgent, s.sessionDuration)
 		if err := s.sessionRepo.Add(ctx, session); err != nil {
 			return nil, fmt.Errorf("failed to create session: %w", err)
@@ -177,6 +192,8 @@ func (s *AuthService) RespondToAuth(ctx context.Context, requestID string, appro
 		fmt.Printf("ERROR: Auth request expired\n")
 		authReq.Status = models.AuthStatusExpired
 		s.authRequestRepo.Update(ctx, authReq)
+		// Send WebSocket notification for expiry
+		s.notifyAuthStatus(requestID, string(models.AuthStatusExpired), "")
 		return models.ErrAuthRequestExpired
 	}
 
@@ -194,8 +211,45 @@ func (s *AuthService) RespondToAuth(ctx context.Context, requestID string, appro
 		return fmt.Errorf("failed to update auth request: %w", err)
 	}
 
+	// If approved, create session immediately and send via WebSocket
+	var sessionToken string
+	if approved {
+		session := models.NewWebSession(authReq.UserID, &authReq.ID, authReq.IPAddress, authReq.UserAgent, s.sessionDuration)
+		if err := s.sessionRepo.Add(ctx, session); err != nil {
+			fmt.Printf("ERROR: Failed to create session: %v\n", err)
+			// Don't fail the whole operation, client can still poll for session
+		} else {
+			sessionToken = session.ID
+			fmt.Printf("DEBUG: Session created: %s\n", sessionToken)
+		}
+	}
+
+	// Send WebSocket notification
+	s.notifyAuthStatus(requestID, string(authReq.Status), sessionToken)
+
 	fmt.Printf("DEBUG: Auth request updated successfully\n")
 	return nil
+}
+
+// notifyAuthStatus sends auth status update via WebSocket
+func (s *AuthService) notifyAuthStatus(requestID, status, sessionToken string) {
+	if s.wsHub == nil {
+		return
+	}
+
+	topic := "auth:" + requestID
+	payload := AuthStatusPayload{
+		RequestID:    requestID,
+		Status:       status,
+		SessionToken: sessionToken,
+	}
+
+	s.wsHub.BroadcastToTopic(topic, WSMessage{
+		Type:    WSTypeAuthStatus,
+		Payload: payload,
+	})
+
+	fmt.Printf("DEBUG: Sent WebSocket auth notification for %s: %s\n", requestID, status)
 }
 
 // GetSession retrieves a session and validates it

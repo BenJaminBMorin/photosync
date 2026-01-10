@@ -298,6 +298,66 @@ func (r *PhotoRepositoryPostgres) AddWithUser(ctx context.Context, photo *models
 	return r.Add(ctx, photo)
 }
 
+// Update updates an existing photo record
+func (r *PhotoRepositoryPostgres) Update(ctx context.Context, photo *models.Photo) error {
+	query := `
+		UPDATE photos SET
+			original_filename = $1,
+			stored_path = $2,
+			file_hash = $3,
+			file_size = $4,
+			date_taken = $5,
+			user_id = $6,
+			origin_device_id = $7,
+			thumb_small = $8,
+			thumb_medium = $9,
+			thumb_large = $10,
+			width = $11,
+			height = $12,
+			camera_make = $13,
+			camera_model = $14,
+			lens_model = $15,
+			focal_length = $16,
+			aperture = $17,
+			shutter_speed = $18,
+			iso = $19,
+			orientation = $20,
+			latitude = $21,
+			longitude = $22,
+			altitude = $23
+		WHERE id = $24
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		photo.OriginalFilename,
+		photo.StoredPath,
+		photo.FileHash,
+		photo.FileSize,
+		photo.DateTaken,
+		photo.UserID,
+		photo.OriginDeviceID,
+		photo.ThumbSmall,
+		photo.ThumbMedium,
+		photo.ThumbLarge,
+		photo.Width,
+		photo.Height,
+		photo.CameraMake,
+		photo.CameraModel,
+		photo.LensModel,
+		photo.FocalLength,
+		photo.Aperture,
+		photo.ShutterSpeed,
+		photo.ISO,
+		photo.Orientation,
+		photo.Latitude,
+		photo.Longitude,
+		photo.Altitude,
+		photo.ID,
+	)
+
+	return err
+}
+
 // Delete removes a photo by ID
 func (r *PhotoRepositoryPostgres) Delete(ctx context.Context, id string) (bool, error) {
 	result, err := r.db.ExecContext(ctx, "DELETE FROM photos WHERE id = $1", id)

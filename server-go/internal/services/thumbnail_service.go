@@ -270,3 +270,60 @@ func decodeHEIC(data []byte) (image.Image, error) {
 	}
 	return img, nil
 }
+
+// GenerateSingleThumbnail creates a single thumbnail in memory and returns the JPEG bytes
+// This is useful for generating preview thumbnails without saving to disk
+func (s *ThumbnailService) GenerateSingleThumbnail(imageData []byte, maxDim int, orientation int) ([]byte, error) {
+	var img image.Image
+	var err error
+
+	// Try to decode as various formats
+	img, _, err = image.Decode(bytes.NewReader(imageData))
+	if err != nil {
+		// Try HEIC
+		img, err = decodeHEIC(imageData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode image: %w", err)
+		}
+	}
+
+	// Apply EXIF orientation correction
+	img = applyOrientation(img, orientation)
+
+	// Get dimensions
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	// Calculate new dimensions maintaining aspect ratio
+	var newWidth, newHeight int
+	if width > height {
+		if width > maxDim {
+			newWidth = maxDim
+			newHeight = height * maxDim / width
+		} else {
+			newWidth = width
+			newHeight = height
+		}
+	} else {
+		if height > maxDim {
+			newHeight = maxDim
+			newWidth = width * maxDim / height
+		} else {
+			newWidth = width
+			newHeight = height
+		}
+	}
+
+	// Resize using high-quality Lanczos filter
+	resized := imaging.Resize(img, newWidth, newHeight, imaging.Lanczos)
+
+	// Encode as JPEG to buffer
+	var buf bytes.Buffer
+	opts := &jpeg.Options{Quality: 80}
+	if err := jpeg.Encode(&buf, resized, opts); err != nil {
+		return nil, fmt.Errorf("failed to encode thumbnail: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}

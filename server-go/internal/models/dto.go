@@ -94,3 +94,9 @@ func PhotoToResponse(p *Photo) PhotoResponse {
 		UploadedAt:       p.UploadedAt,
 	}
 }
+
+// SetPasswordRequest is the request body for setting a user's password
+// @Description Request to set or update a user's password
+type SetPasswordRequest struct {
+	Password string `json:"password" example:"securePassword123"`
+}

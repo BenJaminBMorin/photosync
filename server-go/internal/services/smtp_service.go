@@ -144,6 +144,29 @@ func (s *SMTPService) sendEmail(ctx context.Context, to, subject, htmlBody strin
 	return smtp.SendMail(addr, auth, config.FromAddress, []string{to}, msg.Bytes())
 }
 
+// SendPasswordResetEmail sends a password reset email with a 6-digit verification code
+func (s *SMTPService) SendPasswordResetEmail(ctx context.Context, toEmail, toName, code string) error {
+	data := PasswordResetEmailData{
+		Name: toName,
+		Code: code,
+	}
+
+	// Parse template
+	tmpl, err := template.New("passwordReset").Parse(passwordResetEmailTemplate)
+	if err != nil {
+		return fmt.Errorf("failed to parse password reset email template: %w", err)
+	}
+
+	// Execute template
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute password reset email template: %w", err)
+	}
+
+	subject := "🔐 PhotoSync Password Reset"
+	return s.sendEmail(ctx, toEmail, subject, body.String())
+}
+
 // sendWithTLS sends email using STARTTLS
 func (s *SMTPService) sendWithTLS(addr string, auth smtp.Auth, config *models.SMTPConfig, from, to string, message []byte) error {
 	// Create TLS config

@@ -377,3 +377,113 @@ type InviteEmailData struct {
 	InviteLink string
 	InviteCode string
 }
+
+const passwordResetEmailTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset - PhotoSync</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .content p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .code-box {
+            background: #f0f0f0;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Password Reset</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{.Name}}</strong>,</p>
+            <p>You requested a password reset for your PhotoSync account. Use the verification code below to reset your password:</p>
+            <div class="code-box">
+                <div class="code">{{.Code}}</div>
+            </div>
+            <div class="warning-box">
+                <strong>⚠️ Security Notice</strong>
+                <p>This code expires in <strong>15 minutes</strong>. If you didn't request this password reset, please ignore this email.</p>
+            </div>
+            <p>Enter this code in the PhotoSync app to reset your password.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from PhotoSync</p>
+            <p>Do not reply to this email</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+// PasswordResetEmailData is the template data
+type PasswordResetEmailData struct {
+	Name string
+	Code string
+}

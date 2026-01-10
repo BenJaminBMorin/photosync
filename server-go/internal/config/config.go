@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // Config holds all application configuration
@@ -13,6 +14,14 @@ type Config struct {
 	DatabaseURL   string       `json:"databaseUrl"`
 	PhotoStorage  PhotoStorage `json:"photoStorage"`
 	Security      Security     `json:"security"`
+	FileScanner   FileScanner  `json:"fileScanner"`
+}
+
+// FileScanner configuration for background file integrity scanning
+type FileScanner struct {
+	Enabled       bool `json:"enabled"`
+	IntervalHours int  `json:"intervalHours"`
+	AutoStart     bool `json:"autoStart"`
 }
 
 // UsePostgres returns true if PostgreSQL should be used
@@ -49,6 +58,11 @@ func defaultConfig() *Config {
 			APIKey:       "CHANGE_THIS_TO_A_SECURE_API_KEY_AT_LEAST_32_CHARS",
 			APIKeyHeader: "X-API-Key",
 		},
+		FileScanner: FileScanner{
+			Enabled:       true,
+			IntervalHours: 24,
+			AutoStart:     false,
+		},
 	}
 }
 
@@ -83,6 +97,19 @@ func Load() (*Config, error) {
 	}
 	if apiKey := os.Getenv("API_KEY"); apiKey != "" {
 		cfg.Security.APIKey = apiKey
+	}
+
+	// File scanner configuration
+	if enabled := os.Getenv("FILE_SCANNER_ENABLED"); enabled != "" {
+		cfg.FileScanner.Enabled = enabled == "true" || enabled == "1"
+	}
+	if interval := os.Getenv("FILE_SCANNER_INTERVAL_HOURS"); interval != "" {
+		if hours, err := strconv.Atoi(interval); err == nil && hours > 0 {
+			cfg.FileScanner.IntervalHours = hours
+		}
+	}
+	if autoStart := os.Getenv("FILE_SCANNER_AUTO_START"); autoStart != "" {
+		cfg.FileScanner.AutoStart = autoStart == "true" || autoStart == "1"
 	}
 
 	// Ensure photo storage directory exists

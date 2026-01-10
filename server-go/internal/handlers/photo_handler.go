@@ -222,11 +222,30 @@ func (h *PhotoHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Embed photo ID in file metadata for cross-referencing (non-blocking)
+	// Embed full metadata in file for cross-referencing and integrity (non-blocking)
 	if h.metadataService != nil {
+		// Capture values for goroutine
+		photoID := photo.ID
+		userID := ""
+		if photo.UserID != nil {
+			userID = *photo.UserID
+		}
+		originDeviceID := ""
+		if photo.OriginDeviceID != nil {
+			originDeviceID = *photo.OriginDeviceID
+		}
+		uploadedAt := photo.UploadedAt
+
 		go func() {
-			if err := h.metadataService.EmbedPhotoID(storedPath, photo.ID); err != nil {
-				log.Printf("Warning: failed to embed metadata for %s: %v", photo.ID, err)
+			metadata := services.PhotoMetadata{
+				PhotoID:    photoID,
+				UserID:     userID,
+				DeviceID:   originDeviceID,
+				FileHash:   fileHash,
+				UploadedAt: uploadedAt,
+			}
+			if err := h.metadataService.EmbedFullMetadata(storedPath, metadata); err != nil {
+				log.Printf("Warning: failed to embed metadata for %s: %v", photoID, err)
 			}
 		}()
 	}
