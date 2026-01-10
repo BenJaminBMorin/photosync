@@ -45,6 +45,19 @@ struct HealthResponse: Codable {
     let timestamp: String
 }
 
+/// Server setup status (for first-time setup)
+struct SetupStatus: Codable {
+    let isComplete: Bool
+    let databaseConfigured: Bool
+    let firebaseConfigured: Bool
+    let adminCreated: Bool
+
+    /// Check if server needs initial setup via web UI
+    var needsWebSetup: Bool {
+        !isComplete || !adminCreated
+    }
+}
+
 /// Error response from server
 struct ErrorResponse: Codable {
     let error: String

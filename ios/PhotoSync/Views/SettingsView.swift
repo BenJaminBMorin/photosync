@@ -11,32 +11,30 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Server URL Section
+                // Server & Account Section - all authentication-related UI together
                 Section {
-                    TextField("Server URL", text: $viewModel.serverURL)
-                        .textContentType(.URL)
-                        .keyboardType(.URL)
-                        .autocapitalization(.none)
-                        .autocorrectionDisabled()
-                } header: {
-                    Text("Server")
-                } footer: {
-                    Text("Enter your PhotoSync server address (e.g., https://photos.example.com)")
-                }
+                    // Server URL input
+                    HStack {
+                        Image(systemName: "server.rack")
+                            .foregroundColor(.blue)
+                            .frame(width: 24)
+                        TextField("Server URL", text: $viewModel.serverURL)
+                            .textContentType(.URL)
+                            .keyboardType(.URL)
+                            .autocapitalization(.none)
+                            .autocorrectionDisabled()
+                    }
 
-                // Authentication Section
-                Section("Account") {
                     if viewModel.isConfigured {
                         // Signed in state
                         HStack {
                             Image(systemName: "person.circle.fill")
-                                .font(.title2)
                                 .foregroundColor(.green)
+                                .frame(width: 24)
                             VStack(alignment: .leading) {
-                                Text("Signed In")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
                                 Text(AppSettings.userEmail ?? "Unknown")
+                                    .font(.body)
+                                Text("Signed In")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -51,12 +49,14 @@ struct SettingsView: View {
                             }
                         } label: {
                             HStack {
+                                Image(systemName: "network")
+                                    .frame(width: 24)
                                 if viewModel.isTesting {
+                                    Text("Testing...")
+                                    Spacer()
                                     ProgressView()
                                         .scaleEffect(0.8)
-                                    Text("Testing...")
                                 } else {
-                                    Image(systemName: "network")
                                     Text("Test Connection")
                                 }
                             }
@@ -66,55 +66,117 @@ struct SettingsView: View {
                         if let result = viewModel.testResult {
                             testResultView(result)
                         }
-                    } else if !viewModel.serverURL.isEmpty {
-                        // Server URL set but not authenticated
+
+                        // Security options when signed in
+                        Button {
+                            showChangePassword = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "key.fill")
+                                    .foregroundColor(.blue)
+                                    .frame(width: 24)
+                                Text("Change Password")
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.gray)
+                                    .font(.caption)
+                            }
+                        }
+
+                        Button(role: .destructive) {
+                            showLogoutConfirm = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .frame(width: 24)
+                                Text("Sign Out")
+                            }
+                        }
+                    } else if !viewModel.serverURL.isEmpty && viewModel.needsWebSetup {
+                        // Server needs initial setup via web UI
                         HStack {
-                            Image(systemName: "person.circle")
-                                .font(.title2)
-                                .foregroundColor(.orange)
+                            Image(systemName: "wrench.and.screwdriver")
+                                .foregroundColor(.blue)
+                                .frame(width: 24)
                             VStack(alignment: .leading) {
-                                Text("Not Signed In")
+                                Text("Server Setup Required")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                Text("Sign in to sync photos")
+                                Text("Complete initial setup in web browser")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                         }
 
                         Button {
-                            showLogin = true
+                            if let url = URL(string: AppSettings.normalizedServerURL) {
+                                UIApplication.shared.open(url)
+                            }
                         } label: {
                             HStack {
-                                Image(systemName: "person.fill")
-                                Text("Sign In to Server")
+                                Image(systemName: "safari")
+                                    .frame(width: 24)
+                                Text("Open Server in Browser")
                                 Spacer()
-                                Image(systemName: "chevron.right")
+                                Image(systemName: "arrow.up.right.square")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else if !viewModel.serverURL.isEmpty {
+                        // Server URL set but not authenticated
+                        if viewModel.isCheckingSetup {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Checking server status...")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            HStack {
+                                Image(systemName: "person.circle")
+                                    .foregroundColor(.orange)
+                                    .frame(width: 24)
+                                VStack(alignment: .leading) {
+                                    Text("Not Signed In")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    Text("Sign in to sync photos")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+
+                            Button {
+                                showLogin = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "person.fill")
+                                        .frame(width: 24)
+                                    Text("Sign In to Server")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
                             }
                         }
                     } else {
                         // No server configured
                         HStack {
                             Image(systemName: "exclamationmark.circle")
-                                .font(.title2)
                                 .foregroundColor(.gray)
-                            VStack(alignment: .leading) {
-                                Text("No Server Configured")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                Text("Enter server URL above to get started")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+                                .frame(width: 24)
+                            Text("Enter server URL to get started")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                     }
-                }
 
-                // Advanced Configuration (manual API key)
-                Section {
-                    DisclosureGroup("Advanced Configuration", isExpanded: $showAdvancedConfig) {
+                    // Advanced Configuration (manual API key) - collapsed by default
+                    DisclosureGroup("Advanced", isExpanded: $showAdvancedConfig) {
                         HStack {
                             if showAPIKey {
                                 TextField("API Key", text: $viewModel.apiKey)
@@ -133,9 +195,15 @@ struct SettingsView: View {
                             .buttonStyle(.plain)
                         }
 
-                        Text("Only use this if you have a pre-generated API key. Otherwise, use Sign In above.")
+                        Text("Manual API key entry for advanced users")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                    }
+                } header: {
+                    Text("Server & Account")
+                } footer: {
+                    if viewModel.serverURL.isEmpty {
+                        Text("Enter your PhotoSync server address (e.g., https://photos.example.com)")
                     }
                 }
 
@@ -330,34 +398,6 @@ struct SettingsView: View {
                     }
                 }
 
-                if viewModel.isConfigured {
-                    Section("Security") {
-                        Button {
-                            showChangePassword = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "key.fill")
-                                    .foregroundColor(.blue)
-                                Text("Change Password")
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.gray)
-                                    .font(.caption)
-                            }
-                        }
-
-                        Button(role: .destructive) {
-                            showLogoutConfirm = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text("Sign Out")
-                            }
-                        }
-                    }
-                }
-
                 Section("Debugging") {
                     NavigationLink {
                         LogsView()
@@ -405,6 +445,25 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Are you sure you want to sign out? You'll need to log in again to sync photos.")
+            }
+            .task {
+                // Check setup status when view appears (if not authenticated)
+                if !viewModel.serverURL.isEmpty && !viewModel.isConfigured {
+                    await viewModel.checkSetupStatus()
+                }
+
+                // Fetch current user info if already configured
+                if viewModel.isConfigured {
+                    await viewModel.fetchCurrentUser()
+                }
+            }
+            .onChange(of: viewModel.serverURL) { _, newValue in
+                // Check setup status when server URL changes
+                if !newValue.isEmpty && !viewModel.isConfigured {
+                    Task {
+                        await viewModel.checkSetupStatus()
+                    }
+                }
             }
         }
     }

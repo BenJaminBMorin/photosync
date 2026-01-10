@@ -31,6 +31,11 @@ class SettingsViewModel: ObservableObject {
     @Published var syncStatus: SyncStatusResponse?
     @Published var isClaiming = false
 
+    // Setup status
+    @Published var isCheckingSetup = false
+    @Published var setupStatus: SetupStatus?
+    @Published var setupError: String?
+
     // Background processing
     @Published var lastBackgroundSync: Date?
     @Published var backgroundSyncCount: Int = 0
@@ -63,6 +68,48 @@ class SettingsViewModel: ObservableObject {
 
     var isConfigured: Bool {
         !serverURL.isEmpty && !apiKey.isEmpty
+    }
+
+    /// Returns true if the server needs initial setup via web UI
+    var needsWebSetup: Bool {
+        setupStatus?.needsWebSetup ?? false
+    }
+
+    /// Check the setup status of the server
+    func checkSetupStatus() async {
+        guard !serverURL.isEmpty else {
+            setupStatus = nil
+            setupError = nil
+            return
+        }
+
+        isCheckingSetup = true
+        setupError = nil
+
+        do {
+            setupStatus = try await APIService.shared.checkSetupStatus()
+            await Logger.shared.info("Setup status: isComplete=\(setupStatus?.isComplete ?? false), adminCreated=\(setupStatus?.adminCreated ?? false)")
+        } catch {
+            await Logger.shared.error("Failed to check setup status: \(error.localizedDescription)")
+            setupError = error.localizedDescription
+            setupStatus = nil
+        }
+
+        isCheckingSetup = false
+    }
+
+    /// Fetch and update the current user's email from the server
+    func fetchCurrentUser() async {
+        guard isConfigured else { return }
+
+        do {
+            let user = try await APIService.shared.getCurrentUser()
+            AppSettings.userEmail = user.email
+            await Logger.shared.info("Fetched current user: \(user.email)")
+        } catch {
+            await Logger.shared.error("Failed to fetch current user: \(error.localizedDescription)")
+            // Don't clear the email on error - keep any cached value
+        }
     }
 
     func testConnection() async {

@@ -22,6 +22,19 @@ func NewUserHandler(userPrefsRepo repository.UserPreferencesRepository) *UserHan
 	}
 }
 
+// GetCurrentUser returns the current authenticated user's information
+// GET /api/users/me
+func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	user := middleware.GetUserFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user.ToResponse())
+}
+
 // GetPreferences returns the current user's preferences
 // GET /api/users/me/preferences
 func (h *UserHandler) GetPreferences(w http.ResponseWriter, r *http.Request) {

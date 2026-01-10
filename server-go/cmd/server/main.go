@@ -454,6 +454,9 @@ func main() {
 		// Mobile authentication (API key auth required)
 		r.Post("/api/mobile/auth/refresh-key", mobileAuthHandler.RefreshAPIKey)
 
+		// Current user info (mobile)
+		r.Get("/api/users/me", userHandler.GetCurrentUser)
+
 		// Photo upload API (mobile)
 		r.Route("/api/photos", func(r chi.Router) {
 			r.Post("/upload", photoHandler.Upload)
@@ -492,7 +495,8 @@ func main() {
 		r.Get("/api/web/session", webAuthHandler.GetSession)
 		r.Post("/api/web/auth/logout", webAuthHandler.Logout)
 
-		// User preferences routes
+		// User routes
+		r.Get("/api/users/me", userHandler.GetCurrentUser)
 		r.Get("/api/users/me/preferences", userHandler.GetPreferences)
 		r.Put("/api/users/me/preferences", userHandler.UpdatePreferences)
 

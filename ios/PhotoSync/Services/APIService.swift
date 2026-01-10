@@ -28,6 +28,36 @@ actor APIService {
         return try JSONDecoder().decode(HealthResponse.self, from: data)
     }
 
+    // MARK: - Setup Status
+
+    /// Check if server needs initial setup (for first-time admin configuration)
+    func checkSetupStatus() async throws -> SetupStatus {
+        let url = try buildURL(path: "/api/setup/status")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        // Setup status check doesn't require API key
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        return try JSONDecoder().decode(SetupStatus.self, from: data)
+    }
+
+    // MARK: - Current User
+
+    /// Get current user information
+    func getCurrentUser() async throws -> UserResponse {
+        let url = try buildURL(path: "/api/users/me")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        addAPIKeyHeader(to: &request)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response)
+
+        return try JSONDecoder().decode(UserResponse.self, from: data)
+    }
+
     // MARK: - Photo Upload
 
     /// Upload a single photo
