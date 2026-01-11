@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/photosync/server/internal/middleware"
@@ -88,8 +89,10 @@ func (h *MobileAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authenticate user
+	log.Printf("[LOGIN] Attempting login for email: %s", req.Email)
 	user, err := h.mobileAuthService.LoginWithPassword(r.Context(), req.Email, req.Password)
 	if err != nil {
+		log.Printf("[LOGIN] Auth error for %s: %v", req.Email, err)
 		switch err {
 		case models.ErrUserNotFound, models.ErrInvalidPassword:
 			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
@@ -98,14 +101,17 @@ func (h *MobileAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Password not set for this user", http.StatusBadRequest)
 			return
 		default:
+			log.Printf("[LOGIN] Internal error during auth: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 	}
+	log.Printf("[LOGIN] User authenticated: %s (ID: %s)", user.Email, user.ID)
 
 	// Check if device already exists with this FCM token
 	device, err := h.deviceRepo.GetByFCMToken(r.Context(), req.FCMToken)
 	if err != nil {
+		log.Printf("[LOGIN] Error getting device by FCM token: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -113,18 +119,23 @@ func (h *MobileAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Update or create device
 	if device != nil {
 		// Device exists, update it
+		log.Printf("[LOGIN] Updating existing device: %s", device.ID)
 		if err := h.deviceRepo.UpdateToken(r.Context(), device.ID, req.FCMToken); err != nil {
+			log.Printf("[LOGIN] Error updating device token: %v", err)
 			http.Error(w, "Failed to update device", http.StatusInternalServerError)
 			return
 		}
 	} else {
 		// Create new device
+		log.Printf("[LOGIN] Creating new device for user: %s", user.ID)
 		device, err = models.NewDevice(user.ID, req.DeviceName, req.Platform, req.FCMToken)
 		if err != nil {
+			log.Printf("[LOGIN] Error creating device model: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		if err := h.deviceRepo.Add(r.Context(), device); err != nil {
+			log.Printf("[LOGIN] Error adding device to DB: %v", err)
 			http.Error(w, "Failed to register device", http.StatusInternalServerError)
 			return
 		}
@@ -133,6 +144,7 @@ func (h *MobileAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Generate new API key
 	newAPIKey, err := models.GenerateAPIKey()
 	if err != nil {
+		log.Printf("[LOGIN] Error generating API key: %v", err)
 		http.Error(w, "Failed to generate API key", http.StatusInternalServerError)
 		return
 	}
@@ -142,9 +154,11 @@ func (h *MobileAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Update user with new API key hash
 	if err := h.userRepo.UpdateAPIKeyHash(r.Context(), user.ID, apiKeyHash); err != nil {
+		log.Printf("[LOGIN] Error updating API key hash: %v", err)
 		http.Error(w, "Failed to save API key", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("[LOGIN] Login successful for user: %s", user.Email)
 
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
