@@ -42,6 +42,7 @@ func createPostgresTables(db *sql.DB) error {
 		display_name TEXT NOT NULL,
 		api_key TEXT UNIQUE NOT NULL,
 		api_key_hash TEXT NOT NULL,
+		password_hash TEXT,
 		is_admin BOOLEAN NOT NULL DEFAULT FALSE,
 		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 		is_active BOOLEAN NOT NULL DEFAULT TRUE
@@ -49,6 +50,7 @@ func createPostgresTables(db *sql.DB) error {
 
 	CREATE INDEX IF NOT EXISTS idx_users_api_key_hash ON users(api_key_hash);
 	CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+	CREATE INDEX IF NOT EXISTS idx_users_password_hash ON users(password_hash);
 
 	-- Devices table (for push notifications)
 	CREATE TABLE IF NOT EXISTS devices (
@@ -441,6 +443,22 @@ func runPostgresMigrations(db *sql.DB) error {
 
 	// Add theme_source column to collections table (for theme inheritance)
 	_, err = db.Exec(`ALTER TABLE collections ADD COLUMN IF NOT EXISTS theme_source TEXT NOT NULL DEFAULT 'explicit'`)
+	if err != nil {
+		return err
+	}
+
+	// Add password_hash column to users table (for mobile auth)
+	_, err = db.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT`)
+	if err != nil {
+		return err
+	}
+
+	// Add request_type and new_password_hash columns to auth_requests table (for password reset)
+	_, err = db.Exec(`ALTER TABLE auth_requests ADD COLUMN IF NOT EXISTS request_type TEXT NOT NULL DEFAULT 'web_login'`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`ALTER TABLE auth_requests ADD COLUMN IF NOT EXISTS new_password_hash TEXT`)
 	if err != nil {
 		return err
 	}

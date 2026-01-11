@@ -102,8 +102,7 @@ func (h *MobileAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			log.Printf("[LOGIN] Internal error during auth: %v", err)
-			// Include error details temporarily for debugging
-			http.Error(w, "Login error: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 	}
