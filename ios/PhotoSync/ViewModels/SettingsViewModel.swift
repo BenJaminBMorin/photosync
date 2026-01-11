@@ -66,6 +66,17 @@ class SettingsViewModel: ObservableObject {
         loadBackgroundSyncStats()
     }
 
+    /// Refresh all settings from AppSettings (call after external changes like login)
+    func refreshFromAppSettings() {
+        self.serverURL = AppSettings.serverURL
+        self.apiKey = AppSettings.apiKey
+        self.wifiOnly = AppSettings.wifiOnly
+        self.autoSync = AppSettings.autoSync
+        self.showServerOnlyPhotos = AppSettings.showServerOnlyPhotos
+        self.autoCleanupSyncedPhotos = AppSettings.autoCleanupSyncedPhotos
+        self.autoCleanupAfterDays = AppSettings.autoCleanupAfterDays
+    }
+
     var isConfigured: Bool {
         !serverURL.isEmpty && !apiKey.isEmpty
     }

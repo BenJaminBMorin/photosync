@@ -391,7 +391,10 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .sheet(isPresented: $showLogin) {
+            .sheet(isPresented: $showLogin, onDismiss: {
+                // Refresh ViewModel after login sheet dismisses
+                viewModel.refreshFromAppSettings()
+            }) {
                 LoginView()
             }
             .sheet(isPresented: $showChangePassword) {

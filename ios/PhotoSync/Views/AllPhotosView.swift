@@ -122,7 +122,14 @@ struct AllPhotosView: View {
             .padding(.top)
         }
         .padding()
-        .sheet(isPresented: $showLogin) {
+        .sheet(isPresented: $showLogin, onDismiss: {
+            // Reload photos after login
+            if AppSettings.isConfigured {
+                Task {
+                    await viewModel.loadAllPhotos()
+                }
+            }
+        }) {
             LoginView()
         }
     }
