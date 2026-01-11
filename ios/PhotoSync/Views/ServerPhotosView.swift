@@ -11,11 +11,14 @@ struct ServerPhotosView: View {
     @State private var showCreateCollectionDialog = false
     @State private var newCollectionName = ""
     @State private var showDateFilter = false
+    @State private var showLogin = false
 
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.isLoading {
+                if !AppSettings.isConfigured {
+                    notSignedInView
+                } else if viewModel.isLoading {
                     ProgressView("Loading server photos...")
                 } else if viewModel.serverPhotos.isEmpty {
                     emptyStateView
@@ -88,8 +91,10 @@ struct ServerPhotosView: View {
                     }
                 }
             }
-            .task {
-                await viewModel.loadServerPhotos()
+            .task(id: AppSettings.isConfigured) {
+                if AppSettings.isConfigured {
+                    await viewModel.loadServerPhotos()
+                }
             }
             .alert("Restore Photo", isPresented: $showRestoreConfirmation, presenting: selectedPhoto) { photo in
                 Button("Cancel", role: .cancel) {
@@ -256,6 +261,37 @@ struct ServerPhotosView: View {
                 .padding(.horizontal)
         }
         .padding()
+    }
+
+    private var notSignedInView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "cloud.fill")
+                .font(.system(size: 64))
+                .foregroundColor(.blue)
+
+            Text("Sign In to View Cloud Photos")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            Text("Connect to your PhotoSync server to see photos stored in the cloud")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            Button {
+                showLogin = true
+            } label: {
+                Label("Sign In", systemImage: "person.fill")
+                    .font(.headline)
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top)
+        }
+        .padding()
+        .sheet(isPresented: $showLogin) {
+            LoginView()
+        }
     }
 
     private var photoGridView: some View {

@@ -94,11 +94,31 @@ struct AppSettings {
         apiKey.isEmpty
     }
 
+    /// Timestamp of last successful authentication (to prevent race conditions)
+    private static let lastAuthTimeKey = "photosync_last_auth_time"
+
+    static var lastAuthenticatedAt: Date? {
+        get { UserDefaults.standard.object(forKey: lastAuthTimeKey) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: lastAuthTimeKey) }
+    }
+
+    /// Record that authentication just happened
+    static func recordAuthentication() {
+        lastAuthenticatedAt = Date()
+    }
+
+    /// Check if we recently authenticated (within last 5 seconds)
+    static var recentlyAuthenticated: Bool {
+        guard let lastAuth = lastAuthenticatedAt else { return false }
+        return Date().timeIntervalSince(lastAuth) < 5.0
+    }
+
     /// Clear all authentication data (used for sign out)
     static func clearAuthentication() {
         apiKey = ""
         deviceId = nil
         userEmail = nil
+        lastAuthenticatedAt = nil
     }
 
     /// Normalized server URL (removes trailing slash)

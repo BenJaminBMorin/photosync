@@ -739,16 +739,28 @@ actor APIService {
         case 200...299:
             return
         case 401:
-            // Post notification that authentication is required
+            // Only notify about auth required if we thought we were authenticated
+            // and we didn't just authenticate (to avoid race conditions with stale requests)
             Task { @MainActor in
-                // Clear invalid credentials
-                AppSettings.clearAuthentication()
+                if AppSettings.recentlyAuthenticated {
+                    // Just logged in - this is likely a stale request, ignore
+                    Task {
+                        await Logger.shared.info("API returned 401 - recently authenticated, ignoring stale request")
+                    }
+                } else if AppSettings.isConfigured {
+                    // We have credentials but they're invalid - clear them
+                    AppSettings.clearAuthentication()
 
-                // Notify app that re-authentication is needed
-                NotificationCenter.default.post(name: .authenticationRequired, object: nil)
+                    // Notify app that re-authentication is needed
+                    NotificationCenter.default.post(name: .authenticationRequired, object: nil)
 
-                Task {
-                    await Logger.shared.warning("API returned 401 - authentication required")
+                    Task {
+                        await Logger.shared.warning("API returned 401 - authentication required, credentials cleared")
+                    }
+                } else {
+                    Task {
+                        await Logger.shared.info("API returned 401 - not configured, ignoring")
+                    }
                 }
             }
             throw APIError.unauthorized

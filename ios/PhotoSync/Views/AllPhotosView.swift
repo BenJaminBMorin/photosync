@@ -3,11 +3,14 @@ import SwiftUI
 struct AllPhotosView: View {
     @StateObject private var viewModel = AllPhotosViewModel()
     @State private var showError = false
+    @State private var showLogin = false
 
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.isLoading && viewModel.photos.isEmpty {
+                if !AppSettings.isConfigured {
+                    notSignedInView
+                } else if viewModel.isLoading && viewModel.photos.isEmpty {
                     ProgressView("Loading all photos...")
                 } else if viewModel.photos.isEmpty {
                     emptyStateView
@@ -58,7 +61,9 @@ struct AllPhotosView: View {
                 }
             }
             .task {
-                await viewModel.loadAllPhotos()
+                if AppSettings.isConfigured {
+                    await viewModel.loadAllPhotos()
+                }
             }
             .alert("Error", isPresented: .constant(viewModel.error != nil)) {
                 Button("OK") {
@@ -89,6 +94,37 @@ struct AllPhotosView: View {
                 .padding(.horizontal)
         }
         .padding()
+    }
+
+    private var notSignedInView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "photo.on.rectangle.angled")
+                .font(.system(size: 64))
+                .foregroundColor(.blue)
+
+            Text("Sign In to View All Photos")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            Text("Connect to your PhotoSync server to see photos from both your device and the cloud")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            Button {
+                showLogin = true
+            } label: {
+                Label("Sign In", systemImage: "person.fill")
+                    .font(.headline)
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top)
+        }
+        .padding()
+        .sheet(isPresented: $showLogin) {
+            LoginView()
+        }
     }
 
     private var photoGridView: some View {

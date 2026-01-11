@@ -157,6 +157,9 @@ struct LoginView: View {
                     AppSettings.deviceId = response.device.id
                     AppSettings.userEmail = response.user.email
 
+                    // Record authentication time (to prevent race condition with stale 401s)
+                    AppSettings.recordAuthentication()
+
                     // Clear form and dismiss
                     email = ""
                     password = ""

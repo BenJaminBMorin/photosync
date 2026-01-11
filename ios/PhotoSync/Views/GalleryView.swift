@@ -21,9 +21,8 @@ struct GalleryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                if !viewModel.isConfigured {
-                    notConfiguredView
-                } else if viewModel.authorizationStatus == .notDetermined {
+                // Always show local photos regardless of cloud configuration
+                if viewModel.authorizationStatus == .notDetermined {
                     requestAccessView
                 } else if viewModel.authorizationStatus == .denied || viewModel.authorizationStatus == .restricted {
                     accessDeniedView
