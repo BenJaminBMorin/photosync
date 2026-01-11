@@ -115,12 +115,12 @@ func (r *UserRepository) GetCount(ctx context.Context) (int, error) {
 }
 
 func (r *UserRepository) Add(ctx context.Context, user *models.User) error {
-	query := `INSERT INTO users (id, email, display_name, api_key, api_key_hash, is_admin, created_at, is_active)
-			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO users (id, email, display_name, api_key, api_key_hash, password_hash, is_admin, created_at, is_active)
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	_, err := r.db.ExecContext(ctx, query,
 		user.ID, user.Email, user.DisplayName, user.APIKey, user.APIKeyHash,
-		user.IsAdmin, user.CreatedAt, user.IsActive,
+		user.PasswordHash, user.IsAdmin, user.CreatedAt, user.IsActive,
 	)
 	return err
 }
