@@ -5,6 +5,9 @@ ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ARG CONTAINER_BUILD_DATE=unknown
 
+# Enable automatic toolchain downloading for newer Go versions
+ENV GOTOOLCHAIN=auto
+
 # Install build dependencies including libvips for image processing and HEIC support
 RUN apk add --no-cache gcc g++ musl-dev git vips-dev pkgconfig
 
