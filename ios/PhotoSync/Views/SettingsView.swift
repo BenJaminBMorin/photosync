@@ -434,6 +434,9 @@ struct SettingsView: View {
     private func signOut() {
         AppSettings.clearAuthentication()
 
+        // Update ViewModel to reflect signed-out state
+        viewModel.apiKey = ""
+
         Task {
             await Logger.shared.info("User signed out")
         }
