@@ -14,6 +14,8 @@ class AllPhotosViewModel: ObservableObject {
     private let serverPhotoService = ServerPhotoService.shared
     private let photoLibrary = PhotoLibraryService.shared
     private var thumbnailLoadingTasks: [String: Task<Void, Never>] = [:]
+    private var loadingTask: Task<Void, Never>?
+    private var isCancelled = false
 
     var displayedPhotos: [CombinedPhoto] {
         photos.sorted { $0.dateTaken > $1.dateTaken }
@@ -23,6 +25,7 @@ class AllPhotosViewModel: ObservableObject {
         await Logger.shared.info("Loading all photos (local + server)")
         isLoading = true
         error = nil
+        isCancelled = false
 
         var combinedPhotos: [CombinedPhoto] = []
 
@@ -30,6 +33,12 @@ class AllPhotosViewModel: ObservableObject {
             // Load local photos
             let localAssets = await photoLibrary.fetchAllPhotos()
             await Logger.shared.info("Found \(localAssets.count) local photos")
+
+            // Check for cancellation
+            if isCancelled {
+                isLoading = false
+                return
+            }
 
             for asset in localAssets {
                 let filename = getFilename(for: asset)
@@ -46,6 +55,12 @@ class AllPhotosViewModel: ObservableObject {
             var pageCount = 0
 
             repeat {
+                // Check for cancellation before each page
+                if isCancelled {
+                    isLoading = false
+                    return
+                }
+
                 let page = try await serverPhotoService.getAllServerPhotos(cursor: cursor, limit: 100)
 
                 for serverPhoto in page.photos {
@@ -63,6 +78,12 @@ class AllPhotosViewModel: ObservableObject {
                 await Logger.shared.info("Loaded page \(pageCount): \(page.photos.count) server photos")
             } while cursor != nil
 
+            // Check for cancellation before final processing
+            if isCancelled {
+                isLoading = false
+                return
+            }
+
             // Remove duplicates (photos that exist both locally and on server)
             // Use a simple heuristic: if filename and date are very close, consider it a duplicate
             let uniquePhotos = removeDuplicates(from: combinedPhotos)
@@ -71,11 +92,21 @@ class AllPhotosViewModel: ObservableObject {
             await Logger.shared.info("Total unique photos: \(photos.count)")
 
         } catch {
-            await Logger.shared.error("Failed to load all photos: \(error.localizedDescription)")
-            self.error = "Failed to load photos: \(error.localizedDescription)"
+            // Don't report errors if cancelled
+            if !isCancelled {
+                await Logger.shared.error("Failed to load all photos: \(error.localizedDescription)")
+                self.error = "Failed to load photos: \(error.localizedDescription)"
+            }
         }
 
         isLoading = false
+    }
+
+    func cancelLoading() {
+        isCancelled = true
+        isLoading = false
+        loadingTask?.cancel()
+        loadingTask = nil
     }
 
     func loadThumbnailIfNeeded(for photo: CombinedPhoto) {

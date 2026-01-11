@@ -23,6 +23,7 @@ class SettingsViewModel: ObservableObject {
     @Published var autoCleanupAfterDays: Int {
         didSet { AppSettings.autoCleanupAfterDays = autoCleanupAfterDays }
     }
+    @Published var userEmail: String?
     @Published var isTesting = false
     @Published var testResult: TestResult?
     @Published var isResyncing = false
@@ -61,6 +62,7 @@ class SettingsViewModel: ObservableObject {
         self.showServerOnlyPhotos = AppSettings.showServerOnlyPhotos
         self.autoCleanupSyncedPhotos = AppSettings.autoCleanupSyncedPhotos
         self.autoCleanupAfterDays = AppSettings.autoCleanupAfterDays
+        self.userEmail = AppSettings.userEmail
 
         // Load background sync stats
         loadBackgroundSyncStats()
@@ -75,6 +77,7 @@ class SettingsViewModel: ObservableObject {
         self.showServerOnlyPhotos = AppSettings.showServerOnlyPhotos
         self.autoCleanupSyncedPhotos = AppSettings.autoCleanupSyncedPhotos
         self.autoCleanupAfterDays = AppSettings.autoCleanupAfterDays
+        self.userEmail = AppSettings.userEmail
     }
 
     var isConfigured: Bool {

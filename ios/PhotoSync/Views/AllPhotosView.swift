@@ -4,14 +4,15 @@ struct AllPhotosView: View {
     @StateObject private var viewModel = AllPhotosViewModel()
     @State private var showError = false
     @State private var showLogin = false
+    @State private var isConfigured = AppSettings.isConfigured
 
     var body: some View {
         NavigationStack {
             ZStack {
-                if !AppSettings.isConfigured {
+                if !isConfigured {
                     notSignedInView
                 } else if viewModel.isLoading && viewModel.photos.isEmpty {
-                    ProgressView("Loading all photos...")
+                    loadingView
                 } else if viewModel.photos.isEmpty {
                     emptyStateView
                 } else {
@@ -61,9 +62,18 @@ struct AllPhotosView: View {
                 }
             }
             .task {
-                if AppSettings.isConfigured {
+                if isConfigured {
                     await viewModel.loadAllPhotos()
                 }
+            }
+            .onAppear {
+                // Refresh config state when view appears
+                isConfigured = AppSettings.isConfigured
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .authenticationRequired)) { _ in
+                // Authentication was cleared - update state
+                isConfigured = false
+                viewModel.cancelLoading()
             }
             .alert("Error", isPresented: .constant(viewModel.error != nil)) {
                 Button("OK") {
@@ -74,6 +84,23 @@ struct AllPhotosView: View {
                     Text(error)
                 }
             }
+        }
+    }
+
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.5)
+
+            Text("Loading all photos...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            Button("Cancel") {
+                viewModel.cancelLoading()
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 8)
         }
     }
 

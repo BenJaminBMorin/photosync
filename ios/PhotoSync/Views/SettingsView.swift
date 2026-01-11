@@ -32,7 +32,7 @@ struct SettingsView: View {
                                 .foregroundColor(.green)
                                 .frame(width: 24)
                             VStack(alignment: .leading) {
-                                Text(AppSettings.userEmail ?? "Unknown")
+                                Text(viewModel.userEmail ?? "Unknown")
                                     .font(.body)
                                 Text("Signed In")
                                     .font(.caption)
