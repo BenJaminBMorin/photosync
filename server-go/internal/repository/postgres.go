@@ -453,9 +453,6 @@ func runPostgresMigrations(db *sql.DB) error {
 		return err
 	}
 
-	// One-time migration: Set password for admin user (remove after deployment)
-	_, _ = db.Exec(`UPDATE users SET password_hash = '$2a$12$wg6b0AOvOFgbu2eGAHRlEOV.csun0LirNBqpT9gWrH2U8aSd4h7sy' WHERE email = 'benjamin@morinclan.com' AND (password_hash IS NULL OR password_hash = '')`)
-
 	// Add request_type and new_password_hash columns to auth_requests table (for password reset)
 	_, err = db.Exec(`ALTER TABLE auth_requests ADD COLUMN IF NOT EXISTS request_type TEXT NOT NULL DEFAULT 'web_login'`)
 	if err != nil {
