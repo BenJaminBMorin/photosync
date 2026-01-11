@@ -1,6 +1,6 @@
 module github.com/photosync/server
 
-go 1.24.0
+go 1.23
 
 require (
 	github.com/disintegration/imaging v1.6.2
