@@ -224,7 +224,9 @@ struct LoginRequest: Codable {
 struct UserResponse: Codable {
     let id: String
     let email: String
-    let name: String?
+    let displayName: String?
+    let isAdmin: Bool?
+    let createdAt: String?
     let isActive: Bool
 }
 

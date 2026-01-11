@@ -79,6 +79,68 @@ enum KeychainService {
         return getAPIKey() != nil
     }
 
+    // MARK: - Login Password Storage
+
+    private static let loginPasswordAccount = "loginPassword"
+
+    /// Store the login password securely in the Keychain
+    static func setLoginPassword(_ password: String) throws {
+        guard let data = password.data(using: .utf8) else {
+            throw KeychainError.encodingError
+        }
+
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: loginPasswordAccount,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+
+        // First try to delete any existing item
+        SecItemDelete(query as CFDictionary)
+
+        // Add the new item
+        let status = SecItemAdd(query as CFDictionary, nil)
+
+        guard status == errSecSuccess else {
+            throw KeychainError.unexpectedStatus(status)
+        }
+    }
+
+    /// Retrieve the login password from the Keychain
+    static func getLoginPassword() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: loginPasswordAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let password = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+
+        return password
+    }
+
+    /// Delete the login password from the Keychain
+    static func deleteLoginPassword() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: loginPasswordAccount
+        ]
+
+        SecItemDelete(query as CFDictionary)
+    }
+
     // MARK: - Migration
 
     /// Migrate API key from UserDefaults to Keychain (one-time migration)

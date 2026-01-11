@@ -4,10 +4,14 @@ struct LoginView: View {
     @Environment(\.dismiss) var dismiss
     @State private var email = ""
     @State private var password = ""
+    @State private var rememberMe = true
     @State private var isLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var showPasswordReset = false
+
+    private static let savedEmailKey = "savedLoginEmail"
+    private static let rememberMeKey = "rememberLoginCredentials"
 
     var isValidForm: Bool {
         !email.isEmpty && !password.isEmpty && email.contains("@")
@@ -68,6 +72,13 @@ struct LoginView: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
                     }
+
+                    // Remember Me toggle
+                    Toggle(isOn: $rememberMe) {
+                        Label("Remember Me", systemImage: "checkmark.circle")
+                            .font(.subheadline)
+                    }
+                    .tint(.blue)
                 }
                 .padding()
 
@@ -131,6 +142,41 @@ struct LoginView: View {
             .sheet(isPresented: $showPasswordReset) {
                 PasswordResetView()
             }
+            .onAppear {
+                loadSavedCredentials()
+            }
+        }
+    }
+
+    private func loadSavedCredentials() {
+        // Load remember me preference
+        rememberMe = UserDefaults.standard.bool(forKey: Self.rememberMeKey)
+
+        // If remember me was enabled, load saved credentials
+        if rememberMe || UserDefaults.standard.object(forKey: Self.rememberMeKey) == nil {
+            // Default to true if never set
+            rememberMe = true
+
+            if let savedEmail = UserDefaults.standard.string(forKey: Self.savedEmailKey) {
+                email = savedEmail
+            }
+
+            if let savedPassword = KeychainService.getLoginPassword() {
+                password = savedPassword
+            }
+        }
+    }
+
+    private func saveCredentials() {
+        UserDefaults.standard.set(rememberMe, forKey: Self.rememberMeKey)
+
+        if rememberMe {
+            UserDefaults.standard.set(email, forKey: Self.savedEmailKey)
+            try? KeychainService.setLoginPassword(password)
+        } else {
+            // Clear saved credentials if remember me is off
+            UserDefaults.standard.removeObject(forKey: Self.savedEmailKey)
+            KeychainService.deleteLoginPassword()
         }
     }
 
@@ -160,11 +206,11 @@ struct LoginView: View {
                     // Record authentication time (to prevent race condition with stale 401s)
                     AppSettings.recordAuthentication()
 
-                    // Clear form and dismiss
-                    email = ""
-                    password = ""
-                    isLoading = false
+                    // Save credentials if remember me is enabled
+                    saveCredentials()
 
+                    // Clear form and dismiss
+                    isLoading = false
                     dismiss()
                 }
 
